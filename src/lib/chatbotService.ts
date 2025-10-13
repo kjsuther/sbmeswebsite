@@ -24,9 +24,12 @@ export const searchSimilarChunks = async (query: string, limit: number = MAX_CON
         .limit(limit);
 
       if (fallbackError) throw fallbackError;
+      console.log('Using fallback data, first chunk:', fallbackData?.[0]);
       return fallbackData || [];
     }
 
+    console.log('Database returned chunks:', data?.length);
+    console.log('First chunk from DB:', data?.[0]);
     return data || [];
   } catch (error) {
     console.error('Error in searchSimilarChunks:', error);
@@ -156,13 +159,22 @@ ${context || 'No relevant context found.'}`;
 
   const assistantResponse = await generateChatResponse(messages, onStream);
 
-  const sources = relevantChunks.map(chunk => ({
-    page: chunk.source_page,
-    section: chunk.source_section,
-    relevance: 0.9,
-    document_id: chunk.uploaded_document_id,
-    document_name: chunk.document_name,
-  }));
+  const sources = relevantChunks.map(chunk => {
+    console.log('Chunk data:', {
+      uploaded_document_id: chunk.uploaded_document_id,
+      document_name: chunk.document_name,
+      source_page: chunk.source_page,
+    });
+    return {
+      page: chunk.source_page,
+      section: chunk.source_section,
+      relevance: 0.9,
+      document_id: chunk.uploaded_document_id,
+      document_name: chunk.document_name,
+    };
+  });
+
+  console.log('Final sources array:', JSON.stringify(sources, null, 2));
 
   const messageId = await saveMessage(conversationId, 'assistant', assistantResponse, sources);
 
