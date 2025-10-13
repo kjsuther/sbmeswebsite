@@ -361,7 +361,9 @@ const Chatbot: React.FC = () => {
                           <div className="mt-4 pt-4 border-t border-gray-300">
                             <p className="text-sm font-semibold text-gray-700 mb-2">Sources:</p>
                             <div className="space-y-2">
-                              {message.sources.map((source, idx) => (
+                              {message.sources.map((source, idx) => {
+                                console.log('Source:', JSON.stringify(source, null, 2));
+                                return (
                                 <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
                                   <span className="text-gray-400">•</span>
                                   <div className="flex-1">
@@ -389,7 +391,8 @@ const Chatbot: React.FC = () => {
                                     )}
                                   </div>
                                 </div>
-                              ))}
+                              );
+                              })}
                             </div>
                           </div>
                         )}
