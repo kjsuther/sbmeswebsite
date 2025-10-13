@@ -209,7 +209,7 @@ const Chatbot: React.FC = () => {
         .from('uploaded_documents')
         .select('storage_path')
         .eq('id', documentId)
-        .single();
+        .maybeSingle();
 
       if (docError || !docData?.storage_path) {
         console.error('Error fetching document:', docError);
