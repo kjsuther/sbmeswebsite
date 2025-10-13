@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Minnesota DHS Color System */
+  :root {
+    /* Primary Colors */
+    --mn-primary: #003865;
+    --mn-secondary: #78BE21;
+    --mn-white: #FFFFFF;
+    --mn-black: #000000;
+    
+    /* Neutral Colors */
+    --mn-neutral-blue: #A4BCC2;
+    --mn-neutral-yellow: #F5E1A4;
+    --mn-neutral-lightblue: #9BCBEB;
+    --mn-neutral-accent: #FFC845;
+    
+    /* Accent Colors */
+    --mn-accent-teal: #008EAA;
+    --mn-accent-darkteal: #0D5257;
+    --mn-accent-brown: #8D3F2B;
+    --mn-accent-purple: #5D295F;
+    --mn-accent-yellow: #FFC845;
+  }
+}
+
+@layer utilities {
+  /* Minnesota DHS Color Classes */
+  .bg-mn-primary { background-color: var(--mn-primary); }
+  .bg-mn-secondary { background-color: var(--mn-secondary); }
+  .bg-mn-white { background-color: var(--mn-white); }
+  .bg-mn-black { background-color: var(--mn-black); }
+  
+  .bg-mn-neutral-blue { background-color: var(--mn-neutral-blue); }
+  .bg-mn-neutral-yellow { background-color: var(--mn-neutral-yellow); }
+  .bg-mn-neutral-lightblue { background-color: var(--mn-neutral-lightblue); }
+  .bg-mn-neutral-accent { background-color: var(--mn-neutral-accent); }
+  
+  .bg-mn-accent-teal { background-color: var(--mn-accent-teal); }
+  .bg-mn-accent-darkteal { background-color: var(--mn-accent-darkteal); }
+  .bg-mn-accent-brown { background-color: var(--mn-accent-brown); }
+  .bg-mn-accent-purple { background-color: var(--mn-accent-purple); }
+  .bg-mn-accent-yellow { background-color: var(--mn-accent-yellow); }
+  
+  .text-mn-primary { color: var(--mn-primary); }
+  .text-mn-secondary { color: var(--mn-secondary); }
+  .text-mn-white { color: var(--mn-white); }
+  .text-mn-black { color: var(--mn-black); }
+  
+  .text-mn-neutral-blue { color: var(--mn-neutral-blue); }
+  .text-mn-neutral-yellow { color: var(--mn-neutral-yellow); }
+  .text-mn-neutral-lightblue { color: var(--mn-neutral-lightblue); }
+  .text-mn-neutral-accent { color: var(--mn-neutral-accent); }
+  
+  .text-mn-accent-teal { color: var(--mn-accent-teal); }
+  .text-mn-accent-darkteal { color: var(--mn-accent-darkteal); }
+  .text-mn-accent-brown { color: var(--mn-accent-brown); }
+  .text-mn-accent-purple { color: var(--mn-accent-purple); }
+  .text-mn-accent-yellow { color: var(--mn-accent-yellow); }
+  
+  .border-mn-primary { border-color: var(--mn-primary); }
+  .border-mn-secondary { border-color: var(--mn-secondary); }
+  .border-mn-accent-teal { border-color: var(--mn-accent-teal); }
+  .border-mn-accent-yellow { border-color: var(--mn-accent-yellow); }
+}
+
+/* Floating Draft Notice */
+.draft-notice {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: none;
+  background-color: rgba(255, 200, 69, 0.95);
+  border: 2px solid var(--mn-accent-yellow);
+  border-top: none;
+  border-left: none;
+  border-radius: 0 0 12px 0;
+  padding: 8px 16px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+  max-width: 300px;
+}
+
+.draft-notice-content {
+  text-align: center;
+  color: var(--mn-primary);
+  line-height: 1.3;
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for better accessibility */
+button:focus,
+a:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--mn-accent-teal);
+  outline-offset: 2px;
+}
+
+/* Ensure proper contrast for text */
+.text-white {
+  color: #ffffff;
+}
+
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.text-gray-700 {
+  color: #374151;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--mn-accent-teal);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mn-accent-darkteal);
+}
