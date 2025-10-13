@@ -334,7 +334,10 @@ const Chatbot: React.FC = () => {
                       {SUGGESTED_QUESTIONS.map((question, index) => (
                         <button
                           key={index}
-                          onClick={() => handleSendMessage(question)}
+                          onClick={() => {
+                            handleNewConversation();
+                            setTimeout(() => handleSendMessage(question), 100);
+                          }}
                           className="text-left text-sm text-mn-accent-teal hover:text-mn-primary bg-white border border-gray-200 rounded-lg p-3 transition-colors hover:shadow-md"
                         >
                           {question}
