@@ -144,6 +144,9 @@ const Chatbot: React.FC = () => {
 
       setCurrentConversationId(response.conversation_id);
 
+      console.log('=== API Response ===');
+      console.log('Sources from API:', JSON.stringify(response.sources, null, 2));
+
       setMessages(prev => {
         const updated = [...prev];
         const lastMessage = updated[updated.length - 1];
@@ -151,6 +154,7 @@ const Chatbot: React.FC = () => {
           lastMessage.id = response.message_id;
           lastMessage.content = response.message;
           lastMessage.sources = response.sources;
+          console.log('Sources set in message:', JSON.stringify(lastMessage.sources, null, 2));
         }
         return updated;
       });
