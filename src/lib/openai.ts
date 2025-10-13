@@ -1,21 +1,13 @@
 import OpenAI from 'openai';
 
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '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';
 
-if (!apiKey) {
-  console.warn('OpenAI API key not found. Chatbot functionality will be limited.');
-}
-
-export const openai = apiKey ? new OpenAI({
+export const openai = new OpenAI({
   apiKey,
   dangerouslyAllowBrowser: true,
-}) : null;
+});
 
 export const generateEmbedding = async (text: string): Promise<number[]> => {
-  if (!openai) {
-    throw new Error('OpenAI client not initialized');
-  }
-
   try {
     const response = await openai.embeddings.create({
       model: 'text-embedding-3-small',
@@ -33,10 +25,6 @@ export const generateChatResponse = async (
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
   onStream?: (chunk: string) => void
 ): Promise<string> => {
-  if (!openai) {
-    throw new Error('OpenAI client not initialized');
-  }
-
   try {
     if (onStream) {
       const stream = await openai.chat.completions.create({
@@ -72,10 +60,6 @@ export const generateChatResponse = async (
 };
 
 export const generateConversationTitle = async (firstMessage: string): Promise<string> => {
-  if (!openai) {
-    return 'New Conversation';
-  }
-
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
