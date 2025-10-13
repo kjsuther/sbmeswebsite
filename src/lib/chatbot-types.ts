@@ -6,6 +6,7 @@ export interface DocumentChunk {
   source_page: string;
   source_section?: string;
   document_name?: string;
+  uploaded_document_id?: string;
   chunk_index: number;
   created_at?: string;
   updated_at?: string;
@@ -28,6 +29,8 @@ export interface Message {
     page: string;
     section?: string;
     relevance: number;
+    document_id?: string;
+    document_name?: string;
   }>;
   feedback_rating?: 'positive' | 'negative';
   feedback_text?: string;
@@ -55,6 +58,8 @@ export interface ChatResponse {
     page: string;
     section?: string;
     relevance: number;
+    document_id?: string;
+    document_name?: string;
   }>;
   message_id: string;
 }

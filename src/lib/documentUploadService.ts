@@ -72,6 +72,23 @@ export const uploadDocument = async (
       };
     }
 
+    onProgress?.({ stage: 'validating', message: 'Uploading file to storage...' });
+
+    const timestamp = Date.now();
+    const safeFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const storagePath = `${timestamp}_${safeFilename}`;
+
+    const { error: storageError } = await supabase.storage
+      .from('documents')
+      .upload(storagePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (storageError) {
+      throw new Error(`Failed to upload file to storage: ${storageError.message}`);
+    }
+
     const { data: document, error: insertError } = await supabase
       .from('uploaded_documents')
       .insert({
@@ -79,6 +96,7 @@ export const uploadDocument = async (
         file_type: file.type || 'application/octet-stream',
         file_size: file.size,
         content_hash: contentHash,
+        storage_path: storagePath,
         processing_status: 'processing',
         uploaded_by: 'admin',
       })
@@ -86,6 +104,7 @@ export const uploadDocument = async (
       .single();
 
     if (insertError || !document) {
+      await supabase.storage.from('documents').remove([storagePath]);
       throw new Error('Failed to create document record');
     }
 
@@ -185,10 +204,20 @@ export const getUploadedDocuments = async (): Promise<UploadedDocument[]> => {
 
 export const deleteDocument = async (documentId: string): Promise<{ success: boolean; error?: string }> => {
   try {
+    const { data: document } = await supabase
+      .from('uploaded_documents')
+      .select('storage_path')
+      .eq('id', documentId)
+      .single();
+
     const { error } = await supabase.from('uploaded_documents').delete().eq('id', documentId);
 
     if (error) {
       throw error;
+    }
+
+    if (document?.storage_path) {
+      await supabase.storage.from('documents').remove([document.storage_path]);
     }
 
     return { success: true };

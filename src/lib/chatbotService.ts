@@ -160,6 +160,8 @@ ${context || 'No relevant context found.'}`;
     page: chunk.source_page,
     section: chunk.source_section,
     relevance: 0.9,
+    document_id: chunk.uploaded_document_id,
+    document_name: chunk.document_name,
   }));
 
   const messageId = await saveMessage(conversationId, 'assistant', assistantResponse, sources);

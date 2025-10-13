@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, ThumbsUp, ThumbsDown, Trash2, Copy, Check, Plus } from 'lucide-react';
+import { MessageCircle, Send, ThumbsUp, ThumbsDown, Trash2, Copy, Check, Plus, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import { Message, Conversation } from '../lib/chatbot-types';
@@ -10,6 +10,7 @@ import {
   deleteConversation,
   submitFeedback
 } from '../lib/chatbotService';
+import { supabase } from '../lib/supabase';
 
 const SUGGESTED_QUESTIONS = [
   "What is the Great Bake Off?",
@@ -202,6 +203,44 @@ const Chatbot: React.FC = () => {
     }
   };
 
+  const handleDownloadDocument = async (documentId: string, documentName: string) => {
+    try {
+      const { data: docData, error: docError } = await supabase
+        .from('uploaded_documents')
+        .select('storage_path')
+        .eq('id', documentId)
+        .single();
+
+      if (docError || !docData?.storage_path) {
+        console.error('Error fetching document:', docError);
+        alert('Unable to download document. The file may not be available.');
+        return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(docData.storage_path);
+
+      if (error) {
+        console.error('Error downloading document:', error);
+        alert('Unable to download document.');
+        return;
+      }
+
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = documentName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      alert('An error occurred while downloading the document.');
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen">
       <section className="bg-mn-primary text-white py-12">
@@ -318,16 +357,34 @@ const Chatbot: React.FC = () => {
                         {message.sources && message.sources.length > 0 && (
                           <div className="mt-4 pt-4 border-t border-gray-300">
                             <p className="text-sm font-semibold text-gray-700 mb-2">Sources:</p>
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                               {message.sources.map((source, idx) => (
-                                <div key={idx} className="text-sm text-gray-600">
-                                  <Link
-                                    to={source.page}
-                                    className="text-mn-accent-teal hover:text-mn-primary hover:underline"
-                                  >
-                                    • {source.page}
-                                    {source.section && ` - ${source.section}`}
-                                  </Link>
+                                <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
+                                  <span className="text-gray-400">•</span>
+                                  <div className="flex-1">
+                                    {source.document_id && source.document_name ? (
+                                      <div className="flex items-center space-x-2">
+                                        <button
+                                          onClick={() => handleDownloadDocument(source.document_id!, source.document_name!)}
+                                          className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
+                                        >
+                                          <Download className="h-3 w-3" />
+                                          <span>{source.document_name}</span>
+                                        </button>
+                                        {source.section && (
+                                          <span className="text-gray-500">- {source.section}</span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <Link
+                                        to={source.page}
+                                        className="text-mn-accent-teal hover:text-mn-primary hover:underline"
+                                      >
+                                        {source.page}
+                                        {source.section && ` - ${source.section}`}
+                                      </Link>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
