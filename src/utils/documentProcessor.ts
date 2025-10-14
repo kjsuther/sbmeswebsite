@@ -186,13 +186,18 @@ const extractTextFromExcel = async (file: File): Promise<{ text: string; metadat
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to extract text from Excel file');
+      console.error('Excel extraction error response:', error);
+      const errorMsg = error.details ? `${error.error}: ${error.details}` : error.error;
+      throw new Error(errorMsg || 'Failed to extract text from Excel file');
     }
 
     const result = await response.json();
     return { text: result.text, metadata: result.metadata };
   } catch (error) {
     console.error('Error extracting text from Excel file:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to extract text from Excel file');
   }
 };
