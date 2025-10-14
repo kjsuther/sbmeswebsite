@@ -94,6 +94,9 @@ export async function queryStructuredData(query: StructuredDataQuery): Promise<S
 
   if (error) {
     console.log('Falling back to client-side filtering...');
+    console.log('Query conditions:', JSON.stringify(query.conditions, null, 2));
+    console.log('Query searchText:', query.searchText);
+
     const { data: allData, error: fetchError } = await supabase
       .from('structured_data')
       .select('*')
@@ -104,12 +107,16 @@ export async function queryStructuredData(query: StructuredDataQuery): Promise<S
       throw fetchError;
     }
 
+    console.log(`Fetched ${allData?.length || 0} total structured data rows`);
     let filtered = allData || [];
 
     if (query.conditions && query.conditions.length > 0) {
+      console.log('Applying condition filters...');
       filtered = filtered.filter(row => {
-        return query.conditions!.every(condition => {
+        const matches = query.conditions!.every(condition => {
           const fieldValue = row.data[condition.field];
+          console.log(`  Checking field "${condition.field}": "${fieldValue}" against "${condition.value}" (operator: ${condition.operator})`);
+
           if (!fieldValue) return false;
 
           switch (condition.operator) {
@@ -122,16 +129,21 @@ export async function queryStructuredData(query: StructuredDataQuery): Promise<S
               return false;
           }
         });
+        return matches;
       });
+      console.log(`After condition filtering: ${filtered.length} rows`);
     }
 
     if (query.searchText) {
+      console.log('Applying text search filter...');
       const searchLower = query.searchText.toLowerCase();
       filtered = filtered.filter(row =>
         row.searchable_text?.toLowerCase().includes(searchLower)
       );
+      console.log(`After text search: ${filtered.length} rows`);
     }
 
+    console.log(`Returning ${filtered.length} structured data results`);
     return filtered.slice(0, query.limit || filtered.length);
   }
 
