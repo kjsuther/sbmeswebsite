@@ -42,6 +42,11 @@ const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
+                <a href="/chatbot" className="text-sm text-mn-neutral-blue hover:text-white transition-colors">
+                  MES Challenge Assistant
+                </a>
+              </li>
+              <li>
                 <a href="/admin/login" className="text-sm text-mn-neutral-blue hover:text-white transition-colors">
                   Admin
                 </a>
