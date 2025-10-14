@@ -415,13 +415,13 @@ const Chatbot: React.FC = () => {
                                             )}
                                           </div>
                                         ) : (
-                                          <Link
-                                            to={source.page}
-                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline"
+                                          <button
+                                            onClick={() => handleOpenSource('', `Website - ${source.page}`)}
+                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline text-left"
                                           >
                                             {source.page}
                                             {source.section && ` - ${source.section}`}
-                                          </Link>
+                                          </button>
                                         )}
                                       </div>
                                     </div>
@@ -454,13 +454,13 @@ const Chatbot: React.FC = () => {
                                             )}
                                           </div>
                                         ) : (
-                                          <Link
-                                            to={source.page}
-                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline"
+                                          <button
+                                            onClick={() => handleOpenSource('', `Website - ${source.page}`)}
+                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline text-left"
                                           >
                                             {source.page}
                                             {source.section && ` - ${source.section}`}
-                                          </Link>
+                                          </button>
                                         )}
                                       </div>
                                     </div>
