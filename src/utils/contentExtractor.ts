@@ -345,7 +345,42 @@ Training Objectives:
   return sections;
 };
 
-export const chunkText = (text: string, maxChunkSize: number = 800, overlap: number = 100): string[] => {
+export const chunkExcelText = (text: string): string[] => {
+  const lines = text.split('\n');
+  const chunks: string[] = [];
+  let headers = '';
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine) continue;
+
+    if (trimmedLine.startsWith('Column Headers:')) {
+      headers = trimmedLine + '\n';
+      continue;
+    }
+
+    if (trimmedLine.startsWith('===')) {
+      if (headers) chunks.push(headers + trimmedLine);
+      else chunks.push(trimmedLine);
+      continue;
+    }
+
+    if (trimmedLine.startsWith('Row ')) {
+      chunks.push((headers || '') + trimmedLine);
+    } else {
+      chunks.push(trimmedLine);
+    }
+  }
+
+  return chunks.filter(chunk => chunk.trim().length > 0);
+};
+
+export const chunkText = (text: string, maxChunkSize: number = 800, overlap: number = 100, metadata?: any): string[] => {
+  if (metadata?.isExcel) {
+    return chunkExcelText(text);
+  }
+
   const words = text.split(/\s+/);
   const chunks: string[] = [];
 

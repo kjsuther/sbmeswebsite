@@ -118,7 +118,7 @@ export const uploadDocument = async (
       const { text, metadata } = await processDocument(file);
 
       onProgress?.({ stage: 'chunking', message: 'Splitting document into chunks...' });
-      const textChunks = chunkText(text);
+      const textChunks = chunkText(text, 800, 100, metadata);
 
       onProgress?.({
         stage: 'embedding',

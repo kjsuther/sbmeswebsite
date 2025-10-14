@@ -159,34 +159,50 @@ export const processUserMessage = async (
     console.log(`Added ${newChunks.slice(0, 50).length} additional structured data chunks`);
 
     const vendors = new Set<string>();
-    const vendorPattern = /,\s*([^,]+(?:,\s*(?:LLC|Inc|Corporation|Corp|LLP|Ltd))?),\s*Vendor,\s*([^,]+),\s*Large/gi;
 
     relevantChunks.forEach(chunk => {
       if (chunk.content && chunk.content.includes('Vendor') && chunk.content.includes('Large')) {
-        const matches = [...chunk.content.matchAll(vendorPattern)];
-        matches.forEach(match => {
-          let vendorName = match[1].trim();
-          const employeeInfo = match[2].trim();
+        const lines = chunk.content.split('\n');
 
-          if (vendorName.includes('Row')) {
-            const rowParts = vendorName.split(/Row\s*\d+:/);
-            if (rowParts.length > 1) {
-              vendorName = rowParts[rowParts.length - 1].trim();
+        for (const line of lines) {
+          if (!line.includes('Vendor') || !line.includes('Large')) continue;
+          if (line.includes('Column Headers')) continue;
+
+          const rowMatch = line.match(/Row\s+\d+:\s*(.+)/);
+          if (!rowMatch) continue;
+
+          const rowData = rowMatch[1];
+          const cells = rowData.split(',').map(c => c.trim());
+
+          const vendorIndex = cells.findIndex(c => c === 'Vendor');
+          const largeIndex = cells.findIndex(c => c === 'Large');
+
+          if (vendorIndex > 0 && largeIndex > vendorIndex) {
+            let vendorName = '';
+
+            if (cells[vendorIndex - 1] && (cells[vendorIndex - 1] === 'LLC' ||
+                cells[vendorIndex - 1] === 'Inc' ||
+                cells[vendorIndex - 1] === 'Corporation' ||
+                cells[vendorIndex - 1] === 'Corp' ||
+                cells[vendorIndex - 1] === 'LLP' ||
+                cells[vendorIndex - 1] === 'Ltd')) {
+              vendorName = vendorIndex >= 2 ? `${cells[vendorIndex - 2]}, ${cells[vendorIndex - 1]}` : cells[vendorIndex - 1];
+            } else {
+              vendorName = cells[vendorIndex - 1];
+            }
+
+            const employeeCells = cells.slice(vendorIndex + 1, largeIndex);
+            const employeeInfo = employeeCells.join(', ');
+
+            if (vendorName &&
+                vendorName.length > 2 &&
+                !vendorName.match(/^\d+$/) &&
+                vendorName.match(/[A-Za-z]/)) {
+              const cleanInfo = employeeInfo.length > 50 ? employeeInfo.substring(0, 47) + '...' : employeeInfo;
+              vendors.add(`${vendorName} (${cleanInfo})`);
             }
           }
-
-          const skipTerms = ['Row', 'Column', 'Start time', 'Completion time'];
-          const shouldSkip = skipTerms.some(term => vendorName.includes(term));
-
-          if (vendorName &&
-              vendorName.length > 2 &&
-              !shouldSkip &&
-              !vendorName.match(/^\d+$/) &&
-              vendorName.match(/[A-Za-z]/)) {
-            const cleanInfo = employeeInfo.length > 50 ? employeeInfo.substring(0, 47) + '...' : employeeInfo;
-            vendors.add(`${vendorName} (${cleanInfo})`);
-          }
-        });
+        }
       }
     });
 

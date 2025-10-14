@@ -59,8 +59,9 @@ Deno.serve(async (req: Request) => {
         typeof cell === 'string' && cell.trim().length > 0
       );
 
+      let headers: string[] = [];
       if (hasHeaders) {
-        const headers = jsonData[0].map((cell: any) => String(cell || "").trim()).filter(h => h);
+        headers = jsonData[0].map((cell: any) => String(cell || "").trim()).filter(h => h);
         if (headers.length > 0) {
           extractedText += `Column Headers: ${headers.join(", ")}\n\n`;
         }
@@ -74,12 +75,13 @@ Deno.serve(async (req: Request) => {
           if (cell === null || cell === undefined || cell === "") return "";
           if (typeof cell === 'number') return cell.toString();
           return String(cell).trim();
-        }).filter(cell => cell !== "");
+        });
 
-        if (rowData.length > 0) {
+        const nonEmptyData = rowData.filter(cell => cell !== "");
+        if (nonEmptyData.length > 0) {
           extractedText += `Row ${rowIndex + 1}: ${rowData.join(", ")}\n`;
           totalRows++;
-          totalCells += rowData.length;
+          totalCells += nonEmptyData.length;
         }
       });
     });
@@ -106,6 +108,7 @@ Deno.serve(async (req: Request) => {
           sheetNames: sheetNames,
           totalRows: totalRows,
           totalCells: totalCells,
+          isExcel: true,
         },
       }),
       {
