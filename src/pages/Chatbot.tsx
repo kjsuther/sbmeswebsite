@@ -149,12 +149,14 @@ const Chatbot: React.FC = () => {
 
       setMessages(prev => {
         const updated = [...prev];
-        const lastMessage = updated[updated.length - 1];
-        if (lastMessage.role === 'assistant') {
-          lastMessage.id = response.message_id;
-          lastMessage.content = response.message;
-          lastMessage.sources = response.sources;
-          console.log('Sources set in message:', JSON.stringify(lastMessage.sources, null, 2));
+        if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            id: response.message_id,
+            content: response.message,
+            sources: response.sources,
+          };
+          console.log('Updated message with sources:', updated[updated.length - 1]);
         }
         return updated;
       });
