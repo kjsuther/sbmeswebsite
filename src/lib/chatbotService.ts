@@ -174,6 +174,10 @@ export const processUserMessage = async (
   const context = Array.from(uniqueSourcesForContext.values())
     .map(({ source, number, chunks }) => {
       const combinedContent = chunks.join('\n');
+      console.log(`Source ${number} (${source}): ${chunks.length} chunks, ${combinedContent.length} chars`);
+      if (source.includes('.xlsx')) {
+        console.log('Excel content preview:', combinedContent.substring(0, 300));
+      }
       return `[Source ${number}: ${source}]\n${combinedContent}`;
     })
     .join('\n\n');
