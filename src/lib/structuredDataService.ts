@@ -161,7 +161,9 @@ export function parseExcelToStructuredData(
   let currentSheet: string | null = null;
   let headers: string[] = [];
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
     if (line.startsWith('=== Sheet')) {
       const match = line.match(/=== Sheet \d+: (.+) ===/);
       currentSheet = match ? match[1] : null;
@@ -179,8 +181,16 @@ export function parseExcelToStructuredData(
     }
 
     if (line.startsWith('Row ')) {
+      if (headers.length === 0) {
+        console.warn(`Row found without headers at line ${i}: ${line.substring(0, 100)}`);
+        continue;
+      }
+
       const match = line.match(/^Row (\d+): (.+)$/);
-      if (!match) continue;
+      if (!match) {
+        console.warn(`Could not parse row at line ${i}: ${line.substring(0, 100)}`);
+        continue;
+      }
 
       const rowNumber = parseInt(match[1], 10);
       const rowData = match[2];
@@ -191,9 +201,9 @@ export function parseExcelToStructuredData(
       const data: Record<string, any> = {};
       const searchableFields: string[] = [];
 
-      for (let i = 0; i < headers.length && i < values.length; i++) {
-        const header = headers[i];
-        const value = values[i];
+      for (let j = 0; j < headers.length && j < values.length; j++) {
+        const header = headers[j];
+        const value = values[j];
 
         if (value) {
           data[header] = value;
@@ -221,5 +231,53 @@ export function parseExcelToStructuredData(
     }
   }
 
+  console.log(`parseExcelToStructuredData: Parsed ${rows.length} rows from ${lines.length} lines`);
   return rows;
+}
+
+export async function reprocessExcelStructuredData(documentId: string): Promise<{ success: boolean; rowCount: number; error?: string }> {
+  try {
+    const { data: chunks, error: chunksError } = await supabase
+      .from('document_chunks')
+      .select('content')
+      .eq('uploaded_document_id', documentId)
+      .order('chunk_number', { ascending: true });
+
+    if (chunksError || !chunks) {
+      throw new Error(`Failed to fetch chunks: ${chunksError?.message}`);
+    }
+
+    const fullText = chunks.map(c => c.content).join('\n');
+
+    console.log(`Reprocessing Excel document ${documentId} from ${chunks.length} chunks...`);
+
+    const { data: doc } = await supabase
+      .from('uploaded_documents')
+      .select('filename')
+      .eq('id', documentId)
+      .single();
+
+    const structuredRows = parseExcelToStructuredData(documentId, fullText, doc?.filename || 'Unknown');
+
+    if (structuredRows.length === 0) {
+      throw new Error('No structured data rows parsed');
+    }
+
+    await supabase
+      .from('structured_data')
+      .delete()
+      .eq('uploaded_document_id', documentId);
+
+    console.log(`Deleted old structured data for document ${documentId}`);
+
+    await saveStructuredData(structuredRows);
+
+    console.log(`Saved ${structuredRows.length} structured data rows`);
+
+    return { success: true, rowCount: structuredRows.length };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error reprocessing Excel structured data:', errorMessage);
+    return { success: false, rowCount: 0, error: errorMessage };
+  }
 }
