@@ -103,14 +103,29 @@ export async function hybridSearch(
         limit: structuredLimit
       });
 
+      const docNameCache = new Map<string, string>();
+
       for (const row of structuredResults) {
+        let documentName = docNameCache.get(row.uploaded_document_id);
+
+        if (!documentName) {
+          const { data: doc } = await supabase
+            .from('uploaded_documents')
+            .select('filename')
+            .eq('id', row.uploaded_document_id)
+            .single();
+
+          documentName = doc?.filename || 'Structured Data';
+          docNameCache.set(row.uploaded_document_id, documentName);
+        }
+
         results.push({
           id: row.id || `structured_${row.row_number}`,
           content: row.searchable_text,
           similarity: 0.95,
           metadata: { isStructured: true, data: row.data },
           source_page: `/documents/${row.uploaded_document_id}`,
-          document_name: 'Structured Data',
+          document_name: documentName,
           uploaded_document_id: row.uploaded_document_id,
           storage_path: null,
           type: 'structured',
