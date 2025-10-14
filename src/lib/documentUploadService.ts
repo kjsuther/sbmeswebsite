@@ -9,6 +9,7 @@ export interface UploadedDocument {
   file_type: string;
   file_size: number;
   content_hash?: string;
+  storage_path?: string;
   chunk_count: number;
   processing_status: 'pending' | 'processing' | 'completed' | 'failed';
   error_message?: string;
@@ -260,4 +261,22 @@ export const getDocumentStats = async (): Promise<{
   });
 
   return stats;
+};
+
+export const getDocumentDownloadUrl = async (storagePath: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase.storage
+      .from('documents')
+      .createSignedUrl(storagePath, 3600);
+
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      return null;
+    }
+
+    return data.signedUrl;
+  } catch (error) {
+    console.error('Error getting document URL:', error);
+    return null;
+  }
 };

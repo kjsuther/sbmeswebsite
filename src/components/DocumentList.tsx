@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, FileText, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { getUploadedDocuments, deleteDocument, UploadedDocument } from '../lib/documentUploadService';
+import { Trash2, FileText, AlertCircle, CheckCircle, Clock, XCircle, ExternalLink } from 'lucide-react';
+import { getUploadedDocuments, deleteDocument, UploadedDocument, getDocumentDownloadUrl } from '../lib/documentUploadService';
 
 interface DocumentListProps {
   refreshTrigger?: number;
@@ -37,6 +37,20 @@ const DocumentList: React.FC<DocumentListProps> = ({ refreshTrigger }) => {
     }
 
     setDeletingId(null);
+  };
+
+  const handleDocumentClick = async (doc: UploadedDocument) => {
+    if (!doc.storage_path) {
+      alert('Document file path not found');
+      return;
+    }
+
+    const url = await getDocumentDownloadUrl(doc.storage_path);
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      alert('Failed to generate download link for this document');
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -128,13 +142,19 @@ const DocumentList: React.FC<DocumentListProps> = ({ refreshTrigger }) => {
         {documents.map((doc) => (
           <div
             key={doc.id}
-            className="flex items-center justify-between bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors group"
           >
-            <div className="flex items-center space-x-4 flex-1 min-w-0">
+            <div
+              className="flex items-center space-x-4 flex-1 min-w-0 cursor-pointer"
+              onClick={() => handleDocumentClick(doc)}
+            >
               <FileText className="h-6 w-6 text-mn-accent-teal flex-shrink-0" />
 
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-800 truncate">{doc.filename}</p>
+                <div className="flex items-center space-x-2">
+                  <p className="font-medium text-gray-800 truncate group-hover:text-mn-primary transition-colors">{doc.filename}</p>
+                  <ExternalLink className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                </div>
                 <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                   <span>{getFileTypeLabel(doc.file_type)}</span>
                   <span>{formatFileSize(doc.file_size)}</span>
@@ -157,13 +177,16 @@ const DocumentList: React.FC<DocumentListProps> = ({ refreshTrigger }) => {
               </div>
 
               <button
-                onClick={() => handleDelete(doc.id, doc.filename)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(doc.id, doc.filename);
+                }}
                 disabled={deletingId === doc.id}
-                className="p-2 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="p-2 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed group/delete"
                 title="Delete document"
               >
                 <Trash2 className={`h-5 w-5 ${
-                  deletingId === doc.id ? 'text-red-400 animate-pulse' : 'text-gray-400 group-hover:text-red-600'
+                  deletingId === doc.id ? 'text-red-400 animate-pulse' : 'text-gray-400 group-hover/delete:text-red-600'
                 }`} />
               </button>
             </div>
