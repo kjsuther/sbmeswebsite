@@ -166,15 +166,20 @@ export const processUserMessage = async (
     })
     .join('\n\n');
 
+  console.log('=== CONTEXT BEING SENT TO AI ===');
+  console.log('Context length:', context.length);
+  console.log('Context preview (first 500 chars):', context.substring(0, 500));
+  console.log('Number of sources:', uniqueSourcesForContext.size);
+
   const systemPrompt = `You are a helpful AI assistant for the Minnesota MES (Medicaid Enterprise Systems) Modernization Challenge website. Your role is to answer questions about the MES Challenge, the Great Bake-Off process, RFP requirements, evaluation criteria, and all related information.
 
 CRITICAL INSTRUCTIONS:
-1. Answer questions ONLY based on the context provided below
-2. If the context doesn't contain enough information to answer the question, say: "I don't have enough information in my knowledge base to answer that question. You may want to check the website directly or contact the MES team at mes.modernization.dhs@state.mn.us"
+1. Answer questions BASED on the context provided below. The context contains relevant information from uploaded documents.
+2. If the context contains relevant information, USE IT to answer the question. Do NOT say you don't have information if the context contains it!
 3. Always cite your sources by referencing them as "Source 1", "Source 2", etc. (e.g., "According to Source 1...", "As mentioned in Source 2...")
-4. Be concise but thorough
-5. Use a professional but friendly tone
-6. If asked about processes, explain them step-by-step
+4. Only say you don't have enough information if the context truly doesn't contain anything relevant to the question
+5. Be concise but thorough
+6. Use a professional but friendly tone
 
 CONTEXT:
 ${context || 'No relevant context found.'}`;
