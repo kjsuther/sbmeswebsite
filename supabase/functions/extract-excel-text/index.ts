@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
       if (hasHeaders) {
         headers = jsonData[0].map((cell: any) => String(cell || "").trim()).filter(h => h);
         if (headers.length > 0) {
-          extractedText += `Column Headers: ${headers.join(", ")}\n\n`;
+          extractedText += `Column Headers: ${headers.join(" | ")}\n\n`;
         }
       }
 
@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
 
         const nonEmptyData = rowData.filter(cell => cell !== "");
         if (nonEmptyData.length > 0) {
-          extractedText += `Row ${rowIndex + 1}: ${rowData.join(", ")}\n`;
+          extractedText += `Row ${rowIndex + 1}: ${rowData.join(" | ")}\n`;
           totalRows++;
           totalCells += nonEmptyData.length;
         }

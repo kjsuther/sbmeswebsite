@@ -172,34 +172,23 @@ export const processUserMessage = async (
           if (!rowMatch) continue;
 
           const rowData = rowMatch[1];
-          const cells = rowData.split(',').map(c => c.trim());
+          const cells = rowData.split('|').map(c => c.trim());
 
           const vendorIndex = cells.findIndex(c => c === 'Vendor');
           const largeIndex = cells.findIndex(c => c === 'Large');
 
           if (vendorIndex > 0 && largeIndex > vendorIndex) {
-            let vendorName = '';
-
-            if (cells[vendorIndex - 1] && (cells[vendorIndex - 1] === 'LLC' ||
-                cells[vendorIndex - 1] === 'Inc' ||
-                cells[vendorIndex - 1] === 'Corporation' ||
-                cells[vendorIndex - 1] === 'Corp' ||
-                cells[vendorIndex - 1] === 'LLP' ||
-                cells[vendorIndex - 1] === 'Ltd')) {
-              vendorName = vendorIndex >= 2 ? `${cells[vendorIndex - 2]}, ${cells[vendorIndex - 1]}` : cells[vendorIndex - 1];
-            } else {
-              vendorName = cells[vendorIndex - 1];
-            }
-
+            const vendorName = cells[vendorIndex - 1];
             const employeeCells = cells.slice(vendorIndex + 1, largeIndex);
-            const employeeInfo = employeeCells.join(', ');
+            const employeeInfo = employeeCells.join(' | ');
 
             if (vendorName &&
                 vendorName.length > 2 &&
                 !vendorName.match(/^\d+$/) &&
                 vendorName.match(/[A-Za-z]/)) {
+              const cleanName = vendorName.length > 100 ? vendorName.substring(0, 97) + '...' : vendorName;
               const cleanInfo = employeeInfo.length > 50 ? employeeInfo.substring(0, 47) + '...' : employeeInfo;
-              vendors.add(`${vendorName} (${cleanInfo})`);
+              vendors.add(`${cleanName} (${cleanInfo})`);
             }
           }
         }
