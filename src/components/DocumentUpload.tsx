@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { Upload, X, AlertCircle, CheckCircle, Loader, Clock } from 'lucide-react';
 import { uploadDocument, validateFile, UploadProgress } from '../lib/documentUploadService';
 import { getSupportedExtensions } from '../utils/documentProcessor';
+import { canUploadMore } from '../lib/queueService';
+import { ProcessingQueue } from './ProcessingQueue';
 
 interface DocumentUploadProps {
   onUploadComplete?: () => void;
@@ -14,6 +16,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [throttleWarning, setThrottleWarning] = useState<{ message: string; waitTime?: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -36,14 +39,24 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
     }
   };
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setError(null);
     setSuccess(false);
     setProgress(null);
+    setThrottleWarning(null);
 
     const validation = validateFile(file);
     if (!validation.valid) {
       setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    const uploadCheck = await canUploadMore();
+    if (!uploadCheck.allowed) {
+      setThrottleWarning({
+        message: uploadCheck.reason || 'Please wait before uploading more documents',
+        waitTime: uploadCheck.waitTime,
+      });
       return;
     }
 
@@ -190,6 +203,22 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
         </div>
       )}
 
+      {throttleWarning && (
+        <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-yellow-800 font-medium">{throttleWarning.message}</p>
+              {throttleWarning.waitTime && throttleWarning.waitTime > 0 && (
+                <p className="text-xs text-yellow-700 mt-1">
+                  Estimated wait time: {Math.ceil(throttleWarning.waitTime / 60)} minutes
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -203,6 +232,10 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
           <p className="text-sm text-green-800">Document uploaded and processed successfully!</p>
         </div>
       )}
+
+      <div className="mt-6">
+        <ProcessingQueue />
+      </div>
 
       <div className="mt-6 text-xs text-gray-500">
         <p className="font-semibold mb-1">Supported file formats:</p>

@@ -2,6 +2,8 @@ import { supabase } from './supabase';
 import { generateEmbedding } from './openai';
 import { processDocument, calculateFileHash, isSupportedFileType } from '../utils/documentProcessor';
 import { chunkText } from '../utils/contentExtractor';
+import { addToQueue } from './queueService';
+import { retryWithBackoff } from '../utils/retryUtil';
 
 export interface UploadedDocument {
   id: string;
@@ -109,6 +111,8 @@ export const uploadDocument = async (
       throw new Error('Failed to create document record');
     }
 
+    await addToQueue(document.id, 0);
+
     try {
       onProgress?.({ stage: 'extracting', message: 'Extracting text from document...' });
       const { text, metadata } = await processDocument(file);
@@ -132,17 +136,37 @@ export const uploadDocument = async (
         await Promise.all(
           batch.map(async (chunk, batchIndex) => {
             const chunkIndex = i + batchIndex;
-            const embedding = await generateEmbedding(chunk);
 
-            await supabase.from('document_chunks').insert({
-              content: chunk,
-              embedding: embedding,
-              metadata: { ...metadata, originalFilename: file.name },
-              source_page: `/documents/${file.name}`,
-              document_name: file.name,
-              chunk_index: chunkIndex,
-              uploaded_document_id: document.id,
-            });
+            const embedding = await retryWithBackoff(
+              () => generateEmbedding(chunk),
+              {
+                maxRetries: 3,
+                initialDelay: 1000,
+                maxDelay: 10000,
+                onRetry: (attempt, error) => {
+                  console.log(`Retry ${attempt} for chunk ${chunkIndex}: ${error.message}`);
+                },
+              }
+            );
+
+            await retryWithBackoff(
+              () => supabase.from('document_chunks').insert({
+                content: chunk,
+                embedding: embedding,
+                metadata: { ...metadata, originalFilename: file.name },
+                source_page: `/documents/${file.name}`,
+                document_name: file.name,
+                chunk_index: chunkIndex,
+                uploaded_document_id: document.id,
+              }).then(result => {
+                if (result.error) throw new Error(result.error.message);
+                return result;
+              }),
+              {
+                maxRetries: 2,
+                initialDelay: 500,
+              }
+            );
 
             processedChunks++;
             onProgress?.({
