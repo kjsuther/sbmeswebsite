@@ -144,11 +144,12 @@ export const processUserMessage = async (
   let relevantChunks = await searchSimilarChunks(request.message);
 
   let vendorListContext = '';
-  if (request.message.toLowerCase().includes('vendor') &&
-      (request.message.toLowerCase().includes('large') ||
-       request.message.toLowerCase().includes('who') ||
-       request.message.toLowerCase().includes('which') ||
-       request.message.toLowerCase().includes('list'))) {
+  const lowerMessage = request.message.toLowerCase();
+  if ((lowerMessage.includes('vendor') || lowerMessage.includes('vendors')) &&
+      (lowerMessage.includes('large') ||
+       lowerMessage.includes('who') ||
+       lowerMessage.includes('which') ||
+       lowerMessage.includes('list'))) {
     console.log('=== AUGMENTING WITH STRUCTURED DATA SEARCH ===');
     const structuredQuery = 'company name employees Large vendor organization';
     const structuredChunks = await searchSimilarChunks(structuredQuery, 80);
