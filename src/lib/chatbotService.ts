@@ -143,6 +143,18 @@ export const processUserMessage = async (
 
   const relevantChunks = await searchSimilarChunks(request.message);
 
+  console.log('=== CHUNKS RETURNED FROM SEARCH ===');
+  console.log('Number of chunks:', relevantChunks.length);
+  relevantChunks.forEach((chunk, idx) => {
+    console.log(`Chunk ${idx}:`, {
+      document_name: chunk.document_name,
+      uploaded_document_id: chunk.uploaded_document_id,
+      source_page: chunk.source_page,
+      similarity: chunk.similarity,
+      content_preview: chunk.content?.substring(0, 100)
+    });
+  });
+
   const uniqueSourcesForContext = new Map<string, { source: string; number: number; chunks: string[] }>();
   relevantChunks.forEach((chunk, index) => {
     const key = chunk.uploaded_document_id || chunk.source_page;
