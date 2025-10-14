@@ -122,12 +122,26 @@ export const processUserMessage = async (
 
   const relevantChunks = await searchSimilarChunks(request.message);
 
-  const context = relevantChunks
-    .map((chunk, index) => {
-      const source = chunk.source_section
-        ? `${chunk.source_page} - ${chunk.source_section}`
-        : chunk.source_page;
-      return `[Source ${index + 1}: ${source}]\n${chunk.content}`;
+  const uniqueSourcesForContext = new Map<string, { source: string; number: number; chunks: string[] }>();
+  relevantChunks.forEach((chunk, index) => {
+    const key = chunk.uploaded_document_id || chunk.source_page;
+    const source = chunk.document_name || chunk.source_page;
+
+    if (!uniqueSourcesForContext.has(key)) {
+      uniqueSourcesForContext.set(key, {
+        source,
+        number: uniqueSourcesForContext.size + 1,
+        chunks: [chunk.content]
+      });
+    } else {
+      uniqueSourcesForContext.get(key)!.chunks.push(chunk.content);
+    }
+  });
+
+  const context = Array.from(uniqueSourcesForContext.values())
+    .map(({ source, number, chunks }) => {
+      const combinedContent = chunks.join('\n');
+      return `[Source ${number}: ${source}]\n${combinedContent}`;
     })
     .join('\n\n');
 
@@ -136,7 +150,7 @@ export const processUserMessage = async (
 CRITICAL INSTRUCTIONS:
 1. Answer questions ONLY based on the context provided below
 2. If the context doesn't contain enough information to answer the question, say: "I don't have enough information in my knowledge base to answer that question. You may want to check the website directly or contact the MES team at mes.modernization.dhs@state.mn.us"
-3. Always cite your sources by mentioning which page the information comes from
+3. Always cite your sources by referencing them as "Source 1", "Source 2", etc. (e.g., "According to Source 1...", "As mentioned in Source 2...")
 4. Be concise but thorough
 5. Use a professional but friendly tone
 6. If asked about processes, explain them step-by-step
@@ -159,22 +173,25 @@ ${context || 'No relevant context found.'}`;
 
   const assistantResponse = await generateChatResponse(messages, onStream);
 
-  const sources = relevantChunks.map(chunk => {
-    console.log('Chunk data:', {
-      uploaded_document_id: chunk.uploaded_document_id,
-      document_name: chunk.document_name,
-      source_page: chunk.source_page,
-      storage_path: chunk.storage_path,
-    });
-    return {
-      page: chunk.source_page,
-      section: chunk.source_section,
-      relevance: 0.9,
-      document_id: chunk.uploaded_document_id,
-      document_name: chunk.document_name,
-      storage_path: chunk.storage_path,
-    };
+  const uniqueSourcesMap = new Map<string, any>();
+  relevantChunks.forEach(chunk => {
+    const key = chunk.uploaded_document_id || chunk.source_page;
+    if (!uniqueSourcesMap.has(key)) {
+      uniqueSourcesMap.set(key, {
+        page: chunk.source_page,
+        section: chunk.source_section,
+        relevance: 0.9,
+        document_id: chunk.uploaded_document_id,
+        document_name: chunk.document_name,
+        storage_path: chunk.storage_path,
+      });
+    }
   });
+
+  const sources = Array.from(uniqueSourcesMap.values()).map((source, index) => ({
+    ...source,
+    sourceNumber: index + 1,
+  }));
 
   console.log('Final sources array:', JSON.stringify(sources, null, 2));
 

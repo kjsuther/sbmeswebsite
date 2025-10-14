@@ -270,15 +270,17 @@ export const ChatWidget: React.FC = () => {
                         <div className="mt-2 pt-2 border-t border-gray-300">
                           <p className="text-xs text-gray-600 font-semibold mb-1">Sources:</p>
                           <div className="space-y-1">
-                            {Array.from(new Map(message.sources.map(s => [s.document_id, s])).values()).map((source, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => handleOpenSource(source.storage_path, source.document_name)}
-                                className="flex items-center space-x-1 text-xs text-mn-accent-teal hover:text-mn-primary transition-colors group"
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                                <span className="underline">{source.document_name}</span>
-                              </button>
+                            {message.sources.map((source, idx) => (
+                              <div key={idx} className="flex items-start space-x-1">
+                                <span className="text-xs text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
+                                <button
+                                  onClick={() => handleOpenSource(source.storage_path, source.document_name)}
+                                  className="flex items-center space-x-1 text-xs text-mn-accent-teal hover:text-mn-primary transition-colors group"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  <span className="underline">{source.document_name}</span>
+                                </button>
+                              </div>
                             ))}
                           </div>
                         </div>

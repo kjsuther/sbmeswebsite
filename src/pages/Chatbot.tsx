@@ -397,7 +397,7 @@ const Chatbot: React.FC = () => {
                                 console.log('Source:', JSON.stringify(source, null, 2));
                                 return (
                                 <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
-                                  <span className="text-gray-400">•</span>
+                                  <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
                                   <div className="flex-1">
                                     {source.storage_path && source.document_name ? (
                                       <div className="flex items-center space-x-2">

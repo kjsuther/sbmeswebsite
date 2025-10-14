@@ -33,6 +33,7 @@ export interface Message {
     document_id?: string;
     document_name?: string;
     storage_path?: string;
+    sourceNumber?: number;
   }>;
   feedback_rating?: 'positive' | 'negative';
   feedback_text?: string;
@@ -62,6 +63,8 @@ export interface ChatResponse {
     relevance: number;
     document_id?: string;
     document_name?: string;
+    storage_path?: string;
+    sourceNumber?: number;
   }>;
   message_id: string;
 }
