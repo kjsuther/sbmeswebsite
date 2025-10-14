@@ -99,7 +99,7 @@ export async function hybridSearch(
 
       const structuredResults = await queryStructuredData({
         conditions: filters.length > 0 ? filters : undefined,
-        searchText: keywords.join(' & '),
+        searchText: filters.length > 0 ? undefined : keywords.join(' & '),
         limit: structuredLimit
       });
 
