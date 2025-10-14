@@ -33,7 +33,7 @@ export const validateFile = (file: File): { valid: boolean; error?: string } => 
   if (!isSupportedFileType(file.name)) {
     return {
       valid: false,
-      error: `File type not supported. Please upload: PDF, PowerPoint, plain text, or markdown`,
+      error: `File type not supported. Please upload: PDF, PowerPoint, Word, Excel, CSV, images, plain text, or markdown`,
     };
   }
 

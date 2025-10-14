@@ -15,6 +15,9 @@ export const SUPPORTED_FILE_TYPES = {
   'application/vnd.ms-powerpoint': ['.ppt'],
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
   'application/msword': ['.doc'],
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+  'application/vnd.ms-excel': ['.xls'],
+  'text/csv': ['.csv'],
   'image/jpeg': ['.jpg', '.jpeg'],
   'image/png': ['.png'],
   'image/gif': ['.gif'],
@@ -166,6 +169,34 @@ const extractTextFromImage = async (file: File): Promise<{ text: string; metadat
   }
 };
 
+const extractTextFromExcel = async (file: File): Promise<{ text: string; metadata?: any }> => {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/extract-excel-text`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to extract text from Excel file');
+    }
+
+    const result = await response.json();
+    return { text: result.text, metadata: result.metadata };
+  } catch (error) {
+    console.error('Error extracting text from Excel file:', error);
+    throw new Error('Failed to extract text from Excel file');
+  }
+};
+
 export const processDocument = async (file: File): Promise<ProcessedDocument> => {
   const fileType = getFileType(file.name);
 
@@ -179,6 +210,9 @@ export const processDocument = async (file: File): Promise<ProcessedDocument> =>
   try {
     if (fileType === 'text/plain' || fileType === 'text/markdown') {
       text = await extractTextFromPlainText(file);
+    } else if (fileType === 'text/csv') {
+      text = await extractTextFromPlainText(file);
+      metadata.isCSV = true;
     } else if (fileType === 'application/pdf') {
       const result = await extractTextFromPDF(file);
       text = result.text;
@@ -189,6 +223,10 @@ export const processDocument = async (file: File): Promise<ProcessedDocument> =>
       Object.assign(metadata, result.metadata);
     } else if (fileType.includes('wordprocessingml') || fileType === 'application/msword') {
       const result = await extractTextFromWordDocument(file);
+      text = result.text;
+      Object.assign(metadata, result.metadata);
+    } else if (fileType.includes('spreadsheetml') || fileType === 'application/vnd.ms-excel') {
+      const result = await extractTextFromExcel(file);
       text = result.text;
       Object.assign(metadata, result.metadata);
     } else if (fileType.startsWith('image/')) {
