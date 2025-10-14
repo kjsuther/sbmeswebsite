@@ -2,8 +2,8 @@ import { supabase } from './supabase';
 import { generateEmbedding, generateChatResponse, generateConversationTitle } from './openai';
 import { DocumentChunk, Message, Conversation, ChatRequest, ChatResponse } from './chatbot-types';
 
-const SIMILARITY_THRESHOLD = 0.3;
-const MAX_CONTEXT_CHUNKS = 5;
+const SIMILARITY_THRESHOLD = 0.1;
+const MAX_CONTEXT_CHUNKS = 10;
 
 export const searchSimilarChunks = async (query: string, limit: number = MAX_CONTEXT_CHUNKS): Promise<DocumentChunk[]> => {
   try {
@@ -28,8 +28,29 @@ export const searchSimilarChunks = async (query: string, limit: number = MAX_CON
       return fallbackData || [];
     }
 
+    console.log('Query:', query);
+    console.log('Similarity threshold:', SIMILARITY_THRESHOLD);
     console.log('Database returned chunks:', data?.length);
-    console.log('First chunk from DB:', data?.[0]);
+    if (data && data.length > 0) {
+      console.log('First chunk similarity:', data[0].similarity);
+      console.log('First chunk content preview:', data[0].content?.substring(0, 100));
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('No chunks found with threshold', SIMILARITY_THRESHOLD, 'trying with lower threshold...');
+
+      const { data: relaxedData } = await supabase.rpc('match_document_chunks', {
+        query_embedding: queryEmbedding,
+        match_threshold: 0.05,
+        match_count: limit,
+      });
+
+      if (relaxedData && relaxedData.length > 0) {
+        console.log('Found', relaxedData.length, 'chunks with relaxed threshold (0.05)');
+        return relaxedData;
+      }
+    }
+
     return data || [];
   } catch (error) {
     console.error('Error in searchSimilarChunks:', error);
