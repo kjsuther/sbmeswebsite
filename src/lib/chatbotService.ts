@@ -141,7 +141,22 @@ export const processUserMessage = async (
     updateConversationTitle(conversationId, request.message);
   }
 
-  const relevantChunks = await searchSimilarChunks(request.message);
+  let relevantChunks = await searchSimilarChunks(request.message);
+
+  if (request.message.toLowerCase().includes('vendor') &&
+      (request.message.toLowerCase().includes('large') ||
+       request.message.toLowerCase().includes('who') ||
+       request.message.toLowerCase().includes('which') ||
+       request.message.toLowerCase().includes('list'))) {
+    console.log('=== AUGMENTING WITH STRUCTURED DATA SEARCH ===');
+    const structuredQuery = 'company name employees Large vendor organization';
+    const structuredChunks = await searchSimilarChunks(structuredQuery, 30);
+
+    const existingIds = new Set(relevantChunks.map(c => c.id));
+    const newChunks = structuredChunks.filter(c => !existingIds.has(c.id));
+    relevantChunks = [...relevantChunks, ...newChunks.slice(0, 20)];
+    console.log(`Added ${newChunks.slice(0, 20).length} additional structured data chunks`);
+  }
 
   console.log('=== CHUNKS RETURNED FROM SEARCH ===');
   console.log('Number of chunks:', relevantChunks.length);
