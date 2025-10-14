@@ -142,10 +142,12 @@ const Chatbot: React.FC = () => {
         }
       );
 
-      setCurrentConversationId(response.conversation_id);
+      console.log('=== FULL API Response ===', response);
+      console.log('Response has sources?', !!response.sources);
+      console.log('Sources length:', response.sources?.length);
+      console.log('Sources data:', response.sources);
 
-      console.log('=== API Response ===');
-      console.log('Sources from API:', JSON.stringify(response.sources, null, 2));
+      setCurrentConversationId(response.conversation_id);
 
       setMessages(prev => {
         const updated = [...prev];
