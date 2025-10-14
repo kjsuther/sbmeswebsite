@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MessageSquare, ThumbsUp, ThumbsDown, Clock } from 'lucide-react';
+import { Search, Filter, MessageSquare, ThumbsUp, ThumbsDown, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface QuestionData {
@@ -23,6 +23,8 @@ const QuestionsList: React.FC<QuestionsListProps> = ({ refreshTrigger }) => {
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'positive' | 'negative' | 'none'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadQuestions();
@@ -30,6 +32,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({ refreshTrigger }) => {
 
   useEffect(() => {
     filterAndSortQuestions();
+    setCurrentPage(1);
   }, [questions, searchTerm, feedbackFilter, sortBy]);
 
   const loadQuestions = async () => {
@@ -120,6 +123,23 @@ const QuestionsList: React.FC<QuestionsListProps> = ({ refreshTrigger }) => {
     }).format(date);
   };
 
+  const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedQuestions = filteredQuestions.slice(startIndex, endIndex);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -134,7 +154,10 @@ const QuestionsList: React.FC<QuestionsListProps> = ({ refreshTrigger }) => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-mn-primary">All Questions Asked</h2>
           <div className="text-sm text-gray-600">
-            Total: <span className="font-semibold text-mn-primary">{questions.length}</span> questions
+            Total: <span className="font-semibold text-mn-primary">{filteredQuestions.length}</span> questions
+            {filteredQuestions.length !== questions.length && (
+              <span className="text-gray-400 ml-1">({questions.length} total)</span>
+            )}
           </div>
         </div>
 
@@ -182,8 +205,9 @@ const QuestionsList: React.FC<QuestionsListProps> = ({ refreshTrigger }) => {
             <p className="text-gray-500">No questions found matching your filters.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredQuestions.map((question) => (
+          <>
+            <div className="space-y-4">
+              {paginatedQuestions.map((question) => (
               <div
                 key={question.id}
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
@@ -228,8 +252,73 @@ const QuestionsList: React.FC<QuestionsListProps> = ({ refreshTrigger }) => {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+                <div className="text-sm text-gray-600">
+                  Showing <span className="font-semibold">{startIndex + 1}</span> to{' '}
+                  <span className="font-semibold">{Math.min(endIndex, filteredQuestions.length)}</span> of{' '}
+                  <span className="font-semibold">{filteredQuestions.length}</span> questions
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={currentPage === 1}
+                    className="flex items-center space-x-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Previous</span>
+                  </button>
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                      if (
+                        pageNum === 1 ||
+                        pageNum === totalPages ||
+                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                      ) {
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`px-3 py-2 rounded-lg transition-colors ${
+                              pageNum === currentPage
+                                ? 'bg-mn-accent-teal text-white'
+                                : 'border border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      } else if (
+                        pageNum === currentPage - 2 ||
+                        pageNum === currentPage + 2
+                      ) {
+                        return (
+                          <span key={pageNum} className="px-2 text-gray-400">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center space-x-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
