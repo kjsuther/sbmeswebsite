@@ -143,6 +143,7 @@ export const processUserMessage = async (
 
   let relevantChunks = await searchSimilarChunks(request.message);
 
+  let vendorListContext = '';
   if (request.message.toLowerCase().includes('vendor') &&
       (request.message.toLowerCase().includes('large') ||
        request.message.toLowerCase().includes('who') ||
@@ -156,6 +157,27 @@ export const processUserMessage = async (
     const newChunks = structuredChunks.filter(c => !existingIds.has(c.id));
     relevantChunks = [...relevantChunks, ...newChunks.slice(0, 50)];
     console.log(`Added ${newChunks.slice(0, 50).length} additional structured data chunks`);
+
+    const vendorPattern = /([A-Z][A-Za-z\s&,.'()-]+),\s*Vendor,\s*([\d,]+),\s*Large/g;
+    const vendors = new Set<string>();
+    relevantChunks.forEach(chunk => {
+      if (chunk.content && chunk.content.includes('Large')) {
+        const matches = [...chunk.content.matchAll(vendorPattern)];
+        matches.forEach(match => {
+          const vendorName = match[1].trim();
+          const employeeCount = match[2].trim();
+          if (vendorName && vendorName.length > 2) {
+            vendors.add(`${vendorName} (${employeeCount} employees)`);
+          }
+        });
+      }
+    });
+
+    if (vendors.size > 0) {
+      vendorListContext = `\n\nLARGE VENDORS WHO RESPONDED TO THE RFI:\n${Array.from(vendors).join('\n')}`;
+      console.log(`=== EXTRACTED ${vendors.size} LARGE VENDORS ===`);
+      console.log(vendorListContext);
+    }
   }
 
   console.log('=== CHUNKS RETURNED FROM SEARCH ===');
@@ -202,25 +224,25 @@ export const processUserMessage = async (
   console.log('Context preview (first 500 chars):', context.substring(0, 500));
   console.log('Number of sources:', uniqueSourcesForContext.size);
 
+  const finalContext = context + vendorListContext;
+
   const systemPrompt = `You are a helpful AI assistant for the Minnesota MES (Medicaid Enterprise Systems) Modernization Challenge website. Your role is to answer questions about the MES Challenge, the Great Bake-Off process, RFP requirements, evaluation criteria, and all related information.
 
 CRITICAL INSTRUCTIONS:
 1. Answer questions BASED on the context provided below. The context contains relevant information from uploaded documents.
-2. If the context contains relevant information, USE IT to answer the question. Do NOT say you don't have information if the context contains it!
-3. When asked about vendors or companies:
-   - Carefully scan the context for company names, organization names, and vendor identifiers
-   - Look for patterns like "Company Name, Vendor, [number], Large/Small/Medium"
-   - If you find specific vendor names (like "Accenture", "Deloitte", "Salesforce", "Oracle", "Leidos", etc.), list them explicitly
-   - Include any available details like company size (Large/Small/Medium), employee count, or services offered
-   - Present vendor information in a clear, organized format (bullet points or numbered lists)
-   - Even if the information is fragmented across multiple parts of the context, extract and consolidate all vendor names you can find
+2. If the context contains relevant information, USE IT to answer the question. DO NOT say you don't have information if the context contains it!
+3. When asked about large vendors who responded to the RFI:
+   - Check if there is a "LARGE VENDORS WHO RESPONDED TO THE RFI" section at the end of the context
+   - If present, use that list as the definitive source - it contains ALL the large vendors
+   - Present the complete list in your response
+   - You may also reference additional details from the document chunks in the context
 4. Always cite your sources by referencing them as "Source 1", "Source 2", etc. (e.g., "According to Source 1...", "As mentioned in Source 2...")
 5. Only say you don't have enough information if the context truly doesn't contain anything relevant to the question
 6. Be concise but thorough
 7. Use a professional but friendly tone
 
 CONTEXT:
-${context || 'No relevant context found.'}`;
+${finalContext || 'No relevant context found.'}`;
 
   const conversationHistory = previousMessages
     .slice(-5)
