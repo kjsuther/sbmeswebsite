@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Minimize2, Send, ThumbsUp, ThumbsDown, Download } from 'lucide-react';
+import { MessageCircle, X, Minimize2, Send, ThumbsUp, ThumbsDown, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import { Message } from '../lib/chatbot-types';
@@ -141,25 +141,20 @@ export const ChatWidget: React.FC = () => {
     }
   };
 
-  const handleDownloadDocument = async (storagePath: string, documentName: string) => {
+  const handleOpenDocument = async (storagePath: string, documentName: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('documents')
-        .download(storagePath);
+        .createSignedUrl(storagePath, 3600);
 
       if (error) throw error;
 
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = documentName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
     } catch (error) {
-      console.error('Error downloading document:', error);
-      alert('Failed to download document');
+      console.error('Error opening document:', error);
+      alert('Failed to open document');
     }
   };
 
@@ -251,10 +246,10 @@ export const ChatWidget: React.FC = () => {
                             {Array.from(new Map(message.sources.map(s => [s.document_id, s])).values()).map((source, idx) => (
                               <button
                                 key={idx}
-                                onClick={() => handleDownloadDocument(source.storage_path, source.document_name)}
+                                onClick={() => handleOpenDocument(source.storage_path, source.document_name)}
                                 className="flex items-center space-x-1 text-xs text-mn-accent-teal hover:text-mn-primary transition-colors group"
                               >
-                                <Download className="h-3 w-3" />
+                                <ExternalLink className="h-3 w-3" />
                                 <span className="underline">{source.document_name}</span>
                               </button>
                             ))}

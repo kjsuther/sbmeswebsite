@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, ThumbsUp, ThumbsDown, Trash2, Copy, Check, Plus, Download } from 'lucide-react';
+import { MessageCircle, Send, ThumbsUp, ThumbsDown, Trash2, Copy, Check, Plus, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import { Message, Conversation } from '../lib/chatbot-types';
@@ -217,29 +217,24 @@ const Chatbot: React.FC = () => {
     }
   };
 
-  const handleDownloadDocument = async (storagePath: string, documentName: string) => {
+  const handleOpenDocument = async (storagePath: string, documentName: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('documents')
-        .download(storagePath);
+        .createSignedUrl(storagePath, 3600);
 
       if (error) {
-        console.error('Error downloading document:', error);
-        alert('Unable to download document.');
+        console.error('Error opening document:', error);
+        alert('Unable to open document.');
         return;
       }
 
-      const url = URL.createObjectURL(data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = documentName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
     } catch (error) {
-      console.error('Error downloading document:', error);
-      alert('An error occurred while downloading the document.');
+      console.error('Error opening document:', error);
+      alert('An error occurred while opening the document.');
     }
   };
 
@@ -381,10 +376,10 @@ const Chatbot: React.FC = () => {
                                     {source.storage_path && source.document_name ? (
                                       <div className="flex items-center space-x-2">
                                         <button
-                                          onClick={() => handleDownloadDocument(source.storage_path!, source.document_name!)}
+                                          onClick={() => handleOpenDocument(source.storage_path!, source.document_name!)}
                                           className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
                                         >
-                                          <Download className="h-3 w-3" />
+                                          <ExternalLink className="h-3 w-3" />
                                           <span>{source.document_name}</span>
                                         </button>
                                         {source.section && (
