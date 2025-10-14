@@ -7,6 +7,8 @@ import { seedWebsiteContent } from '../utils/seedWebsiteContent';
 import { supabase } from '../lib/supabase';
 import DocumentUpload from '../components/DocumentUpload';
 import DocumentList from '../components/DocumentList';
+import QuestionsList from '../components/QuestionsList';
+import AnalyticsCharts from '../components/AnalyticsCharts';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'knowledge' | 'documents' | 'analytics'>('knowledge');
@@ -24,6 +26,13 @@ const AdminDashboard: React.FC = () => {
     positiveFeedback: 0,
     negativeFeedback: 0,
   });
+  const [analyticsData, setAnalyticsData] = useState({
+    topQuestions: [] as Array<{ question: string; count: number }>,
+    topSources: [] as Array<{ source: string; count: number }>,
+    messagesPerConversation: 0,
+    timeBasedData: [] as Array<{ date: string; count: number }>,
+  });
+  const [analyticsRefreshTrigger, setAnalyticsRefreshTrigger] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +43,7 @@ const AdminDashboard: React.FC = () => {
 
     loadChunkStats();
     loadAnalytics();
+    loadEnhancedAnalytics();
   }, [navigate]);
 
   const loadChunkStats = async () => {
@@ -69,6 +79,87 @@ const AdminDashboard: React.FC = () => {
       });
     } catch (error) {
       console.error('Error loading analytics:', error);
+    }
+  };
+
+  const loadEnhancedAnalytics = async () => {
+    try {
+      const { data: allMessages } = await supabase
+        .from('messages')
+        .select('content, role, conversation_id, sources, created_at')
+        .order('created_at', { ascending: false });
+
+      const userQuestions = (allMessages || []).filter(m => m.role === 'user');
+
+      const questionCounts: Record<string, number> = {};
+      userQuestions.forEach(q => {
+        const normalized = q.content.toLowerCase().trim();
+        questionCounts[normalized] = (questionCounts[normalized] || 0) + 1;
+      });
+
+      const topQuestions = Object.entries(questionCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([question, count]) => ({ question, count }));
+
+      const sourceCounts: Record<string, number> = {};
+      (allMessages || [])
+        .filter(m => m.role === 'assistant' && m.sources)
+        .forEach(m => {
+          try {
+            const sources = Array.isArray(m.sources) ? m.sources : JSON.parse(m.sources || '[]');
+            sources.forEach((source: any) => {
+              const sourceName = source.document_name || source.page || 'Unknown';
+              sourceCounts[sourceName] = (sourceCounts[sourceName] || 0) + 1;
+            });
+          } catch (e) {
+            console.error('Error parsing sources:', e);
+          }
+        });
+
+      const topSources = Object.entries(sourceCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([source, count]) => ({ source, count }));
+
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('id, created_at');
+
+      let messagesPerConv = 0;
+      if (conversations && conversations.length > 0) {
+        const totalMsgs = allMessages?.length || 0;
+        messagesPerConv = totalMsgs / conversations.length;
+      }
+
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        date.setHours(0, 0, 0, 0);
+        return date;
+      });
+
+      const timeBasedData = last7Days.map(date => {
+        const nextDay = new Date(date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        const count = (conversations || []).filter(c => {
+          const convDate = new Date(c.created_at);
+          return convDate >= date && convDate < nextDay;
+        }).length;
+        return {
+          date: date.toISOString(),
+          count,
+        };
+      });
+
+      setAnalyticsData({
+        topQuestions,
+        topSources,
+        messagesPerConversation: messagesPerConv,
+        timeBasedData,
+      });
+    } catch (error) {
+      console.error('Error loading enhanced analytics:', error);
     }
   };
 
@@ -277,6 +368,21 @@ const AdminDashboard: React.FC = () => {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-mn-primary">Analytics Dashboard</h2>
+              <button
+                onClick={() => {
+                  loadAnalytics();
+                  loadEnhancedAnalytics();
+                  setAnalyticsRefreshTrigger(prev => prev + 1);
+                }}
+                className="flex items-center space-x-2 bg-mn-accent-teal text-white px-4 py-2 rounded-lg hover:bg-mn-primary transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Refresh Data</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -336,6 +442,10 @@ const AdminDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+
+            <AnalyticsCharts data={analyticsData} />
+
+            <QuestionsList refreshTrigger={analyticsRefreshTrigger} />
           </div>
         )}
       </div>
