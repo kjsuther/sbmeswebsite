@@ -390,43 +390,86 @@ const Chatbot: React.FC = () => {
                         </div>
 
                         {message.sources && message.sources.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-gray-300">
-                            <p className="text-sm font-semibold text-gray-700 mb-2">Related Documents:</p>
-                            <div className="space-y-2">
-                              {message.sources.map((source, idx) => {
-                                console.log('Source:', JSON.stringify(source, null, 2));
-                                return (
-                                <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
-                                  <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
-                                  <div className="flex-1">
-                                    {source.storage_path && source.document_name ? (
-                                      <div className="flex items-center space-x-2">
-                                        <button
-                                          onClick={() => handleOpenSource(source.storage_path!, source.document_name!)}
-                                          className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
-                                        >
-                                          <ExternalLink className="h-3 w-3" />
-                                          <span>{source.document_name}</span>
-                                        </button>
-                                        {source.section && (
-                                          <span className="text-gray-500">- {source.section}</span>
+                          <>
+                            {message.sources.filter(s => s.cited).length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-gray-300">
+                                <p className="text-sm font-semibold text-gray-700 mb-2">Sources:</p>
+                                <div className="space-y-2">
+                                  {message.sources.filter(s => s.cited).map((source, idx) => {
+                                    console.log('Cited Source:', JSON.stringify(source, null, 2));
+                                    return (
+                                    <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
+                                      <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
+                                      <div className="flex-1">
+                                        {source.storage_path && source.document_name ? (
+                                          <div className="flex items-center space-x-2">
+                                            <button
+                                              onClick={() => handleOpenSource(source.storage_path!, source.document_name!)}
+                                              className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
+                                            >
+                                              <ExternalLink className="h-3 w-3" />
+                                              <span>{source.document_name}</span>
+                                            </button>
+                                            {source.section && (
+                                              <span className="text-gray-500">- {source.section}</span>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <Link
+                                            to={source.page}
+                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline"
+                                          >
+                                            {source.page}
+                                            {source.section && ` - ${source.section}`}
+                                          </Link>
                                         )}
                                       </div>
-                                    ) : (
-                                      <Link
-                                        to={source.page}
-                                        className="text-mn-accent-teal hover:text-mn-primary hover:underline"
-                                      >
-                                        {source.page}
-                                        {source.section && ` - ${source.section}`}
-                                      </Link>
-                                    )}
-                                  </div>
+                                    </div>
+                                  );
+                                  })}
                                 </div>
-                              );
-                              })}
-                            </div>
-                          </div>
+                              </div>
+                            )}
+                            {message.sources.filter(s => !s.cited).length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-gray-300">
+                                <p className="text-sm font-semibold text-gray-700 mb-2">Related Documents:</p>
+                                <div className="space-y-2">
+                                  {message.sources.filter(s => !s.cited).map((source, idx) => {
+                                    console.log('Related Source:', JSON.stringify(source, null, 2));
+                                    return (
+                                    <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
+                                      <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
+                                      <div className="flex-1">
+                                        {source.storage_path && source.document_name ? (
+                                          <div className="flex items-center space-x-2">
+                                            <button
+                                              onClick={() => handleOpenSource(source.storage_path!, source.document_name!)}
+                                              className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
+                                            >
+                                              <ExternalLink className="h-3 w-3" />
+                                              <span>{source.document_name}</span>
+                                            </button>
+                                            {source.section && (
+                                              <span className="text-gray-500">- {source.section}</span>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <Link
+                                            to={source.page}
+                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline"
+                                          >
+                                            {source.page}
+                                            {source.section && ` - ${source.section}`}
+                                          </Link>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
 
                         <div className="flex items-center space-x-2 mt-4">

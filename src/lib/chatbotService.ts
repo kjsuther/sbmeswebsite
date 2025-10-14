@@ -188,12 +188,24 @@ ${context || 'No relevant context found.'}`;
     }
   });
 
-  const sources = Array.from(uniqueSourcesMap.values()).map((source, index) => ({
+  const allSources = Array.from(uniqueSourcesMap.values()).map((source, index) => ({
     ...source,
     sourceNumber: index + 1,
   }));
 
-  console.log('Final sources array:', JSON.stringify(sources, null, 2));
+  const citedSourceNumbers = new Set<number>();
+  const sourceRegex = /Source\s+(\d+)/gi;
+  let match;
+  while ((match = sourceRegex.exec(assistantResponse)) !== null) {
+    citedSourceNumbers.add(parseInt(match[1]));
+  }
+
+  const sources = allSources.map(source => ({
+    ...source,
+    cited: citedSourceNumbers.has(source.sourceNumber),
+  }));
+
+  console.log('Final sources array with citation status:', JSON.stringify(sources, null, 2));
 
   const messageId = await saveMessage(conversationId, 'assistant', assistantResponse, sources);
 
