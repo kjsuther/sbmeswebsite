@@ -159,29 +159,32 @@ export const processUserMessage = async (
     console.log(`Added ${newChunks.slice(0, 50).length} additional structured data chunks`);
 
     const vendors = new Set<string>();
+    const vendorPattern = /,\s*([^,]+(?:,\s*(?:LLC|Inc|Corporation|Corp|LLP|Ltd))?),\s*Vendor,\s*([^,]+),\s*Large/gi;
+
     relevantChunks.forEach(chunk => {
       if (chunk.content && chunk.content.includes('Vendor') && chunk.content.includes('Large')) {
-        const lines = chunk.content.split('\n');
-        lines.forEach(line => {
-          if (line.includes('Vendor') && line.includes('Large')) {
-            const parts = line.split(',').map(p => p.trim());
-            const vendorIndex = parts.findIndex(p => p === 'Vendor');
-            const largeIndex = parts.findIndex(p => p === 'Large');
+        const matches = [...chunk.content.matchAll(vendorPattern)];
+        matches.forEach(match => {
+          let vendorName = match[1].trim();
+          const employeeInfo = match[2].trim();
 
-            if (vendorIndex > 0 && largeIndex > vendorIndex) {
-              const vendorName = parts[vendorIndex - 1];
-              const employeeInfo = parts.slice(vendorIndex + 1, largeIndex).join(', ');
-
-              if (vendorName &&
-                  vendorName.length > 2 &&
-                  !vendorName.includes('Row') &&
-                  !vendorName.includes('Company') &&
-                  !vendorName.match(/^\d+$/) &&
-                  vendorName.match(/[A-Za-z]/)) {
-                const cleanInfo = employeeInfo.length > 50 ? employeeInfo.substring(0, 47) + '...' : employeeInfo;
-                vendors.add(`${vendorName} (${cleanInfo})`);
-              }
+          if (vendorName.includes('Row')) {
+            const rowParts = vendorName.split(/Row\s*\d+:/);
+            if (rowParts.length > 1) {
+              vendorName = rowParts[rowParts.length - 1].trim();
             }
+          }
+
+          const skipTerms = ['Row', 'Column', 'Start time', 'Completion time'];
+          const shouldSkip = skipTerms.some(term => vendorName.includes(term));
+
+          if (vendorName &&
+              vendorName.length > 2 &&
+              !shouldSkip &&
+              !vendorName.match(/^\d+$/) &&
+              vendorName.match(/[A-Za-z]/)) {
+            const cleanInfo = employeeInfo.length > 50 ? employeeInfo.substring(0, 47) + '...' : employeeInfo;
+            vendors.add(`${vendorName} (${cleanInfo})`);
           }
         });
       }
