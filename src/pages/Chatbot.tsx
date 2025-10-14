@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Send, ThumbsUp, ThumbsDown, Trash2, Copy, Check, Plus, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Message, Conversation } from '../lib/chatbot-types';
 import {
   processUserMessage,
@@ -22,6 +22,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 const Chatbot: React.FC = () => {
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -217,7 +218,32 @@ const Chatbot: React.FC = () => {
     }
   };
 
-  const handleOpenDocument = async (storagePath: string, documentName: string) => {
+  const handleOpenSource = async (storagePath: string, documentName: string) => {
+    if (documentName.startsWith('Website - ')) {
+      const pageName = documentName.replace('Website - ', '').trim();
+      const routeMap: Record<string, string> = {
+        'FAQs': '/faqs',
+        'Home': '/',
+        'Great Bake Off': '/great-bake-off',
+        'MES Training': '/mes-training',
+        'MES Modernization': '/mes-modernization',
+        'Layer RFP Response': '/layer-rfp-response',
+        'Slice RFP Response': '/slice-rfp-response',
+        'Software Provider RFP Response': '/software-provider-rfp-response',
+        'Software RFP Requirements': '/software-rfp-requirements',
+        'Delivery Services Requirements': '/delivery-services-requirements',
+        'Reference Materials': '/reference-materials',
+        'Feedback': '/feedback',
+      };
+
+      const route = routeMap[pageName];
+      if (route) {
+        navigate(route);
+        window.scrollTo(0, 0);
+      }
+      return;
+    }
+
     try {
       const { data, error } = await supabase.storage
         .from('documents')
@@ -376,7 +402,7 @@ const Chatbot: React.FC = () => {
                                     {source.storage_path && source.document_name ? (
                                       <div className="flex items-center space-x-2">
                                         <button
-                                          onClick={() => handleOpenDocument(source.storage_path!, source.document_name!)}
+                                          onClick={() => handleOpenSource(source.storage_path!, source.document_name!)}
                                           className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
                                         >
                                           <ExternalLink className="h-3 w-3" />
