@@ -156,82 +156,85 @@ export function parseExcelToStructuredData(
   documentName: string
 ): StructuredDataRow[] {
   const rows: StructuredDataRow[] = [];
-  const lines = extractedText.split('\n');
 
   let currentSheet: string | null = null;
   let headers: string[] = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  const sheetRegex = /=== Sheet \d+: (.+) ===/g;
+  const headerRegex = /Column Headers: ([^\n]+)/g;
+  const rowRegex = /Row (\d+): (.+?)(?=\nColumn Headers:|Row \d+:|=== Sheet|$)/gs;
 
-    if (line.startsWith('=== Sheet')) {
-      const match = line.match(/=== Sheet \d+: (.+) ===/);
-      currentSheet = match ? match[1] : null;
-      headers = [];
-      continue;
-    }
-
-    if (line.startsWith('Column Headers:')) {
-      headers = line
-        .substring('Column Headers:'.length)
-        .split('|')
-        .map(h => h.trim())
-        .filter(h => h.length > 0);
-      continue;
-    }
-
-    if (line.startsWith('Row ')) {
-      if (headers.length === 0) {
-        console.warn(`Row found without headers at line ${i}: ${line.substring(0, 100)}`);
-        continue;
-      }
-
-      const match = line.match(/^Row (\d+): (.+)$/);
-      if (!match) {
-        console.warn(`Could not parse row at line ${i}: ${line.substring(0, 100)}`);
-        continue;
-      }
-
-      const rowNumber = parseInt(match[1], 10);
-      const rowData = match[2];
-      const values = rowData
-        .split('|')
-        .map(v => v.trim());
-
-      const data: Record<string, any> = {};
-      const searchableFields: string[] = [];
-
-      for (let j = 0; j < headers.length && j < values.length; j++) {
-        const header = headers[j];
-        const value = values[j];
-
-        if (value) {
-          data[header] = value;
-
-          const numValue = parseFloat(value);
-          if (!isNaN(numValue) && numValue.toString() === value) {
-            data[header] = numValue;
-          }
-
-          searchableFields.push(`${header}: ${value}`);
-        }
-      }
-
-      const searchableText = searchableFields.join(' | ');
-
-      rows.push({
-        uploaded_document_id: documentId,
-        sheet_name: currentSheet,
-        row_number: rowNumber,
-        headers,
-        values,
-        data,
-        searchable_text: searchableText
-      });
-    }
+  let sheetMatch;
+  while ((sheetMatch = sheetRegex.exec(extractedText)) !== null) {
+    currentSheet = sheetMatch[1];
   }
 
-  console.log(`parseExcelToStructuredData: Parsed ${rows.length} rows from ${lines.length} lines`);
+  let headerMatch;
+  while ((headerMatch = headerRegex.exec(extractedText)) !== null) {
+    headers = headerMatch[1]
+      .split('|')
+      .map(h => h.trim())
+      .filter(h => h.length > 0);
+  }
+
+  let rowMatch;
+  let rowsFound = 0;
+  let rowsSkipped = 0;
+
+  while ((rowMatch = rowRegex.exec(extractedText)) !== null) {
+    rowsFound++;
+
+    if (headers.length === 0) {
+      console.warn(`Row ${rowMatch[1]} found without headers`);
+      rowsSkipped++;
+      continue;
+    }
+
+    const rowNumber = parseInt(rowMatch[1], 10);
+    const rowData = rowMatch[2].replace(/\n/g, ' ').trim();
+    const values = rowData
+      .split('|')
+      .map(v => v.trim());
+
+    if (values.length < headers.length * 0.5) {
+      console.warn(`Row ${rowNumber} has too few values (${values.length} vs ${headers.length} headers)`);
+      rowsSkipped++;
+      continue;
+    }
+
+    const data: Record<string, any> = {};
+    const searchableFields: string[] = [];
+
+    for (let j = 0; j < headers.length && j < values.length; j++) {
+      const header = headers[j];
+      const value = values[j];
+
+      if (value) {
+        data[header] = value;
+
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue) && numValue.toString() === value) {
+          data[header] = numValue;
+        }
+
+        searchableFields.push(`${header}: ${value}`);
+      }
+    }
+
+    const searchableText = searchableFields.join(' | ');
+
+    rows.push({
+      uploaded_document_id: documentId,
+      sheet_name: currentSheet,
+      row_number: rowNumber,
+      headers,
+      values,
+      data,
+      searchable_text: searchableText
+    });
+  }
+
+  console.log(`parseExcelToStructuredData: Found ${rowsFound} row matches, parsed ${rows.length} rows, skipped ${rowsSkipped}`);
   return rows;
 }
 
