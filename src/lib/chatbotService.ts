@@ -3,7 +3,7 @@ import { generateEmbedding, generateChatResponse, generateConversationTitle } fr
 import { DocumentChunk, Message, Conversation, ChatRequest, ChatResponse } from './chatbot-types';
 
 const SIMILARITY_THRESHOLD = 0.1;
-const MAX_CONTEXT_CHUNKS = 10;
+const MAX_CONTEXT_CHUNKS = 20;
 
 export const searchSimilarChunks = async (query: string, limit: number = MAX_CONTEXT_CHUNKS): Promise<DocumentChunk[]> => {
   try {
