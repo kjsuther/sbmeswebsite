@@ -391,7 +391,7 @@ const Chatbot: React.FC = () => {
 
                         {message.sources && message.sources.length > 0 && (
                           <div className="mt-4 pt-4 border-t border-gray-300">
-                            <p className="text-sm font-semibold text-gray-700 mb-2">Sources:</p>
+                            <p className="text-sm font-semibold text-gray-700 mb-2">Related Documents:</p>
                             <div className="space-y-2">
                               {message.sources.map((source, idx) => {
                                 console.log('Source:', JSON.stringify(source, null, 2));
