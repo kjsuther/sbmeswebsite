@@ -123,6 +123,7 @@ const Chatbot: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
 
+      console.log('About to call processUserMessage...');
       const response = await processUserMessage(
         {
           message: messageText,
@@ -141,6 +142,7 @@ const Chatbot: React.FC = () => {
           });
         }
       );
+      console.log('processUserMessage completed!');
 
       console.log('=== FULL API Response ===', response);
       console.log('Response has sources?', !!response.sources);
@@ -165,7 +167,8 @@ const Chatbot: React.FC = () => {
 
       await loadConversations();
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('!!! ERROR in handleSendMessage !!!', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       setMessages(prev => [
         ...prev,
         {
