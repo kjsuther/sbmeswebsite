@@ -67,10 +67,14 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error) {
     console.error("Error extracting PDF text:", error);
+    const errorDetails = error instanceof Error ? error.message : String(error);
+    console.error("Error details:", errorDetails);
+    console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     return new Response(
       JSON.stringify({
         error: "Failed to extract text from PDF",
-        details: error.message,
+        details: errorDetails,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
       }),
       {
         status: 500,

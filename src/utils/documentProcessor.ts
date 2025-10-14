@@ -74,13 +74,18 @@ const extractTextFromPDF = async (file: File): Promise<{ text: string; metadata?
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to extract PDF text');
+      console.error('PDF extraction error response:', error);
+      const errorMsg = error.details ? `${error.error}: ${error.details}` : error.error;
+      throw new Error(errorMsg || 'Failed to extract PDF text');
     }
 
     const result = await response.json();
     return { text: result.text, metadata: result.metadata };
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to extract text from PDF');
   }
 };
@@ -102,13 +107,18 @@ const extractTextFromPowerPoint = async (file: File): Promise<{ text: string; me
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to extract PowerPoint text');
+      console.error('PowerPoint extraction error response:', error);
+      const errorMsg = error.details ? `${error.error}: ${error.details}` : error.error;
+      throw new Error(errorMsg || 'Failed to extract PowerPoint text');
     }
 
     const result = await response.json();
     return { text: result.text, metadata: result.metadata };
   } catch (error) {
     console.error('Error extracting text from PowerPoint:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to extract text from PowerPoint');
   }
 };
@@ -130,13 +140,18 @@ const extractTextFromWordDocument = async (file: File): Promise<{ text: string; 
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to extract Word document text');
+      console.error('Word extraction error response:', error);
+      const errorMsg = error.details ? `${error.error}: ${error.details}` : error.error;
+      throw new Error(errorMsg || 'Failed to extract Word document text');
     }
 
     const result = await response.json();
     return { text: result.text, metadata: result.metadata };
   } catch (error) {
     console.error('Error extracting text from Word document:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to extract text from Word document');
   }
 };
@@ -158,13 +173,18 @@ const extractTextFromImage = async (file: File): Promise<{ text: string; metadat
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to extract text from image');
+      console.error('Image extraction error response:', error);
+      const errorMsg = error.details ? `${error.error}: ${error.details}` : error.error;
+      throw new Error(errorMsg || 'Failed to extract text from image');
     }
 
     const result = await response.json();
     return { text: result.text, metadata: result.metadata };
   } catch (error) {
     console.error('Error extracting text from image:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to extract text from image');
   }
 };
