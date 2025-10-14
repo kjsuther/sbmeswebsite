@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Minimize2, Send, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { MessageCircle, X, Minimize2, Send, ThumbsUp, ThumbsDown, Download } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import { Message } from '../lib/chatbot-types';
 import { processUserMessage, getConversationMessages, submitFeedback } from '../lib/chatbotService';
@@ -93,11 +94,13 @@ export const ChatWidget: React.FC = () => {
 
       setMessages(prev => {
         const updated = [...prev];
-        const lastMessage = updated[updated.length - 1];
-        if (lastMessage.role === 'assistant') {
-          lastMessage.id = response.message_id;
-          lastMessage.content = response.message;
-          lastMessage.sources = response.sources;
+        if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            id: response.message_id,
+            content: response.message,
+            sources: response.sources,
+          };
         }
         return updated;
       });
@@ -135,6 +138,28 @@ export const ChatWidget: React.FC = () => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleDownloadDocument = async (documentId: string, documentName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(documentId);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = documentName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      alert('Failed to download document');
     }
   };
 
@@ -223,11 +248,15 @@ export const ChatWidget: React.FC = () => {
                         <div className="mt-2 pt-2 border-t border-gray-300">
                           <p className="text-xs text-gray-600 font-semibold mb-1">Sources:</p>
                           <div className="space-y-1">
-                            {message.sources.map((source, idx) => (
-                              <p key={idx} className="text-xs text-gray-600">
-                                • {source.page}
-                                {source.section && ` - ${source.section}`}
-                              </p>
+                            {Array.from(new Map(message.sources.map(s => [s.document_id, s])).values()).map((source, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => handleDownloadDocument(source.document_id, source.document_name)}
+                                className="flex items-center space-x-1 text-xs text-mn-accent-teal hover:text-mn-primary transition-colors group"
+                              >
+                                <Download className="h-3 w-3" />
+                                <span className="underline">{source.document_name}</span>
+                              </button>
                             ))}
                           </div>
                         </div>

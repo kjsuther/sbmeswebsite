@@ -94,7 +94,9 @@ const Chatbot: React.FC = () => {
   };
 
   const handleSendMessage = async (text?: string) => {
+    console.log('🚀 handleSendMessage CALLED');
     const messageText = text || inputValue.trim();
+    console.log('📝 Message text:', messageText);
     if (!messageText || isLoading) return;
 
     setInputValue('');
@@ -109,6 +111,7 @@ const Chatbot: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    console.log('✅ User message added to state');
 
     try {
       let assistantContent = '';
