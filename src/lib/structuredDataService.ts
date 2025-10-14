@@ -48,66 +48,91 @@ export interface StructuredDataQuery {
 }
 
 export async function queryStructuredData(query: StructuredDataQuery): Promise<StructuredDataRow[]> {
-  let queryBuilder = supabase
-    .from('structured_data')
-    .select('*');
+  let whereClauses: string[] = [];
+  const params: Record<string, any> = {};
 
   if (query.documentId) {
-    queryBuilder = queryBuilder.eq('uploaded_document_id', query.documentId);
+    whereClauses.push(`uploaded_document_id = '${query.documentId}'`);
   }
 
-  if (query.conditions) {
-    for (const condition of query.conditions) {
-      const jsonPath = `data->>${condition.field}`;
+  if (query.conditions && query.conditions.length > 0) {
+    for (let i = 0; i < query.conditions.length; i++) {
+      const condition = query.conditions[i];
+      const field = condition.field;
+      const value = condition.value;
 
       switch (condition.operator) {
         case 'eq':
-          queryBuilder = queryBuilder.eq(jsonPath, condition.value);
-          break;
-        case 'neq':
-          queryBuilder = queryBuilder.neq(jsonPath, condition.value);
-          break;
-        case 'gt':
-          queryBuilder = queryBuilder.gt(jsonPath, condition.value);
-          break;
-        case 'gte':
-          queryBuilder = queryBuilder.gte(jsonPath, condition.value);
-          break;
-        case 'lt':
-          queryBuilder = queryBuilder.lt(jsonPath, condition.value);
-          break;
-        case 'lte':
-          queryBuilder = queryBuilder.lte(jsonPath, condition.value);
-          break;
-        case 'like':
-          queryBuilder = queryBuilder.like(jsonPath, `%${condition.value}%`);
+          whereClauses.push(`data->>'${field}' = '${value}'`);
           break;
         case 'ilike':
-          queryBuilder = queryBuilder.ilike(jsonPath, `%${condition.value}%`);
+          whereClauses.push(`data->>'${field}' ILIKE '%${value}%'`);
           break;
-        case 'in':
-          queryBuilder = queryBuilder.in(jsonPath, condition.value);
+        case 'like':
+          whereClauses.push(`data->>'${field}' LIKE '%${value}%'`);
           break;
       }
     }
   }
 
   if (query.searchText) {
-    queryBuilder = queryBuilder.textSearch('searchable_text', query.searchText, {
-      type: 'websearch',
-      config: 'english'
-    });
+    whereClauses.push(`to_tsvector('english', searchable_text) @@ websearch_to_tsquery('english', '${query.searchText}')`);
   }
 
-  if (query.limit) {
-    queryBuilder = queryBuilder.limit(query.limit);
-  }
+  const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+  const limitClause = query.limit ? `LIMIT ${query.limit}` : '';
 
-  const { data, error } = await queryBuilder;
+  const sql = `
+    SELECT *
+    FROM structured_data
+    ${whereClause}
+    ORDER BY row_number
+    ${limitClause}
+  `;
+
+  const { data, error } = await supabase.rpc('exec_sql', { query: sql }) as any;
 
   if (error) {
-    console.error('Error querying structured data:', error);
-    throw error;
+    console.log('Falling back to client-side filtering...');
+    const { data: allData, error: fetchError } = await supabase
+      .from('structured_data')
+      .select('*')
+      .limit(query.limit || 1000);
+
+    if (fetchError) {
+      console.error('Error querying structured data:', fetchError);
+      throw fetchError;
+    }
+
+    let filtered = allData || [];
+
+    if (query.conditions && query.conditions.length > 0) {
+      filtered = filtered.filter(row => {
+        return query.conditions!.every(condition => {
+          const fieldValue = row.data[condition.field];
+          if (!fieldValue) return false;
+
+          switch (condition.operator) {
+            case 'eq':
+              return String(fieldValue).toLowerCase() === String(condition.value).toLowerCase();
+            case 'ilike':
+            case 'like':
+              return String(fieldValue).toLowerCase().includes(String(condition.value).toLowerCase());
+            default:
+              return false;
+          }
+        });
+      });
+    }
+
+    if (query.searchText) {
+      const searchLower = query.searchText.toLowerCase();
+      filtered = filtered.filter(row =>
+        row.searchable_text?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered.slice(0, query.limit || filtered.length);
   }
 
   return data || [];
