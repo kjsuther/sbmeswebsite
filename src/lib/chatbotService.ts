@@ -158,16 +158,17 @@ export const processUserMessage = async (
     relevantChunks = [...relevantChunks, ...newChunks.slice(0, 50)];
     console.log(`Added ${newChunks.slice(0, 50).length} additional structured data chunks`);
 
-    const vendorPattern = /([A-Z][A-Za-z\s&,.'()-]+),\s*Vendor,\s*([\d,]+),\s*Large/g;
+    const vendorPattern = /([A-Z][A-Za-z\s&,.'()-]+?),\s*Vendor,\s*([^,]+?),\s*Large/g;
     const vendors = new Set<string>();
     relevantChunks.forEach(chunk => {
       if (chunk.content && chunk.content.includes('Large')) {
         const matches = [...chunk.content.matchAll(vendorPattern)];
         matches.forEach(match => {
           const vendorName = match[1].trim();
-          const employeeCount = match[2].trim();
-          if (vendorName && vendorName.length > 2) {
-            vendors.add(`${vendorName} (${employeeCount} employees)`);
+          const employeeInfo = match[2].trim();
+          if (vendorName && vendorName.length > 2 && !vendorName.includes('Row')) {
+            const cleanInfo = employeeInfo.length > 50 ? employeeInfo.substring(0, 47) + '...' : employeeInfo;
+            vendors.add(`${vendorName} (${cleanInfo})`);
           }
         });
       }
