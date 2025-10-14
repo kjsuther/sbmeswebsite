@@ -141,11 +141,11 @@ export const ChatWidget: React.FC = () => {
     }
   };
 
-  const handleDownloadDocument = async (documentId: string, documentName: string) => {
+  const handleDownloadDocument = async (storagePath: string, documentName: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('documents')
-        .download(documentId);
+        .download(storagePath);
 
       if (error) throw error;
 
@@ -251,7 +251,7 @@ export const ChatWidget: React.FC = () => {
                             {Array.from(new Map(message.sources.map(s => [s.document_id, s])).values()).map((source, idx) => (
                               <button
                                 key={idx}
-                                onClick={() => handleDownloadDocument(source.document_id, source.document_name)}
+                                onClick={() => handleDownloadDocument(source.storage_path, source.document_name)}
                                 className="flex items-center space-x-1 text-xs text-mn-accent-teal hover:text-mn-primary transition-colors group"
                               >
                                 <Download className="h-3 w-3" />

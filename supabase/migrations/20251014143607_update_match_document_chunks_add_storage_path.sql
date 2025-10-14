@@ -1,0 +1,60 @@
+/*
+  # Update Vector Search Function to Include Storage Path
+
+  ## Overview
+  Updates the match_document_chunks function to include the storage_path field
+  by joining with the uploaded_documents table. This is needed so the chatbot
+  can download the actual files from Supabase Storage.
+
+  ## Changes
+  - Drop the existing function
+  - Recreate with storage_path in the RETURNS TABLE
+  - Join with uploaded_documents table to get storage_path
+*/
+
+-- Drop the existing function
+DROP FUNCTION IF EXISTS match_document_chunks(vector, float, int);
+
+-- Recreate with storage_path included
+CREATE OR REPLACE FUNCTION match_document_chunks(
+  query_embedding vector(1536),
+  match_threshold float DEFAULT 0.7,
+  match_count int DEFAULT 5
+)
+RETURNS TABLE (
+  id uuid,
+  content text,
+  embedding vector(1536),
+  metadata jsonb,
+  source_page text,
+  source_section text,
+  document_name text,
+  uploaded_document_id uuid,
+  chunk_index integer,
+  similarity float,
+  storage_path text
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    dc.id,
+    dc.content,
+    dc.embedding,
+    dc.metadata,
+    dc.source_page,
+    dc.source_section,
+    dc.document_name,
+    dc.uploaded_document_id,
+    dc.chunk_index,
+    1 - (dc.embedding <=> query_embedding) AS similarity,
+    ud.storage_path
+  FROM document_chunks dc
+  LEFT JOIN uploaded_documents ud ON dc.uploaded_document_id = ud.id
+  WHERE dc.embedding IS NOT NULL
+    AND 1 - (dc.embedding <=> query_embedding) > match_threshold
+  ORDER BY dc.embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;

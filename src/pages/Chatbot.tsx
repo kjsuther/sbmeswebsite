@@ -217,23 +217,11 @@ const Chatbot: React.FC = () => {
     }
   };
 
-  const handleDownloadDocument = async (documentId: string, documentName: string) => {
+  const handleDownloadDocument = async (storagePath: string, documentName: string) => {
     try {
-      const { data: docData, error: docError } = await supabase
-        .from('uploaded_documents')
-        .select('storage_path')
-        .eq('id', documentId)
-        .maybeSingle();
-
-      if (docError || !docData?.storage_path) {
-        console.error('Error fetching document:', docError);
-        alert('Unable to download document. The file may not be available.');
-        return;
-      }
-
       const { data, error } = await supabase.storage
         .from('documents')
-        .download(docData.storage_path);
+        .download(storagePath);
 
       if (error) {
         console.error('Error downloading document:', error);
@@ -390,10 +378,10 @@ const Chatbot: React.FC = () => {
                                 <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
                                   <span className="text-gray-400">•</span>
                                   <div className="flex-1">
-                                    {source.document_id && source.document_name ? (
+                                    {source.storage_path && source.document_name ? (
                                       <div className="flex items-center space-x-2">
                                         <button
-                                          onClick={() => handleDownloadDocument(source.document_id!, source.document_name!)}
+                                          onClick={() => handleDownloadDocument(source.storage_path!, source.document_name!)}
                                           className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
                                         >
                                           <Download className="h-3 w-3" />

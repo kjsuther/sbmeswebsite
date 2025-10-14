@@ -7,6 +7,7 @@ export interface DocumentChunk {
   source_section?: string;
   document_name?: string;
   uploaded_document_id?: string;
+  storage_path?: string;
   chunk_index: number;
   created_at?: string;
   updated_at?: string;
@@ -31,6 +32,7 @@ export interface Message {
     relevance: number;
     document_id?: string;
     document_name?: string;
+    storage_path?: string;
   }>;
   feedback_rating?: 'positive' | 'negative';
   feedback_text?: string;

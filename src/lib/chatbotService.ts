@@ -164,6 +164,7 @@ ${context || 'No relevant context found.'}`;
       uploaded_document_id: chunk.uploaded_document_id,
       document_name: chunk.document_name,
       source_page: chunk.source_page,
+      storage_path: chunk.storage_path,
     });
     return {
       page: chunk.source_page,
@@ -171,6 +172,7 @@ ${context || 'No relevant context found.'}`;
       relevance: 0.9,
       document_id: chunk.uploaded_document_id,
       document_name: chunk.document_name,
+      storage_path: chunk.storage_path,
     };
   });
 
