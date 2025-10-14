@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { generateEmbedding, generateChatResponse, generateConversationTitle } from './openai';
 import { DocumentChunk, Message, Conversation, ChatRequest, ChatResponse } from './chatbot-types';
+import { hybridSearch, extractVendorList } from './hybridSearchService';
 
 const SIMILARITY_THRESHOLD = 0.1;
 const MAX_CONTEXT_CHUNKS = 50;
@@ -141,66 +142,35 @@ export const processUserMessage = async (
     updateConversationTitle(conversationId, request.message);
   }
 
-  let relevantChunks = await searchSimilarChunks(request.message);
+  console.log('=== USING HYBRID SEARCH ===');
+  const hybridResults = await hybridSearch(request.message, {
+    vectorLimit: 50,
+    structuredLimit: 200,
+    similarityThreshold: SIMILARITY_THRESHOLD,
+    includeStructured: true
+  });
+
+  console.log(`Hybrid search returned ${hybridResults.length} results`);
+  console.log(`- Vector results: ${hybridResults.filter(r => r.type === 'vector').length}`);
+  console.log(`- Structured results: ${hybridResults.filter(r => r.type === 'structured').length}`);
+
+  const relevantChunks: DocumentChunk[] = hybridResults.map(result => ({
+    id: result.id,
+    content: result.content,
+    similarity: result.similarity,
+    metadata: result.metadata,
+    source_page: result.source_page || '',
+    document_name: result.document_name || '',
+    uploaded_document_id: result.uploaded_document_id || null,
+    storage_path: result.storage_path || null
+  }));
 
   let vendorListContext = '';
-  const lowerMessage = request.message.toLowerCase();
-  if ((lowerMessage.includes('vendor') || lowerMessage.includes('vendors')) &&
-      (lowerMessage.includes('large') ||
-       lowerMessage.includes('who') ||
-       lowerMessage.includes('which') ||
-       lowerMessage.includes('list'))) {
-    console.log('=== AUGMENTING WITH STRUCTURED DATA SEARCH ===');
-    const structuredQuery = 'company name employees Large vendor organization';
-    const structuredChunks = await searchSimilarChunks(structuredQuery, 80);
-
-    const existingIds = new Set(relevantChunks.map(c => c.id));
-    const newChunks = structuredChunks.filter(c => !existingIds.has(c.id));
-    relevantChunks = [...relevantChunks, ...newChunks.slice(0, 50)];
-    console.log(`Added ${newChunks.slice(0, 50).length} additional structured data chunks`);
-
-    const vendors = new Set<string>();
-
-    relevantChunks.forEach(chunk => {
-      if (chunk.content && chunk.content.includes('Vendor') && chunk.content.includes('Large')) {
-        const lines = chunk.content.split('\n');
-
-        for (const line of lines) {
-          if (!line.includes('Vendor') || !line.includes('Large')) continue;
-          if (line.includes('Column Headers')) continue;
-
-          const rowMatch = line.match(/Row\s+\d+:\s*(.+)/);
-          if (!rowMatch) continue;
-
-          const rowData = rowMatch[1];
-          const cells = rowData.split('|').map(c => c.trim());
-
-          const vendorIndex = cells.findIndex(c => c === 'Vendor');
-          const largeIndex = cells.findIndex(c => c === 'Large');
-
-          if (vendorIndex > 0 && largeIndex > vendorIndex) {
-            const vendorName = cells[vendorIndex - 1];
-            const employeeCells = cells.slice(vendorIndex + 1, largeIndex);
-            const employeeInfo = employeeCells.join(' | ');
-
-            if (vendorName &&
-                vendorName.length > 2 &&
-                !vendorName.match(/^\d+$/) &&
-                vendorName.match(/[A-Za-z]/)) {
-              const cleanName = vendorName.length > 100 ? vendorName.substring(0, 97) + '...' : vendorName;
-              const cleanInfo = employeeInfo.length > 50 ? employeeInfo.substring(0, 47) + '...' : employeeInfo;
-              vendors.add(`${cleanName} (${cleanInfo})`);
-            }
-          }
-        }
-      }
-    });
-
-    if (vendors.size > 0) {
-      vendorListContext = `\n\nLARGE VENDORS WHO RESPONDED TO THE RFI:\n${Array.from(vendors).join('\n')}`;
-      console.log(`=== EXTRACTED ${vendors.size} LARGE VENDORS ===`);
-      console.log(vendorListContext);
-    }
+  const vendors = await extractVendorList(hybridResults);
+  if (vendors.length > 0) {
+    vendorListContext = `\n\nLARGE VENDORS WHO RESPONDED TO THE RFI:\n${vendors.join('\n')}`;
+    console.log(`=== EXTRACTED ${vendors.length} LARGE VENDORS ===`);
+    console.log(vendorListContext);
   }
 
   console.log('=== CHUNKS RETURNED FROM SEARCH ===');

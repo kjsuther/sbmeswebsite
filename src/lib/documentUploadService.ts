@@ -4,6 +4,7 @@ import { processDocument, calculateFileHash, isSupportedFileType } from '../util
 import { chunkText } from '../utils/contentExtractor';
 import { addToQueue } from './queueService';
 import { retryWithBackoff } from '../utils/retryUtil';
+import { parseExcelToStructuredData, saveStructuredData } from './structuredDataService';
 
 export interface UploadedDocument {
   id: string;
@@ -116,6 +117,23 @@ export const uploadDocument = async (
     try {
       onProgress?.({ stage: 'extracting', message: 'Extracting text from document...' });
       const { text, metadata } = await processDocument(file);
+
+      const isExcelFile = file.name.toLowerCase().endsWith('.xlsx') ||
+                         file.name.toLowerCase().endsWith('.xls') ||
+                         file.name.toLowerCase().endsWith('.csv');
+
+      if (isExcelFile && text) {
+        try {
+          onProgress?.({ stage: 'saving', message: 'Parsing structured data from spreadsheet...' });
+          const structuredRows = parseExcelToStructuredData(document.id, text, file.name);
+          if (structuredRows.length > 0) {
+            await saveStructuredData(structuredRows);
+            console.log(`Saved ${structuredRows.length} structured data rows for ${file.name}`);
+          }
+        } catch (structuredError) {
+          console.error('Error saving structured data (non-fatal):', structuredError);
+        }
+      }
 
       onProgress?.({ stage: 'chunking', message: 'Splitting document into chunks...' });
       const textChunks = chunkText(text, 800, 100, metadata);
