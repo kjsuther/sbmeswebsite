@@ -150,12 +150,12 @@ export const processUserMessage = async (
        request.message.toLowerCase().includes('list'))) {
     console.log('=== AUGMENTING WITH STRUCTURED DATA SEARCH ===');
     const structuredQuery = 'company name employees Large vendor organization';
-    const structuredChunks = await searchSimilarChunks(structuredQuery, 30);
+    const structuredChunks = await searchSimilarChunks(structuredQuery, 80);
 
     const existingIds = new Set(relevantChunks.map(c => c.id));
     const newChunks = structuredChunks.filter(c => !existingIds.has(c.id));
-    relevantChunks = [...relevantChunks, ...newChunks.slice(0, 20)];
-    console.log(`Added ${newChunks.slice(0, 20).length} additional structured data chunks`);
+    relevantChunks = [...relevantChunks, ...newChunks.slice(0, 50)];
+    console.log(`Added ${newChunks.slice(0, 50).length} additional structured data chunks`);
   }
 
   console.log('=== CHUNKS RETURNED FROM SEARCH ===');
