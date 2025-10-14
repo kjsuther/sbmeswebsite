@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Minimize2, Send, ThumbsUp, ThumbsDown, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import { Message } from '../lib/chatbot-types';
@@ -13,6 +14,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 export const ChatWidget: React.FC = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -141,7 +143,32 @@ export const ChatWidget: React.FC = () => {
     }
   };
 
-  const handleOpenDocument = async (storagePath: string, documentName: string) => {
+  const handleOpenSource = async (storagePath: string, documentName: string) => {
+    if (documentName.startsWith('Website - ')) {
+      const pageName = documentName.replace('Website - ', '').trim();
+      const routeMap: Record<string, string> = {
+        'FAQs': '/faqs',
+        'Home': '/',
+        'Great Bake Off': '/great-bake-off',
+        'MES Training': '/mes-training',
+        'MES Modernization': '/mes-modernization',
+        'Layer RFP Response': '/layer-rfp-response',
+        'Slice RFP Response': '/slice-rfp-response',
+        'Software Provider RFP Response': '/software-provider-rfp-response',
+        'Software RFP Requirements': '/software-rfp-requirements',
+        'Delivery Services Requirements': '/delivery-services-requirements',
+        'Reference Materials': '/reference-materials',
+        'Feedback': '/feedback',
+      };
+
+      const route = routeMap[pageName];
+      if (route) {
+        navigate(route);
+        setIsOpen(false);
+      }
+      return;
+    }
+
     try {
       const { data, error } = await supabase.storage
         .from('documents')
@@ -246,7 +273,7 @@ export const ChatWidget: React.FC = () => {
                             {Array.from(new Map(message.sources.map(s => [s.document_id, s])).values()).map((source, idx) => (
                               <button
                                 key={idx}
-                                onClick={() => handleOpenDocument(source.storage_path, source.document_name)}
+                                onClick={() => handleOpenSource(source.storage_path, source.document_name)}
                                 className="flex items-center space-x-1 text-xs text-mn-accent-teal hover:text-mn-primary transition-colors group"
                               >
                                 <ExternalLink className="h-3 w-3" />
