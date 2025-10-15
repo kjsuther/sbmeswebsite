@@ -401,15 +401,19 @@ const Chatbot: React.FC = () => {
                                     <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
                                       <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
                                       <div className="flex-1">
-                                        {source.storage_path && source.document_name ? (
+                                        {source.document_name ? (
                                           <div className="flex items-center space-x-2">
-                                            <button
-                                              onClick={() => handleOpenSource(source.storage_path!, source.document_name!)}
-                                              className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
-                                            >
-                                              <ExternalLink className="h-3 w-3" />
-                                              <span>{source.document_name}</span>
-                                            </button>
+                                            {source.storage_path ? (
+                                              <button
+                                                onClick={() => handleOpenSource(source.storage_path, source.document_name)}
+                                                className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
+                                              >
+                                                <ExternalLink className="h-3 w-3" />
+                                                <span>{source.document_name}</span>
+                                              </button>
+                                            ) : (
+                                              <span className="text-gray-700 font-medium">{source.document_name}</span>
+                                            )}
                                             {source.section && (
                                               <span className="text-gray-500">- {source.section}</span>
                                             )}
@@ -440,15 +444,19 @@ const Chatbot: React.FC = () => {
                                     <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
                                       <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
                                       <div className="flex-1">
-                                        {source.storage_path && source.document_name ? (
+                                        {source.document_name ? (
                                           <div className="flex items-center space-x-2">
-                                            <button
-                                              onClick={() => handleOpenSource(source.storage_path!, source.document_name!)}
-                                              className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
-                                            >
-                                              <ExternalLink className="h-3 w-3" />
-                                              <span>{source.document_name}</span>
-                                            </button>
+                                            {source.storage_path ? (
+                                              <button
+                                                onClick={() => handleOpenSource(source.storage_path, source.document_name)}
+                                                className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
+                                              >
+                                                <ExternalLink className="h-3 w-3" />
+                                                <span>{source.document_name}</span>
+                                              </button>
+                                            ) : (
+                                              <span className="text-gray-700 font-medium">{source.document_name}</span>
+                                            )}
                                             {source.section && (
                                               <span className="text-gray-500">- {source.section}</span>
                                             )}
