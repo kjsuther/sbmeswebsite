@@ -5,6 +5,7 @@ import { chunkText } from '../utils/contentExtractor';
 import { addToQueue } from './queueService';
 import { retryWithBackoff } from '../utils/retryUtil';
 import { parseExcelToStructuredData, saveStructuredData } from './structuredDataService';
+import { detectVideoContent, enhanceChunkWithVideoMetadata } from '../utils/videoContentDetector';
 
 export interface UploadedDocument {
   id: string;
@@ -135,6 +136,18 @@ export const uploadDocument = async (
         }
       }
 
+      onProgress?.({ stage: 'chunking', message: 'Detecting video content...' });
+      const videoMetadata = detectVideoContent(text);
+
+      if (videoMetadata) {
+        console.log('Video content detected:', videoMetadata.title);
+        metadata.isVideoContent = true;
+        metadata.videoTitle = videoMetadata.title;
+        metadata.videoUrl = videoMetadata.url;
+        metadata.hasTimestamps = videoMetadata.timestamps.length > 0;
+        metadata.hasTranscript = videoMetadata.hasTranscript;
+      }
+
       onProgress?.({ stage: 'chunking', message: 'Splitting document into chunks...' });
       const textChunks = chunkText(text, 800, 100, metadata);
 
@@ -155,8 +168,13 @@ export const uploadDocument = async (
           batch.map(async (chunk, batchIndex) => {
             const chunkIndex = i + batchIndex;
 
+            let enhancedChunk = chunk;
+            if (videoMetadata) {
+              enhancedChunk = enhanceChunkWithVideoMetadata(chunk, videoMetadata);
+            }
+
             const embedding = await retryWithBackoff(
-              () => generateEmbedding(chunk),
+              () => generateEmbedding(enhancedChunk),
               {
                 maxRetries: 3,
                 initialDelay: 1000,
@@ -169,7 +187,7 @@ export const uploadDocument = async (
 
             await retryWithBackoff(
               () => supabase.from('document_chunks').insert({
-                content: chunk,
+                content: enhancedChunk,
                 embedding: embedding,
                 metadata: { ...metadata, originalFilename: file.name },
                 source_page: `/documents/${file.name}`,

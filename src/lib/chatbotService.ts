@@ -267,6 +267,12 @@ CRITICAL INSTRUCTIONS:
 6. Be concise but thorough
 7. Use a professional but friendly tone
 
+VIDEO CONTENT HANDLING:
+- When context includes video documentation with timestamps, provide specific timestamp references (e.g., "At 5:30 in the video...")
+- If a video URL is mentioned in the context, include it in your response as a direct link
+- For questions about video content, reference the key topics covered and guide users to specific sections using timestamps
+- When multiple related videos exist, mention them and explain how they connect to the user's question
+
 CONTEXT:
 ${finalContext || 'No relevant context found.'}`;
 

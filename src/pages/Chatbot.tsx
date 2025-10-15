@@ -11,6 +11,7 @@ import {
   submitFeedback
 } from '../lib/chatbotService';
 import { supabase } from '../lib/supabase';
+import VideoReference from '../components/VideoReference';
 
 const SUGGESTED_QUESTIONS = [
   "What is the Great Bake Off?",
@@ -218,6 +219,25 @@ const Chatbot: React.FC = () => {
     }
   };
 
+  const extractVideoReferences = (content: string): Array<{ url: string; title?: string; timestamp?: string }> => {
+    const videos: Array<{ url: string; title?: string; timestamp?: string }> = [];
+
+    const urlPattern = /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)[^\s)]+)/gi;
+    const matches = content.matchAll(urlPattern);
+
+    for (const match of matches) {
+      const url = match[0];
+      const timestampMatch = content.match(new RegExp(`(\\d{1,2}:\\d{2}(?::\\d{2})?).*?${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+
+      videos.push({
+        url,
+        timestamp: timestampMatch ? timestampMatch[1] : undefined,
+      });
+    }
+
+    return videos;
+  };
+
   const handleOpenSource = async (storagePath: string, documentName: string) => {
     if (documentName.startsWith('Website - ')) {
       const pageName = documentName.replace('Website - ', '').trim();
@@ -388,6 +408,25 @@ const Chatbot: React.FC = () => {
                         <div className="prose prose-sm max-w-none">
                           <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
+
+                        {(() => {
+                          const videoRefs = extractVideoReferences(message.content);
+                          if (videoRefs.length > 0) {
+                            return (
+                              <div className="mt-4 space-y-2">
+                                {videoRefs.map((video, idx) => (
+                                  <VideoReference
+                                    key={idx}
+                                    url={video.url}
+                                    title={video.title}
+                                    timestamp={video.timestamp}
+                                  />
+                                ))}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
 
                         {message.sources && message.sources.length > 0 && (
                           <>
