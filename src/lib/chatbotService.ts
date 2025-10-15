@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { generateEmbedding, generateChatResponse, generateConversationTitle } from './openai';
 import { DocumentChunk, Message, Conversation, ChatRequest, ChatResponse } from './chatbot-types';
 import { hybridSearch, extractVendorList } from './hybridSearchService';
+import { analyzeStructuredData } from './structuredDataAnalyzer';
 
 const SIMILARITY_THRESHOLD = 0.1;
 const MAX_CONTEXT_CHUNKS = 50;
@@ -140,6 +141,38 @@ export const processUserMessage = async (
 
   if (isFirstMessage) {
     updateConversationTitle(conversationId, request.message);
+  }
+
+  console.log('=== CHECKING STRUCTURED DATA ANALYZER ===');
+  const structuredAnalysis = await analyzeStructuredData(request.message);
+
+  if (structuredAnalysis) {
+    console.log('Structured data analysis found direct answer:', structuredAnalysis.answer);
+
+    const messageId = await saveMessage(conversationId, 'assistant', structuredAnalysis.answer, [{
+      page: 'Final RFI Response List.xlsx',
+      section: 'Company Size Category Analysis',
+      relevance: 1.0,
+      document_name: 'Final RFI Response List.xlsx',
+      storage_path: '/documents/Final RFI Response List.xlsx',
+      cited: true,
+      sourceNumber: 1
+    }]);
+
+    return {
+      message: structuredAnalysis.answer,
+      conversation_id: conversationId,
+      sources: [{
+        page: 'Final RFI Response List.xlsx',
+        section: 'Company Size Category Analysis',
+        relevance: 1.0,
+        document_name: 'Final RFI Response List.xlsx',
+        storage_path: '/documents/Final RFI Response List.xlsx',
+        cited: true,
+        sourceNumber: 1
+      }],
+      message_id: messageId,
+    };
   }
 
   console.log('=== USING HYBRID SEARCH ===');
