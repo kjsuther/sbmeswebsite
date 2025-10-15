@@ -5,7 +5,7 @@ import { hybridSearch, extractVendorList } from './hybridSearchService';
 import { analyzeStructuredData } from './structuredDataAnalyzer';
 
 const SIMILARITY_THRESHOLD = 0.1;
-const MAX_CONTEXT_CHUNKS = 50;
+const MAX_CONTEXT_CHUNKS = 25;
 
 export const searchSimilarChunks = async (query: string, limit: number = MAX_CONTEXT_CHUNKS): Promise<DocumentChunk[]> => {
   try {
@@ -177,8 +177,8 @@ export const processUserMessage = async (
 
   console.log('=== USING HYBRID SEARCH ===');
   const hybridResults = await hybridSearch(request.message, {
-    vectorLimit: 50,
-    structuredLimit: 200,
+    vectorLimit: 20,
+    structuredLimit: 50,
     similarityThreshold: SIMILARITY_THRESHOLD,
     includeStructured: true
   });

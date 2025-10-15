@@ -88,19 +88,25 @@ export const enhanceChunkWithVideoMetadata = (
   let enhanced = chunk;
 
   if (videoMetadata.url && !enhanced.includes(videoMetadata.url)) {
-    enhanced = `[VIDEO: ${videoMetadata.title}]\n[URL: ${videoMetadata.url}]\n\n${enhanced}`;
+    const prefix = `[VIDEO: ${videoMetadata.title}] [URL: ${videoMetadata.url}]`;
+    if (prefix.length < 150) {
+      enhanced = `${prefix}\n${enhanced}`;
+    }
   }
 
   if (videoMetadata.timestamps.length > 0) {
     const relevantTimestamps = videoMetadata.timestamps.filter(ts =>
-      chunk.toLowerCase().includes(ts.topic.toLowerCase().substring(0, 20))
-    );
+      chunk.toLowerCase().includes(ts.topic.toLowerCase().substring(0, 15))
+    ).slice(0, 2);
 
     if (relevantTimestamps.length > 0) {
       const timestampInfo = relevantTimestamps
-        .map(ts => `[${ts.time}] ${ts.topic}`)
+        .map(ts => `[${ts.time}] ${ts.topic.substring(0, 30)}`)
         .join('; ');
-      enhanced = `[VIDEO TIMESTAMPS: ${timestampInfo}]\n\n${enhanced}`;
+
+      if (timestampInfo.length < 100) {
+        enhanced = `[TIMESTAMPS: ${timestampInfo}]\n${enhanced}`;
+      }
     }
   }
 
