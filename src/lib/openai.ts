@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 
 const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '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';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://fvlstvvvwrtmuujxwxml.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2bHN0dnZ2d3J0bXV1anh3eG1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNjg5ODMsImV4cCI6MjA3NDc0NDk4M30.JzI45Ay51RtsEJMMJjh9SrftWQQVeOCMVF9z9jqowdw';
 
 export const openai = new OpenAI({
   apiKey,
@@ -20,6 +21,7 @@ const callChatCompletionEdgeFunction = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseAnonKey}`,
     },
     body: JSON.stringify({
       messages,
@@ -56,32 +58,22 @@ export const generateChatResponse = async (
   onStream?: (chunk: string) => void
 ): Promise<string> => {
   try {
-    if (onStream) {
-      const stream = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages,
-        stream: true,
-        temperature: 0.7,
-      });
+    const response = await callChatCompletionEdgeFunction(messages, {
+      model: 'gpt-4o-mini',
+      temperature: 0.7,
+    });
 
-      let fullResponse = '';
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        if (content) {
-          fullResponse += content;
-          onStream(content);
-        }
+    const content = response.choices[0].message.content || '';
+
+    if (onStream && content) {
+      const words = content.split(' ');
+      for (const word of words) {
+        onStream(word + ' ');
+        await new Promise(resolve => setTimeout(resolve, 20));
       }
-
-      return fullResponse;
-    } else {
-      const response = await callChatCompletionEdgeFunction(messages, {
-        model: 'gpt-4o-mini',
-        temperature: 0.7,
-      });
-
-      return response.choices[0].message.content || '';
     }
+
+    return content;
   } catch (error) {
     console.error('Error generating chat response:', error);
     throw error;
