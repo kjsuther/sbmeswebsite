@@ -103,20 +103,23 @@ export async function hybridSearch(
         limit: structuredLimit
       });
 
-      const docNameCache = new Map<string, string>();
+      const docCache = new Map<string, { filename: string; storage_path: string }>();
 
       for (const row of structuredResults) {
-        let documentName = docNameCache.get(row.uploaded_document_id);
+        let docInfo = docCache.get(row.uploaded_document_id);
 
-        if (!documentName) {
+        if (!docInfo) {
           const { data: doc } = await supabase
             .from('uploaded_documents')
-            .select('filename')
+            .select('filename, storage_path')
             .eq('id', row.uploaded_document_id)
             .single();
 
-          documentName = doc?.filename || 'Structured Data';
-          docNameCache.set(row.uploaded_document_id, documentName);
+          docInfo = {
+            filename: doc?.filename || 'Structured Data',
+            storage_path: doc?.storage_path || ''
+          };
+          docCache.set(row.uploaded_document_id, docInfo);
         }
 
         results.push({
@@ -125,9 +128,9 @@ export async function hybridSearch(
           similarity: 0.95,
           metadata: { isStructured: true, data: row.data },
           source_page: `/documents/${row.uploaded_document_id}`,
-          document_name: documentName,
+          document_name: docInfo.filename,
           uploaded_document_id: row.uploaded_document_id,
-          storage_path: null,
+          storage_path: docInfo.storage_path,
           type: 'structured',
           structuredData: row
         });
