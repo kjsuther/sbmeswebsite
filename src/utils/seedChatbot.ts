@@ -80,7 +80,8 @@ export const getChunkStats = async (): Promise<{
 }> => {
   const { data, error } = await supabase
     .from('document_chunks')
-    .select('source_page');
+    .select('source_page, metadata')
+    .eq('metadata->>source', 'website');
 
   if (error || !data) {
     return { totalChunks: 0, chunksByPage: {} };
