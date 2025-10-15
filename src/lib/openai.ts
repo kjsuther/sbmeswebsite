@@ -1,11 +1,41 @@
 import OpenAI from 'openai';
 
 const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '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';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://fvlstvvvwrtmuujxwxml.supabase.co';
 
 export const openai = new OpenAI({
   apiKey,
   dangerouslyAllowBrowser: true,
 });
+
+const callChatCompletionEdgeFunction = async (
+  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
+  options: {
+    model?: string;
+    temperature?: number;
+    max_tokens?: number;
+  } = {}
+): Promise<any> => {
+  const response = await fetch(`${supabaseUrl}/functions/v1/chat-completion`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messages,
+      model: options.model || 'gpt-4o-mini',
+      temperature: options.temperature ?? 0.7,
+      max_tokens: options.max_tokens,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(`Edge function error: ${errorData.error || response.statusText}`);
+  }
+
+  return response.json();
+};
 
 export const generateEmbedding = async (text: string): Promise<number[]> => {
   try {
@@ -45,9 +75,8 @@ export const generateChatResponse = async (
 
       return fullResponse;
     } else {
-      const response = await openai.chat.completions.create({
+      const response = await callChatCompletionEdgeFunction(messages, {
         model: 'gpt-4o-mini',
-        messages,
         temperature: 0.7,
       });
 
@@ -61,18 +90,17 @@ export const generateChatResponse = async (
 
 export const generateConversationTitle = async (firstMessage: string): Promise<string> => {
   try {
-    const response = await openai.chat.completions.create({
+    const response = await callChatCompletionEdgeFunction([
+      {
+        role: 'system',
+        content: 'Generate a short, concise title (max 6 words) for a conversation that starts with the following message. Only respond with the title, nothing else.',
+      },
+      {
+        role: 'user',
+        content: firstMessage,
+      },
+    ], {
       model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'Generate a short, concise title (max 6 words) for a conversation that starts with the following message. Only respond with the title, nothing else.',
-        },
-        {
-          role: 'user',
-          content: firstMessage,
-        },
-      ],
       temperature: 0.5,
       max_tokens: 20,
     });
