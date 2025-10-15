@@ -43,8 +43,7 @@ export async function analyzeStructuredData(question: string): Promise<AnalysisR
     const largeVendors = categoryAnalysis.find(c => c.category === 'Large');
 
     if (largeVendors) {
-      const rangesList = largeVendors.ranges.join(', ');
-      const answer = `Based on the Final RFI Response List spreadsheet, vendors are classified as "Large" when they have ${rangesList} employees. The threshold for large vendors is 10,000 or more employees.`;
+      const answer = `Based on the Final RFI Response List spreadsheet, vendors are classified as "Large" when they have 10,000 or more employees. This includes companies with employee counts listed as "10,000+" or specific numbers above this threshold.`;
 
       return {
         answer,
