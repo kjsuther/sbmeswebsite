@@ -83,11 +83,16 @@ export const uploadDocument = async (
     const safeFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const storagePath = `${timestamp}_${safeFilename}`;
 
+    const contentType = file.name.toLowerCase().endsWith('.md')
+      ? 'text/markdown'
+      : file.type || 'application/octet-stream';
+
     const { error: storageError } = await supabase.storage
       .from('documents')
       .upload(storagePath, file, {
         cacheControl: '3600',
         upsert: false,
+        contentType,
       });
 
     if (storageError) {
@@ -98,7 +103,7 @@ export const uploadDocument = async (
       .from('uploaded_documents')
       .insert({
         filename: file.name,
-        file_type: file.type || 'application/octet-stream',
+        file_type: contentType,
         file_size: file.size,
         content_hash: contentHash,
         storage_path: storagePath,
