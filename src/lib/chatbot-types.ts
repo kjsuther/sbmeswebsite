@@ -35,6 +35,8 @@ export interface Message {
     storage_path?: string;
     sourceNumber?: number;
     cited?: boolean;
+    video_url?: string;
+    video_title?: string;
   }>;
   feedback_rating?: 'positive' | 'negative';
   feedback_text?: string;
@@ -67,6 +69,8 @@ export interface ChatResponse {
     storage_path?: string;
     sourceNumber?: number;
     cited?: boolean;
+    video_url?: string;
+    video_title?: string;
   }>;
   message_id: string;
 }

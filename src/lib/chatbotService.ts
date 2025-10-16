@@ -3,9 +3,26 @@ import { generateEmbedding, generateChatResponse, generateConversationTitle } fr
 import { DocumentChunk, Message, Conversation, ChatRequest, ChatResponse } from './chatbot-types';
 import { hybridSearch, extractVendorList } from './hybridSearchService';
 import { analyzeStructuredData } from './structuredDataAnalyzer';
+import { detectVideoContent } from '../utils/videoContentDetector';
 
 const SIMILARITY_THRESHOLD = 0.1;
 const MAX_CONTEXT_CHUNKS = 25;
+
+const extractVideoFromChunk = (chunk: DocumentChunk): { url: string; title: string } | null => {
+  if (!chunk.document_name?.endsWith('.md')) {
+    return null;
+  }
+
+  const videoMetadata = detectVideoContent(chunk.content);
+  if (videoMetadata && videoMetadata.url) {
+    return {
+      url: videoMetadata.url,
+      title: videoMetadata.title
+    };
+  }
+
+  return null;
+};
 
 export const searchSimilarChunks = async (query: string, limit: number = MAX_CONTEXT_CHUNKS): Promise<DocumentChunk[]> => {
   try {
@@ -295,14 +312,29 @@ ${finalContext || 'No relevant context found.'}`;
   relevantChunks.forEach(chunk => {
     const key = chunk.uploaded_document_id || chunk.source_page;
     if (!uniqueSourcesMap.has(key)) {
-      uniqueSourcesMap.set(key, {
-        page: chunk.source_page,
-        section: chunk.source_section,
-        relevance: 0.9,
-        document_id: chunk.uploaded_document_id,
-        document_name: chunk.document_name,
-        storage_path: chunk.storage_path,
-      });
+      const videoData = extractVideoFromChunk(chunk);
+
+      if (videoData) {
+        uniqueSourcesMap.set(key, {
+          page: chunk.source_page,
+          section: chunk.source_section,
+          relevance: 0.9,
+          document_id: chunk.uploaded_document_id,
+          document_name: videoData.title,
+          storage_path: null,
+          video_url: videoData.url,
+          video_title: videoData.title,
+        });
+      } else {
+        uniqueSourcesMap.set(key, {
+          page: chunk.source_page,
+          section: chunk.source_section,
+          relevance: 0.9,
+          document_id: chunk.uploaded_document_id,
+          document_name: chunk.document_name,
+          storage_path: chunk.storage_path,
+        });
+      }
     }
   });
 

@@ -440,7 +440,17 @@ const Chatbot: React.FC = () => {
                                     <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
                                       <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
                                       <div className="flex-1">
-                                        {source.document_name ? (
+                                        {source.video_url ? (
+                                          <a
+                                            href={source.video_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
+                                          >
+                                            <ExternalLink className="h-3 w-3" />
+                                            <span>{source.video_title || source.document_name}</span>
+                                          </a>
+                                        ) : source.document_name ? (
                                           <div className="flex items-center space-x-2">
                                             {source.storage_path ? (
                                               <button
@@ -483,7 +493,17 @@ const Chatbot: React.FC = () => {
                                     <div key={idx} className="flex items-start space-x-2 text-sm text-gray-600">
                                       <span className="text-mn-accent-teal font-semibold">Source {source.sourceNumber || idx + 1}:</span>
                                       <div className="flex-1">
-                                        {source.document_name ? (
+                                        {source.video_url ? (
+                                          <a
+                                            href={source.video_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-mn-accent-teal hover:text-mn-primary hover:underline font-medium flex items-center space-x-1"
+                                          >
+                                            <ExternalLink className="h-3 w-3" />
+                                            <span>{source.video_title || source.document_name}</span>
+                                          </a>
+                                        ) : source.document_name ? (
                                           <div className="flex items-center space-x-2">
                                             {source.storage_path ? (
                                               <button
