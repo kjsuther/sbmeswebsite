@@ -8,31 +8,46 @@ import { detectVideoContent } from '../utils/videoContentDetector';
 const SIMILARITY_THRESHOLD = 0.1;
 const MAX_CONTEXT_CHUNKS = 25;
 
-const extractVideoFromChunk = (chunk: DocumentChunk): { url: string; title: string } | null => {
+const extractVideoFromChunk = async (chunk: DocumentChunk): Promise<{ url: string; title: string } | null> => {
   if (!chunk.document_name?.endsWith('.md')) {
     return null;
   }
 
-  console.log('🎬 Checking markdown chunk for video:', {
-    document_name: chunk.document_name,
-    content_preview: chunk.content?.substring(0, 200),
-    has_video_url: chunk.content?.includes('Video URL:'),
-    has_youtube: chunk.content?.includes('youtube.com') || chunk.content?.includes('youtu.be'),
-    has_vimeo: chunk.content?.includes('vimeo.com')
-  });
+  if (!chunk.storage_path) {
+    console.log('⚠️ Markdown file has no storage_path:', chunk.document_name);
+    return null;
+  }
 
-  const videoMetadata = detectVideoContent(chunk.content);
-  console.log('🎬 Video detection result:', videoMetadata);
+  try {
+    console.log('🎬 Fetching full markdown file from storage:', chunk.storage_path);
 
-  if (videoMetadata && videoMetadata.url) {
-    console.log('✅ Found video in markdown:', {
-      url: videoMetadata.url,
-      title: videoMetadata.title
-    });
-    return {
-      url: videoMetadata.url,
-      title: videoMetadata.title
-    };
+    const { data, error } = await supabase.storage
+      .from('documents')
+      .download(chunk.storage_path);
+
+    if (error) {
+      console.error('❌ Error downloading markdown file:', error);
+      return null;
+    }
+
+    const fullContent = await data.text();
+    console.log('🎬 Full markdown content length:', fullContent.length);
+
+    const videoMetadata = detectVideoContent(fullContent);
+    console.log('🎬 Video detection result:', videoMetadata);
+
+    if (videoMetadata && videoMetadata.url) {
+      console.log('✅ Found video in markdown:', {
+        url: videoMetadata.url,
+        title: videoMetadata.title
+      });
+      return {
+        url: videoMetadata.url,
+        title: videoMetadata.title
+      };
+    }
+  } catch (error) {
+    console.error('❌ Error processing markdown file:', error);
   }
 
   return null;
@@ -323,10 +338,11 @@ ${finalContext || 'No relevant context found.'}`;
   const assistantResponse = await generateChatResponse(messages, onStream);
 
   const uniqueSourcesMap = new Map<string, any>();
-  relevantChunks.forEach(chunk => {
+
+  for (const chunk of relevantChunks) {
     const key = chunk.uploaded_document_id || chunk.source_page;
     if (!uniqueSourcesMap.has(key)) {
-      const videoData = extractVideoFromChunk(chunk);
+      const videoData = await extractVideoFromChunk(chunk);
 
       if (videoData) {
         uniqueSourcesMap.set(key, {
@@ -350,7 +366,7 @@ ${finalContext || 'No relevant context found.'}`;
         });
       }
     }
-  });
+  }
 
   const allSources = Array.from(uniqueSourcesMap.values()).map((source, index) => ({
     ...source,
