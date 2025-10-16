@@ -13,8 +13,22 @@ const extractVideoFromChunk = (chunk: DocumentChunk): { url: string; title: stri
     return null;
   }
 
+  console.log('🎬 Checking markdown chunk for video:', {
+    document_name: chunk.document_name,
+    content_preview: chunk.content?.substring(0, 200),
+    has_video_url: chunk.content?.includes('Video URL:'),
+    has_youtube: chunk.content?.includes('youtube.com') || chunk.content?.includes('youtu.be'),
+    has_vimeo: chunk.content?.includes('vimeo.com')
+  });
+
   const videoMetadata = detectVideoContent(chunk.content);
+  console.log('🎬 Video detection result:', videoMetadata);
+
   if (videoMetadata && videoMetadata.url) {
+    console.log('✅ Found video in markdown:', {
+      url: videoMetadata.url,
+      title: videoMetadata.title
+    });
     return {
       url: videoMetadata.url,
       title: videoMetadata.title

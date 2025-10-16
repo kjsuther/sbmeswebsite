@@ -26,9 +26,9 @@ export const detectVideoContent = (text: string): VideoMetadata | null => {
     return null;
   }
 
-  const titleMatch = text.match(/Video Title:\s*(.+?)(?:\n|$)/i);
-  const urlMatch = text.match(/Video URL:\s*(https?:\/\/[^\s\n]+)/i);
-  const durationMatch = text.match(/Duration:\s*(.+?)(?:\n|$)/i);
+  const titleMatch = text.match(/(?:\*\*)?Video Title(?:\*\*)?:?\s*(?:\*\*)?\[?(.+?)(?:\]|\*\*)?(?:\n|$)/i);
+  const urlMatch = text.match(/(?:\*\*)?Video URL(?:\*\*)?:?\s*(?:\*\*)?\[?(https?:\/\/[^\s\n\]]+)/i);
+  const durationMatch = text.match(/(?:\*\*)?Duration(?:\*\*)?:?\s*(?:\*\*)?(.+?)(?:\*\*)?(?:\n|$)/i);
 
   const timestamps: VideoTimestamp[] = [];
   const timestampPattern = /(\d{1,2}:\d{2}(?::\d{2})?)\s*[-–—]\s*(?:\d{1,2}:\d{2}(?::\d{2})?)?[:\s]*(.+?)(?=\n(?:\d{1,2}:\d{2}|$)|$)/gi;
