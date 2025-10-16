@@ -34,9 +34,9 @@ export const detectVideoContent = (text: string): VideoMetadata | null => {
     return null;
   }
 
-  const titleMatch = text.match(/(?:\*\*)?Video Title(?:\*\*)?:?\s*(?:\*\*)?\[?(.+?)(?:\]|\*\*)?(?:\n|$)/i);
-  const urlMatch = text.match(/(?:\*\*)?Video URL(?:\*\*)?:?\s*(?:\*\*)?\[?(https?:\/\/[^\s\n\]]+)/i);
-  const durationMatch = text.match(/(?:\*\*)?Duration(?:\*\*)?:?\s*(?:\*\*)?(.+?)(?:\*\*)?(?:\n|$)/i);
+  const titleMatch = text.match(/\*\*Video Title:\*\*\s*\[?([^\]\r\n]+?)(?:\]|\r|\n|$)/i);
+  const urlMatch = text.match(/\*\*Video URL:\*\*\s*\[?(https?:\/\/[^\s\r\n\]]+)/i);
+  const durationMatch = text.match(/\*\*Duration:\*\*\s*\[?([^\]\r\n]+?)(?:\]|\r|\n|$)/i);
 
   console.log('🔍 Regex matches:', {
     titleMatch: titleMatch?.[1],
