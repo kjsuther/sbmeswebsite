@@ -1,7 +1,9 @@
-import React from 'react';
-import { AlertCircle, ExternalLink, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertCircle, ExternalLink, TrendingUp, ChevronDown, ChevronUp, Building2 } from 'lucide-react';
 
 const RFIEngagementInsights: React.FC = () => {
+  const [isVendorsOpen, setIsVendorsOpen] = useState(false);
+
   const vendors = [
     "Lean Techniques, Inc.",
     "Ignite Insight + Innovation",
@@ -181,23 +183,46 @@ const RFIEngagementInsights: React.FC = () => {
             <h2 className="text-3xl font-bold text-mn-primary mb-4">
               Vendors Who Contributed
             </h2>
-            <p className="text-lg text-gray-700 leading-relaxed">
-              We are grateful to the 95 organizations that contributed to the MES RFI process:
+            <p className="text-lg text-gray-700 leading-relaxed mb-6">
+              We are grateful to the 95 organizations that contributed to the MES RFI process.
             </p>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {vendors.map((vendor, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-mn-accent-teal hover:shadow-md transition-all duration-200"
-                >
-                  <p className="text-sm text-gray-800 font-medium">
-                    {vendor}
-                  </p>
+          <div className="bg-white rounded-xl shadow-lg border-l-4 border-mn-secondary">
+            <button
+              onClick={() => setIsVendorsOpen(!isVendorsOpen)}
+              className="w-full p-8 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-xl"
+              aria-expanded={isVendorsOpen}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="bg-mn-secondary rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-6 w-6 text-white" />
                 </div>
-              ))}
-            </div>
+                <h3 className="text-2xl font-bold text-mn-primary">
+                  View All {vendors.length} Contributing Organizations
+                </h3>
+              </div>
+              {isVendorsOpen ? (
+                <ChevronUp className="h-6 w-6 text-mn-secondary flex-shrink-0" />
+              ) : (
+                <ChevronDown className="h-6 w-6 text-mn-secondary flex-shrink-0" />
+              )}
+            </button>
+            {isVendorsOpen && (
+              <div className="px-8 pb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {vendors.map((vendor, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-mn-accent-teal hover:shadow-md transition-all duration-200"
+                    >
+                      <p className="text-sm text-gray-800 font-medium">
+                        {vendor}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
