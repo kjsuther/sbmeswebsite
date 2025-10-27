@@ -291,7 +291,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Risk Theme #5 – Operational and Organizational Capacity
+                    Operational and Organizational Capacity
                   </h3>
                 </div>
                 {openRisks.has(5) ? (
@@ -334,7 +334,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Risk Theme #6 – Cultural and Change Management
+                    Cultural and Change Management
                   </h3>
                 </div>
                 {openRisks.has(6) ? (
@@ -379,7 +379,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Risk Theme #7 – Outcome Definition and Measurement
+                    Outcome Definition and Measurement
                   </h3>
                 </div>
                 {openRisks.has(7) ? (
@@ -422,7 +422,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Risk Theme #8 – Compliance, Certification, and Federal Alignment
+                    Compliance, Certification, and Federal Alignment
                   </h3>
                 </div>
                 {openRisks.has(8) ? (
@@ -463,7 +463,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Risk Theme #9 – Scope, Slice Sizing, and Sequencing
+                    Scope, Slice Sizing, and Sequencing
                   </h3>
                 </div>
                 {openRisks.has(9) ? (
@@ -510,7 +510,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Risk Theme #10 – Legislative and Policy Volatility
+                    Legislative and Policy Volatility
                   </h3>
                 </div>
                 {openRisks.has(10) ? (
@@ -553,7 +553,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Risk Theme #11 – Vendor Capability Gaps and Readiness
+                    Vendor Capability Gaps and Readiness
                   </h3>
                 </div>
                 {openRisks.has(11) ? (
@@ -616,7 +616,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #1 – Strengthen Governance and Coordination
+                    Strengthen Governance and Coordination
                   </h3>
                 </div>
                 {openRecommendations.has(1) ? (
@@ -669,7 +669,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #2 – Build Enterprise Foundations First
+                    Build Enterprise Foundations First
                   </h3>
                 </div>
                 {openRecommendations.has(2) ? (
@@ -722,7 +722,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-mn-primary" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #3 – Refine Procurement and Contracting Models
+                    Refine Procurement and Contracting Models
                   </h3>
                 </div>
                 {openRecommendations.has(3) ? (
@@ -775,7 +775,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #4 – Embed Financial Discipline and Outcome Measurement
+                    Embed Financial Discipline and Outcome Measurement
                   </h3>
                 </div>
                 {openRecommendations.has(4) ? (
@@ -828,7 +828,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #5 – Manage Organizational and Cultural Change
+                    Manage Organizational and Cultural Change
                   </h3>
                 </div>
                 {openRecommendations.has(5) ? (
@@ -885,7 +885,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #6 – Clarify Scope, Slice Sizing, and Sequencing
+                    Clarify Scope, Slice Sizing, and Sequencing
                   </h3>
                 </div>
                 {openRecommendations.has(6) ? (
@@ -934,7 +934,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #7 – Prioritize User-Centered Design and Whole-Person Outcomes
+                    Prioritize User-Centered Design and Whole-Person Outcomes
                   </h3>
                 </div>
                 {openRecommendations.has(7) ? (
@@ -991,7 +991,7 @@ const RFIEngagementInsights: React.FC = () => {
                     <Lightbulb className="h-6 w-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-mn-primary">
-                    Recommendation Theme #8 – Enhance Transparency, Discovery, and Vendor Engagement
+                    Enhance Transparency, Discovery, and Vendor Engagement
                   </h3>
                 </div>
                 {openRecommendations.has(8) ? (
