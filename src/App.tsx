@@ -16,6 +16,7 @@ import MESTraining from './pages/MESTraining';
 import Chatbot from './pages/Chatbot';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import RFIEngagementInsights from './pages/RFIEngagementInsights';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/reference-materials" element={<ReferenceMaterials />} />
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/mes-training" element={<MESTraining />} />
+          <Route path="/rfi-engagement-insights" element={<RFIEngagementInsights />} />
           <Route path="/chatbot" element={<Chatbot />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />

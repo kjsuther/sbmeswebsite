@@ -32,6 +32,11 @@ const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
+                <a href="/rfi-engagement-insights" className="text-sm text-mn-neutral-blue hover:text-white transition-colors">
+                  RFI Engagement Insights
+                </a>
+              </li>
+              <li>
                 <a href="/feedback" className="text-sm text-mn-neutral-blue hover:text-white transition-colors">
                   Feedback
                 </a>
