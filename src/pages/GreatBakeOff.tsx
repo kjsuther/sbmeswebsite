@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Users, Calendar, FileText, ChefHat, Package, Utensils, CheckCircle, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trophy, Users, Calendar, FileText, ChefHat, Package, Utensils, CheckCircle, Star, ChevronDown, ChevronUp, FileCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const GreatBakeOff: React.FC = () => {
@@ -99,6 +99,45 @@ const GreatBakeOff: React.FC = () => {
                       </a>
                       {' '}for the schedule of upcoming information sessions and web conference information.
                     </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Master Contract Pre-Qualification */}
+            <div className="bg-white rounded-xl shadow-lg border-l-4 border-mn-neutral-accent">
+              <button
+                onClick={() => toggleStep(0.5)}
+                className="w-full p-8 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-xl"
+                aria-expanded={openSteps.has(0.5)}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="bg-mn-neutral-accent rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0">
+                    <FileCheck className="h-6 w-6 text-mn-primary" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-mn-primary">
+                    Master Contract Pre-Qualification
+                  </h3>
+                </div>
+                {openSteps.has(0.5) ? (
+                  <ChevronUp className="h-6 w-6 text-mn-neutral-accent flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="h-6 w-6 text-mn-neutral-accent flex-shrink-0" />
+                )}
+              </button>
+              {openSteps.has(0.5) && (
+                <div className="px-8 pb-8">
+                  <p className="text-gray-700 mb-4">
+                    To participate in the Master Contract Pre-Qualification process, vendors must complete the following requirements:
+                  </p>
+                  <div className="bg-gray-50 rounded-lg p-6">
+                    <ol className="space-y-3 list-decimal list-inside text-gray-700">
+                      <li>Upload proof of insurance coverage meeting the contractual guidelines</li>
+                      <li>If the vendor has more than 40 employees, upload a workforce certificate</li>
+                      <li>If the vendor has more than 40 employees, upload an equal pay certificate</li>
+                      <li>Sign the certification regarding lobbying</li>
+                      <li>Respond to this solicitation</li>
+                    </ol>
                   </div>
                 </div>
               )}
