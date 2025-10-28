@@ -33,6 +33,8 @@ const MasterContractSubmission: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [contractPdfUrl, setContractPdfUrl] = useState<string | null>(null);
+  const [submittedContractData, setSubmittedContractData] = useState<any>(null);
+  const [submittedContractId, setSubmittedContractId] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     vendor_name: '',
@@ -104,6 +106,30 @@ const MasterContractSubmission: React.FC = () => {
     });
     if (solicitations.length > 0) {
       setSelectedSolicitation(solicitations[0]);
+    }
+  };
+
+  const handleDownloadPdf = (contractData: any, contractId: string) => {
+    try {
+      console.log('Generating PDF for download...');
+      const pdfBlob = generateMasterContractPDF(contractData, contractId);
+
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `Master_Contract_${contractData.vendor_name?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown'}_${timestamp}.pdf`;
+
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('PDF download initiated');
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF. Please try viewing it instead.');
     }
   };
 
@@ -276,6 +302,8 @@ const MasterContractSubmission: React.FC = () => {
             .eq('id', contractId);
 
           setContractPdfUrl(urlData.publicUrl);
+          setSubmittedContractData(fullContractData);
+          setSubmittedContractId(contractId);
           setMessage({
             type: 'success',
             text: 'Contract submitted successfully! Your contract PDF is ready.'
@@ -338,7 +366,7 @@ const MasterContractSubmission: React.FC = () => {
                 )}
                 <p>{message.text}</p>
               </div>
-              {contractPdfUrl && message.type === 'success' && (
+              {contractPdfUrl && message.type === 'success' && submittedContractData && submittedContractId && (
                 <div className="mt-4 pt-4 border-t border-green-200 flex gap-3">
                   <a
                     href={contractPdfUrl}
@@ -349,14 +377,14 @@ const MasterContractSubmission: React.FC = () => {
                     <FileText className="h-5 w-5" />
                     View PDF
                   </a>
-                  <a
-                    href={contractPdfUrl}
-                    download
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPdf(submittedContractData, submittedContractId)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-mn-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-colors"
                   >
                     <Download className="h-5 w-5" />
                     Download PDF
-                  </a>
+                  </button>
                 </div>
               )}
             </div>
