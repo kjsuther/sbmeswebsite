@@ -384,36 +384,28 @@ const MasterContractSubmission: React.FC = () => {
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {message && (
-            <div className={`mb-6 p-4 rounded-lg ${
-              message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            <div className={`mb-6 p-6 rounded-lg border-2 ${
+              message.type === 'success' ? 'bg-green-50 text-green-900 border-green-300' : 'bg-red-50 text-red-900 border-red-300'
             }`}>
               <div className="flex items-center gap-3">
                 {message.type === 'success' ? (
-                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                  <CheckCircle className="h-6 w-6 flex-shrink-0" />
                 ) : (
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                  <AlertCircle className="h-6 w-6 flex-shrink-0" />
                 )}
-                <p>{message.text}</p>
+                <p className="text-lg font-semibold">{message.text}</p>
               </div>
               {contractPdfUrl && message.type === 'success' && submittedContractData && submittedContractId && (
-                <div className="mt-4 pt-4 border-t border-green-200 flex gap-3">
+                <div className="mt-4 pt-4 border-t border-green-300">
                   <a
                     href={contractPdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-lg"
                   >
-                    <FileText className="h-5 w-5" />
+                    <FileText className="h-6 w-6" />
                     View PDF
                   </a>
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadPdf(submittedContractData, submittedContractId)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-mn-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-colors"
-                  >
-                    <Download className="h-5 w-5" />
-                    Download PDF
-                  </button>
                 </div>
               )}
             </div>
