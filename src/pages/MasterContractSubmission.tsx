@@ -109,10 +109,10 @@ const MasterContractSubmission: React.FC = () => {
     }
   };
 
-  const handleDownloadPdf = (contractData: any, contractId: string) => {
+  const handleDownloadPdf = async (contractData: any, contractId: string) => {
     try {
       console.log('Generating PDF for download...');
-      const pdfBlob = generateMasterContractPDF(contractData, contractId);
+      const pdfBlob = await generateMasterContractPDF(contractData, contractId);
 
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const filename = `Master_Contract_${contractData.vendor_name?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown'}_${timestamp}.pdf`;
@@ -268,7 +268,7 @@ const MasterContractSubmission: React.FC = () => {
         };
 
         console.log('Generating PDF blob...');
-        const pdfBlob = generateMasterContractPDF(fullContractData, contractId);
+        const pdfBlob = await generateMasterContractPDF(fullContractData, contractId);
         console.log('PDF blob generated, size:', pdfBlob.size);
 
         const fileName = `contract_${contractId}_${Date.now()}.pdf`;

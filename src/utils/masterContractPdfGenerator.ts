@@ -23,7 +23,23 @@ interface MasterContractData {
   };
 }
 
-export const generateMasterContractPDF = (contractData: MasterContractData, contractId: string): Blob => {
+const loadMNLogo = async (): Promise<string> => {
+  try {
+    const response = await fetch('/primary-logo-example_tcm1077-265307.jpg');
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Failed to load MN logo:', error);
+    return '';
+  }
+};
+
+export const generateMasterContractPDF = async (contractData: MasterContractData, contractId: string): Promise<Blob> => {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'pt',
@@ -42,17 +58,15 @@ export const generateMasterContractPDF = (contractData: MasterContractData, cont
     });
   };
 
-  // Logo area (left side) - Placeholder for MN logo
-  doc.setFillColor(0, 56, 101); // Minnesota blue
-  doc.rect(margin - 10, 40, 50, 35, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(20);
-  doc.setFont('helvetica', 'bold');
-  doc.text('mn', margin + 5, 58);
-
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text('MINNESOTA', margin - 5, 70);
+  // Load and add the Minnesota logo
+  const logoData = await loadMNLogo();
+  if (logoData) {
+    try {
+      doc.addImage(logoData, 'JPEG', margin - 10, 35, 80, 45);
+    } catch (error) {
+      console.error('Failed to add logo to PDF:', error);
+    }
+  }
 
   // Title section (right side)
   doc.setFontSize(24);
@@ -200,8 +214,8 @@ export const generateMasterContractPDF = (contractData: MasterContractData, cont
   return doc.output('blob');
 };
 
-export const downloadMasterContractPDF = (contractData: MasterContractData, contractId: string): void => {
-  const blob = generateMasterContractPDF(contractData, contractId);
+export const downloadMasterContractPDF = async (contractData: MasterContractData, contractId: string): Promise<void> => {
+  const blob = await generateMasterContractPDF(contractData, contractId);
 
   const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
   const filename = `Master_Contract_${contractData.vendor_name?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown'}_${timestamp}.pdf`;
