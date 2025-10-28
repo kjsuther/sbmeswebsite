@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Users, Calendar, FileText, ChefHat, Package, Utensils, CheckCircle, Star, ChevronDown, ChevronUp, FileCheck } from 'lucide-react';
+import { Trophy, Users, Calendar, FileText, ChefHat, Package, Utensils, CheckCircle, Star, ChevronDown, ChevronUp, FileCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const GreatBakeOff: React.FC = () => {
@@ -136,14 +136,16 @@ const GreatBakeOff: React.FC = () => {
                       <li>If the vendor has more than 40 employees, upload a workforce certificate</li>
                       <li>If the vendor has more than 40 employees, upload an equal pay certificate</li>
                       <li>Sign the certification regarding lobbying</li>
-                      <li className="bg-gradient-to-r from-yellow-50 to-transparent -mx-2 px-2 py-2 rounded-lg border-l-2 border-mn-accent-teal">
+                      <li>
                         <Link
                           to="/master-contract-submission"
-                          className="inline-flex items-center gap-2 text-mn-accent-teal hover:text-mn-primary font-semibold transition-all duration-200 hover:gap-3 group"
+                          className="inline-flex items-center gap-2 text-mn-accent-teal hover:text-mn-primary font-semibold transition-all duration-200 group"
                         >
-                          <span>Respond to this solicitation</span>
+                          <span className="inline-flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-mn-accent-yellow flex-shrink-0" />
+                            <span>Respond to this solicitation</span>
+                          </span>
                           <FileText className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                          <span className="text-xs bg-mn-accent-teal text-white px-2 py-0.5 rounded font-normal">Available Now</span>
                         </Link>
                       </li>
                     </ol>
