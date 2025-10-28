@@ -235,14 +235,19 @@ const MasterContractSubmission: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       try {
+        console.log('Starting PDF generation...');
         const fullContractData = {
           ...data[0],
           solicitation: selectedSolicitation,
         };
 
+        console.log('Generating PDF blob...');
         const pdfBlob = generateMasterContractPDF(fullContractData, contractId);
+        console.log('PDF blob generated, size:', pdfBlob.size);
 
         const fileName = `contract_${contractId}_${Date.now()}.pdf`;
+        console.log('Uploading PDF to storage:', fileName);
+
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('master-contracts')
           .upload(fileName, pdfBlob, {
@@ -256,10 +261,14 @@ const MasterContractSubmission: React.FC = () => {
             type: 'success',
             text: 'Contract submitted successfully!'
           });
+          clearFormData();
         } else {
+          console.log('PDF uploaded successfully!');
           const { data: urlData } = supabase.storage
             .from('master-contracts')
             .getPublicUrl(fileName);
+
+          console.log('Public URL:', urlData.publicUrl);
 
           await supabase
             .from('master_contracts')
@@ -278,9 +287,9 @@ const MasterContractSubmission: React.FC = () => {
           type: 'success',
           text: 'Contract submitted successfully!'
         });
+        clearFormData();
       }
 
-      clearFormData();
       setIsTestMode(false);
     } catch (error) {
       console.error('Error submitting contract:', error);
