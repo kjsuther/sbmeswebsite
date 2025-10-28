@@ -210,17 +210,27 @@ const MasterContractSubmission: React.FC = () => {
     setMessage(null);
 
     try {
-      const { error } = await supabase
-        .from('master_contracts')
-        .insert([{
-          ...formData,
-          status: 'submitted',
-          solicitation_date: new Date().toISOString(),
-          effective_date: new Date().toISOString(),
-          submission_date: new Date().toISOString(),
-        }]);
+      const submissionData = {
+        ...formData,
+        status: 'submitted',
+        solicitation_date: new Date().toISOString(),
+        effective_date: new Date().toISOString(),
+        submission_date: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      console.log('Submitting data to database:', submissionData);
+
+      const { data, error } = await supabase
+        .from('master_contracts')
+        .insert([submissionData])
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Submission successful! Inserted data:', data);
 
       setMessage({ type: 'success', text: 'Contract submitted successfully! Thank you for your submission.' });
     } catch (error) {
