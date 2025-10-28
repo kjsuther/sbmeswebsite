@@ -15,7 +15,7 @@ interface Solicitation {
 interface FormData {
   vendor_name: string;
   vendor_address: string;
-  solicitation_id: string;
+  solicitation_id: string | null;
   auth_rep_name: string;
   auth_rep_title: string;
   auth_rep_address: string;
@@ -38,7 +38,7 @@ const MasterContractSubmission: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     vendor_name: '',
     vendor_address: '',
-    solicitation_id: 'MES MODERNIZATION',
+    solicitation_id: null,
     auth_rep_name: '',
     auth_rep_title: '',
     auth_rep_address: '',
@@ -77,7 +77,7 @@ const MasterContractSubmission: React.FC = () => {
     setFormData({
       vendor_name: testData.vendor_name,
       vendor_address: testData.vendor_address,
-      solicitation_id: 'MES MODERNIZATION',
+      solicitation_id: null,
       auth_rep_name: testData.auth_rep_name,
       auth_rep_title: testData.auth_rep_title,
       auth_rep_address: testData.auth_rep_address,
@@ -118,7 +118,7 @@ const MasterContractSubmission: React.FC = () => {
     setFormData({
       vendor_name: '',
       vendor_address: '',
-      solicitation_id: 'MES MODERNIZATION',
+      solicitation_id: null,
       auth_rep_name: '',
       auth_rep_title: '',
       auth_rep_address: '',
