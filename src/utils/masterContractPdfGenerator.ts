@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface MasterContractData {
   vendor_name: string;
@@ -23,202 +24,178 @@ interface MasterContractData {
 }
 
 export const generateMasterContractPDF = (contractData: MasterContractData, contractId: string): Blob => {
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: 'letter'
+  });
+
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
-  const margin = 25;
-  const contentWidth = pageWidth - (margin * 2);
+  const margin = 50;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
+      month: 'long',
+      day: 'numeric',
       year: 'numeric',
     });
   };
 
-  const addFormField = (label: string, value: string, x: number, y: number, width: number, isRed: boolean = true): number => {
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text(label, x, y);
-
-    const labelHeight = 6;
-    const fieldY = y + labelHeight;
-
-    // Draw underline for field
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(0.3);
-    doc.line(x, fieldY, x + width, fieldY);
-
-    // Add value in red
-    doc.setFont('helvetica', 'normal');
-    if (isRed) {
-      doc.setTextColor(220, 38, 38); // Red color
-    }
-    doc.text(value || '', x + 2, fieldY - 1);
-    doc.setTextColor(0, 0, 0);
-
-    return fieldY + 8;
-  };
-
-  // Header with logo space
-  doc.setFillColor(26, 77, 46);
-  doc.rect(margin, 15, 35, 20, 'F');
+  // Logo area (left side) - Placeholder for MN logo
+  doc.setFillColor(0, 56, 101); // Minnesota blue
+  doc.rect(margin - 10, 40, 50, 35, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
+  doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('STATE OF', margin + 17.5, 23, { align: 'center' });
-  doc.text('MINNESOTA', margin + 17.5, 30, { align: 'center' });
+  doc.text('mn', margin + 5, 58);
 
-  // Title
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(18);
-  doc.text('MASTER CONTRACT', pageWidth / 2, 25, { align: 'center' });
-  doc.setFontSize(14);
-  doc.text('PRE-QUALIFICATION SUBMISSION', pageWidth / 2, 33, { align: 'center' });
-
-  let yPos = 50;
-
-  // Section I - Vendor Information
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('I. CONTRACTOR (VENDOR) INFORMATION:', margin, yPos);
-  yPos += 10;
-
-  yPos = addFormField('Contractor Name (Vendor Name):', contractData.vendor_name, margin, yPos, contentWidth, true);
-  yPos = addFormField('Contractor Business Address:', contractData.vendor_address, margin, yPos, contentWidth, true);
-
-  yPos += 5;
-
-  // Section II - Solicitation Information
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('II. SOLICITATION INFORMATION:', margin, yPos);
-  yPos += 10;
-
-  if (contractData.solicitation) {
-    yPos = addFormField('Solicitation Identification:', contractData.solicitation.solicitation_id, margin, yPos, contentWidth, true);
-    yPos = addFormField('SWIFT Event Number:', contractData.solicitation.swift_event_no, margin, yPos, contentWidth, true);
-  }
-
-  // Two column layout for dates
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Solicitation Date:', margin, yPos);
-  doc.text('Effective Date:', margin + 90, yPos);
-
-  const dateY = yPos + 6;
-  doc.setLineWidth(0.3);
-  doc.line(margin, dateY, margin + 70, dateY);
-  doc.line(margin + 90, dateY, margin + 160, dateY);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(220, 38, 38);
-  doc.text(formatDate(contractData.solicitation_date), margin + 2, dateY - 1);
-  doc.text(formatDate(contractData.effective_date), margin + 92, dateY - 1);
-  doc.setTextColor(0, 0, 0);
-
-  yPos = dateY + 12;
-
-  // Section III - Authorized Representative
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('III. AUTHORIZED REPRESENTATIVE:', margin, yPos);
-  yPos += 10;
-
-  // Two columns for name and title
-  doc.setFontSize(10);
-  doc.text('Name:', margin, yPos);
-  doc.text('Title:', margin + 90, yPos);
-
-  const nameY = yPos + 6;
-  doc.line(margin, nameY, margin + 70, nameY);
-  doc.line(margin + 90, nameY, margin + 160, nameY);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(220, 38, 38);
-  doc.text(contractData.auth_rep_name, margin + 2, nameY - 1);
-  doc.text(contractData.auth_rep_title, margin + 92, nameY - 1);
-  doc.setTextColor(0, 0, 0);
-
-  yPos = nameY + 10;
-
-  yPos = addFormField('Address:', contractData.auth_rep_address, margin, yPos, contentWidth, true);
-  yPos = addFormField('Telephone:', contractData.auth_rep_phone, margin, yPos, 80, true);
-
-  yPos += 5;
-
-  // Section IV - Insurance
-  if (yPos > pageHeight - 80) {
-    doc.addPage();
-    yPos = 25;
-  }
-
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('IV. INSURANCE REQUIREMENTS:', margin, yPos);
-  yPos += 10;
-
-  yPos = addFormField('Insurance Certificate Holder:', contractData.insurance_cert_holder, margin, yPos, contentWidth, true);
-
-  yPos += 5;
-
-  // Section V - Signature
-  if (yPos > pageHeight - 100) {
-    doc.addPage();
-    yPos = 25;
-  }
-
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('V. SUBMITTER INFORMATION AND SIGNATURE:', margin, yPos);
-  yPos += 10;
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('I certify that the information provided in this Master Contract submission is accurate and complete.', margin, yPos);
-  yPos += 8;
-
-  // Signature section
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Name:', margin, yPos);
-  doc.text('Title:', margin + 90, yPos);
-
-  const sigNameY = yPos + 6;
-  doc.line(margin, sigNameY, margin + 70, sigNameY);
-  doc.line(margin + 90, sigNameY, margin + 160, sigNameY);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(220, 38, 38);
-  doc.text(contractData.submitter_name, margin + 2, sigNameY - 1);
-  doc.text(contractData.submitter_title, margin + 92, sigNameY - 1);
-  doc.setTextColor(0, 0, 0);
-
-  yPos = sigNameY + 12;
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Signature:', margin, yPos);
-  doc.text('Date:', margin + 90, yPos);
-
-  const sigLineY = yPos + 6;
-  doc.line(margin, sigLineY, margin + 70, sigLineY);
-  doc.line(margin + 90, sigLineY, margin + 160, sigLineY);
-
-  doc.setFont('helvetica', 'italic');
-  doc.setTextColor(220, 38, 38);
-  doc.text(contractData.submitter_signature || '/s/ Electronic Signature', margin + 2, sigLineY - 1);
-  doc.setFont('helvetica', 'normal');
-  doc.text(formatDate(contractData.submission_date), margin + 92, sigLineY - 1);
-  doc.setTextColor(0, 0, 0);
-
-  // Footer
-  const footerY = pageHeight - 15;
   doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('MINNESOTA', margin - 5, 70);
+
+  // Title section (right side)
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  const titleX = pageWidth - margin;
+  doc.text('State of Minnesota', titleX, 55, { align: 'right' });
+
+  doc.setFontSize(18);
+  doc.text('Professional and Technical', titleX, 80, { align: 'right' });
+  doc.text('Services Master Contract', titleX, 100, { align: 'right' });
+
+  // SWIFT and Master Contract Numbers (blank lines)
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('SWIFT Contract Number: _______________', titleX, 130, { align: 'right' });
+  doc.text('Master Contract T-Number: _______________', titleX, 145, { align: 'right' });
+
+  let yPos = 180;
+
+  // Opening paragraph with inline red text
+  doc.setFontSize(11);
+  doc.setFont('times', 'normal');
+  doc.setTextColor(0, 0, 0);
+
+  const line1 = 'This Master Contract is between the State of Minnesota, acting through its Commissioner of the Department of';
+  doc.text(line1, margin, yPos, { maxWidth: pageWidth - 2 * margin });
+  yPos += 14;
+
+  const line2Start = 'Human Services ("State") and ';
+  doc.text(line2Start, margin, yPos);
+  const line2StartWidth = doc.getTextWidth(line2Start);
+
+  // Red text for contractor name
+  doc.setTextColor(220, 38, 38);
+  doc.text(`[${contractData.vendor_name}]`, margin + line2StartWidth, yPos);
+  const contractorWidth = doc.getTextWidth(`[${contractData.vendor_name}]`);
+
+  doc.setTextColor(0, 0, 0);
+  const line2End = ' whose designated business address is ';
+  doc.text(line2End, margin + line2StartWidth + contractorWidth, yPos);
+  yPos += 14;
+
+  // Red text for address
+  doc.setTextColor(220, 38, 38);
+  doc.text(`[${contractData.vendor_address}]`, margin, yPos);
+  doc.setTextColor(0, 0, 0);
+  yPos += 14;
+
+  const line3 = '("Contractor"). State and Contractor may be referred to jointly as "Parties."';
+  doc.text(line3, margin, yPos, { maxWidth: pageWidth - 2 * margin });
+
+  yPos += 30;
+
+  // Recitals section
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Recitals', margin, yPos);
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+
+  yPos += 25;
+
+  // Recital items
+  doc.setFontSize(11);
+  doc.setFont('times', 'normal');
+
+  // Recital 1
+  const rec1Start = '1.    State issued a solicitation identified as ';
+  doc.text(rec1Start, margin, yPos);
+  const rec1StartWidth = doc.getTextWidth(rec1Start);
+
+  doc.setTextColor(220, 38, 38);
+  const solId = `[${contractData.solicitation?.solicitation_id || contractData.solicitation_id}]`;
+  doc.text(solId, margin + rec1StartWidth, yPos);
+  const solIdWidth = doc.getTextWidth(solId);
+
+  doc.setTextColor(0, 0, 0);
+  const swiftStart = ' [';
+  doc.text(swiftStart, margin + rec1StartWidth + solIdWidth, yPos);
+  const swiftStartWidth = doc.getTextWidth(swiftStart);
+
+  doc.setTextColor(220, 38, 38);
+  const swiftNo = contractData.solicitation?.swift_event_no || 'SWIFT Event No.';
+  doc.text(swiftNo, margin + rec1StartWidth + solIdWidth + swiftStartWidth, yPos);
+  const swiftWidth = doc.getTextWidth(swiftNo);
+
+  doc.setTextColor(0, 0, 0);
+  const onText = '] on ';
+  doc.text(onText, margin + rec1StartWidth + solIdWidth + swiftStartWidth + swiftWidth, yPos);
+  const onWidth = doc.getTextWidth(onText);
+
+  doc.setTextColor(220, 38, 38);
+  doc.text(`[${formatDate(contractData.solicitation_date)}]`, margin + rec1StartWidth + solIdWidth + swiftStartWidth + swiftWidth + onWidth, yPos);
+
+  doc.setTextColor(0, 0, 0);
+  yPos += 14;
+  doc.text('      participation in the Great MES Modernization Bake-Off ("Solicitation");', margin, yPos);
+
+  yPos += 25;
+
+  // Recital 2
+  doc.text('2.    Contractor provided a response to the Solicitation indicating its interest in and ability to provide the goods', margin, yPos);
+  yPos += 14;
+  doc.text('      or services requested in the Solicitation; and', margin, yPos);
+
+  yPos += 25;
+
+  // Recital 3 with underlined text
+  doc.text('3.    ', margin, yPos);
+  const rec3Width = doc.getTextWidth('3.    ');
+
+  // Underline "Subsequent"
+  doc.setFont('times', 'underline');
+  const subText = 'Subsequent';
+  doc.text(subText, margin + rec3Width, yPos);
+  const subWidth = doc.getTextWidth(subText);
+
+  doc.setFont('times', 'normal');
+  doc.text(' to an evaluation in accordance with the terms of the Solicitation and negotiation, the Parties', margin + rec3Width + subWidth, yPos);
+  yPos += 14;
+  doc.text('      desire to enter into a contract.', margin, yPos);
+
+  yPos += 25;
+
+  // Accordingly
+  doc.text('Accordingly, the Parties agree as follows:', margin, yPos);
+
+  yPos += 30;
+
+  // Contract section
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Contract', margin, yPos);
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
+
+  // Footer with contract ID and page number
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text(`Contract ID: ${contractId}`, margin, footerY);
-  doc.text(`Generated: ${new Date().toLocaleDateString('en-US')}`, pageWidth - margin, footerY, { align: 'right' });
+  doc.text(`Contract ID: ${contractId}`, margin, pageHeight - 30);
+  doc.text('Page 1', pageWidth - margin, pageHeight - 30, { align: 'right' });
 
   return doc.output('blob');
 };
