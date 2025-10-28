@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { PDFDocument, rgb } from 'npm:pdf-lib@1.17.1';
+import { PDFDocument } from 'npm:pdf-lib@1.17.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,112 +30,105 @@ serve(async (req: Request) => {
 
     if (downloadError) throw downloadError;
 
-    // Load the PDF template
+    // Load the PDF template with form fields
     const templateBytes = await templateData.arrayBuffer();
     const pdfDoc = await PDFDocument.load(templateBytes);
-    
-    // Get the first page to add text
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
-    
-    // Define red color for filled fields
-    const redColor = rgb(220 / 255, 38 / 255, 38 / 255);
-    
-    // Fill in the fields on page 1
-    // These coordinates are approximate and may need adjustment
-    firstPage.drawText(contractData.vendor_name, {
-      x: 310,
-      y: 660,
-      size: 10,
-      color: redColor,
-    });
-    
-    firstPage.drawText(contractData.vendor_address, {
-      x: 310,
-      y: 645,
-      size: 10,
-      color: redColor,
-    });
+    const form = pdfDoc.getForm();
 
-    const solicitationInfo = contractData.solicitation;
-    if (solicitationInfo) {
-      firstPage.drawText(solicitationInfo.solicitation_id, {
-        x: 310,
-        y: 595,
-        size: 10,
-        color: redColor,
-      });
-      
-      firstPage.drawText(solicitationInfo.swift_event_no, {
-        x: 410,
-        y: 595,
-        size: 10,
-        color: redColor,
-      });
-
-      const solDate = new Date(contractData.solicitation_date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      firstPage.drawText(solDate, {
-        x: 500,
-        y: 595,
-        size: 10,
-        color: redColor,
-      });
+    // Fill the form fields by name
+    try {
+      form.getTextField('vendor_name').setText(contractData.vendor_name || '');
+    } catch (e) {
+      console.warn('Field vendor_name not found');
     }
 
-    const effDate = new Date(contractData.effective_date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    firstPage.drawText(effDate, {
-      x: 210,
-      y: 425,
-      size: 10,
-      color: redColor,
-    });
+    try {
+      form.getTextField('vendor_address').setText(contractData.vendor_address || '');
+    } catch (e) {
+      console.warn('Field vendor_address not found');
+    }
 
-    // Fill authorized representative info
-    firstPage.drawText(`${contractData.auth_rep_name}, ${contractData.auth_rep_title}`, {
-      x: 50,
-      y: 195,
-      size: 10,
-      color: redColor,
-    });
+    try {
+      const solicitationInfo = contractData.solicitation;
+      if (solicitationInfo?.solicitation_id) {
+        form.getTextField('solicitation_id').setText(solicitationInfo.solicitation_id);
+      }
+    } catch (e) {
+      console.warn('Field solicitation_id not found');
+    }
 
-    firstPage.drawText(`${contractData.auth_rep_address} and ${contractData.auth_rep_phone}`, {
-      x: 50,
-      y: 170,
-      size: 10,
-      color: redColor,
-    });
+    try {
+      const solicitationInfo = contractData.solicitation;
+      if (solicitationInfo?.swift_event_no) {
+        form.getTextField('swift_event_no').setText(solicitationInfo.swift_event_no);
+      }
+    } catch (e) {
+      console.warn('Field swift_event_no not found');
+    }
 
-    // Fill page 4 (signature page) - index 3
-    const signaturePage = pages[3];
-    signaturePage.drawText(contractData.submitter_name, {
-      x: 150,
-      y: 520,
-      size: 10,
-      color: redColor,
-    });
+    try {
+      if (contractData.solicitation_date) {
+        const solDate = new Date(contractData.solicitation_date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        form.getTextField('solicitation_date').setText(solDate);
+      }
+    } catch (e) {
+      console.warn('Field solicitation_date not found');
+    }
 
-    signaturePage.drawText(contractData.submitter_title, {
-      x: 80,
-      y: 485,
-      size: 10,
-      color: redColor,
-    });
+    try {
+      if (contractData.effective_date) {
+        const effDate = new Date(contractData.effective_date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        form.getTextField('effective_date').setText(effDate);
+      }
+    } catch (e) {
+      console.warn('Field effective_date not found');
+    }
 
-    const subDate = new Date(contractData.submission_date).toLocaleDateString('en-US');
-    signaturePage.drawText(subDate, {
-      x: 200,
-      y: 485,
-      size: 10,
-      color: redColor,
-    });
+    try {
+      const authRepInfo = `${contractData.auth_rep_name || ''}, ${contractData.auth_rep_title || ''}`;
+      form.getTextField('auth_rep_name_title').setText(authRepInfo);
+    } catch (e) {
+      console.warn('Field auth_rep_name_title not found');
+    }
+
+    try {
+      const authRepContact = `${contractData.auth_rep_address || ''} and ${contractData.auth_rep_phone || ''}`;
+      form.getTextField('auth_rep_contact').setText(authRepContact);
+    } catch (e) {
+      console.warn('Field auth_rep_contact not found');
+    }
+
+    try {
+      form.getTextField('submitter_name').setText(contractData.submitter_name || '');
+    } catch (e) {
+      console.warn('Field submitter_name not found');
+    }
+
+    try {
+      form.getTextField('submitter_title').setText(contractData.submitter_title || '');
+    } catch (e) {
+      console.warn('Field submitter_title not found');
+    }
+
+    try {
+      if (contractData.submission_date) {
+        const subDate = new Date(contractData.submission_date).toLocaleDateString('en-US');
+        form.getTextField('submission_date').setText(subDate);
+      }
+    } catch (e) {
+      console.warn('Field submission_date not found');
+    }
+
+    // Flatten the form so fields become regular text
+    form.flatten();
 
     // Save the filled PDF
     const pdfBytes = await pdfDoc.save();
