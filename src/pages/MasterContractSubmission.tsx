@@ -267,27 +267,35 @@ const MasterContractSubmission: React.FC = () => {
           solicitation: selectedSolicitation,
         };
 
-        console.log('Calling edge function to fill PDF template...');
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fill-master-contract-pdf`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ contractData: fullContractData }),
+        let pdfBlob: Blob;
+
+        try {
+          console.log('Attempting to call edge function to fill PDF template...');
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fill-master-contract-pdf`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ contractData: fullContractData }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.warn('Edge function failed, falling back to client-side generation:', errorText);
+            throw new Error('Template not available');
           }
-        );
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Edge function error:', errorText);
-          throw new Error(`PDF generation failed: ${errorText}`);
+          pdfBlob = await response.blob();
+          console.log('PDF blob generated from template, size:', pdfBlob.size);
+        } catch (templateError) {
+          console.log('Template filling failed, using fallback generation');
+          pdfBlob = await generateMasterContractPDF(fullContractData, contractId);
+          console.log('PDF blob generated using fallback, size:', pdfBlob.size);
         }
-
-        const pdfBlob = await response.blob();
-        console.log('PDF blob generated, size:', pdfBlob.size);
 
         const fileName = `contract_${contractId}_${Date.now()}.pdf`;
         console.log('Uploading PDF to storage:', fileName);
