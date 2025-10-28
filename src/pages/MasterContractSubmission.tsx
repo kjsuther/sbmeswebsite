@@ -31,6 +31,7 @@ const MasterContractSubmission: React.FC = () => {
   const [selectedSolicitation, setSelectedSolicitation] = useState<Solicitation | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [contractPdfUrl, setContractPdfUrl] = useState<string | null>(null);
   const [isTestMode, setIsTestMode] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     vendor_name: '',
@@ -201,6 +202,7 @@ const MasterContractSubmission: React.FC = () => {
 
     setLoading(true);
     setMessage(null);
+    setContractPdfUrl(null);
 
     try {
       const submissionData = {
@@ -218,12 +220,53 @@ const MasterContractSubmission: React.FC = () => {
 
       if (error) throw error;
 
+      if (!data || data.length === 0) {
+        throw new Error('No contract data returned');
+      }
+
+      const contractId = data[0].id;
+
       setMessage({
         type: 'success',
-        text: 'Contract submitted successfully! Your submission has been received and is being processed.'
+        text: 'Contract submitted successfully! Generating your contract document...'
       });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      try {
+        const pdfResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-master-contract-pdf`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ contract_id: contractId }),
+          }
+        );
+
+        const pdfResult = await pdfResponse.json();
+
+        if (pdfResult.success && pdfResult.document_url) {
+          setContractPdfUrl(pdfResult.document_url);
+          setMessage({
+            type: 'success',
+            text: 'Contract submitted successfully! Your contract document is ready.'
+          });
+        } else {
+          setMessage({
+            type: 'success',
+            text: 'Contract submitted successfully! Document generation is in progress.'
+          });
+        }
+      } catch (pdfError) {
+        console.error('PDF generation error:', pdfError);
+        setMessage({
+          type: 'success',
+          text: 'Contract submitted successfully! Document generation is in progress.'
+        });
+      }
 
       clearFormData();
       setIsTestMode(false);
@@ -263,15 +306,30 @@ const MasterContractSubmission: React.FC = () => {
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {message && (
-            <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+            <div className={`mb-6 p-4 rounded-lg ${
               message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
             }`}>
-              {message.type === 'success' ? (
-                <CheckCircle className="h-5 w-5 flex-shrink-0" />
-              ) : (
-                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              <div className="flex items-center gap-3">
+                {message.type === 'success' ? (
+                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                )}
+                <p>{message.text}</p>
+              </div>
+              {contractPdfUrl && message.type === 'success' && (
+                <div className="mt-4 pt-4 border-t border-green-200">
+                  <a
+                    href={contractPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <FileText className="h-5 w-5" />
+                    View Contract Document
+                  </a>
+                </div>
               )}
-              <p>{message.text}</p>
             </div>
           )}
 
