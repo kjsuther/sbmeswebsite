@@ -136,18 +136,14 @@ const GreatBakeOff: React.FC = () => {
                       <li>If the vendor has more than 40 employees, upload a workforce certificate</li>
                       <li>If the vendor has more than 40 employees, upload an equal pay certificate</li>
                       <li>Sign the certification regarding lobbying</li>
-                      <li className="relative">
+                      <li className="bg-gradient-to-r from-yellow-50 to-transparent -mx-2 px-2 py-2 rounded-lg border-l-2 border-mn-accent-teal">
                         <Link
                           to="/master-contract-submission"
-                          className="inline-flex items-center gap-2 text-mn-accent-teal hover:text-mn-primary font-semibold transition-all duration-200 hover:translate-x-1 group"
+                          className="inline-flex items-center gap-2 text-mn-accent-teal hover:text-mn-primary font-semibold transition-all duration-200 hover:gap-3 group"
                         >
-                          <span className="relative">
-                            Respond to this solicitation
-                            <span className="absolute -top-2 -right-12 bg-mn-accent-yellow text-mn-primary text-xs font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
-                              NEW
-                            </span>
-                          </span>
+                          <span>Respond to this solicitation</span>
                           <FileText className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                          <span className="text-xs bg-mn-accent-teal text-white px-2 py-0.5 rounded font-normal">Available Now</span>
                         </Link>
                       </li>
                     </ol>
