@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Save, Send, AlertCircle, CheckCircle } from 'lucide-react';
+import { FileText, Save, Send, AlertCircle, CheckCircle, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { generateMasterContractTestData } from '../utils/testDataGenerator';
+import { generateMasterContractPDF } from '../utils/masterContractPdfGenerator';
 
 interface Solicitation {
   id: string;
@@ -234,37 +235,48 @@ const MasterContractSubmission: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       try {
-        const pdfResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-master-contract-pdf`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({ contract_id: contractId }),
-          }
-        );
+        const fullContractData = {
+          ...data[0],
+          solicitation: selectedSolicitation,
+        };
 
-        const pdfResult = await pdfResponse.json();
+        const pdfBlob = generateMasterContractPDF(fullContractData, contractId);
 
-        if (pdfResult.success && pdfResult.document_url) {
-          setContractPdfUrl(pdfResult.document_url);
+        const fileName = `contract_${contractId}_${Date.now()}.pdf`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('master-contracts')
+          .upload(fileName, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error('PDF upload error:', uploadError);
           setMessage({
             type: 'success',
-            text: 'Contract submitted successfully! Your contract document is ready.'
+            text: 'Contract submitted successfully!'
           });
         } else {
+          const { data: urlData } = supabase.storage
+            .from('master-contracts')
+            .getPublicUrl(fileName);
+
+          await supabase
+            .from('master_contracts')
+            .update({ contract_document_url: urlData.publicUrl })
+            .eq('id', contractId);
+
+          setContractPdfUrl(urlData.publicUrl);
           setMessage({
             type: 'success',
-            text: 'Contract submitted successfully! Document generation is in progress.'
+            text: 'Contract submitted successfully! Your contract PDF is ready.'
           });
         }
       } catch (pdfError) {
         console.error('PDF generation error:', pdfError);
         setMessage({
           type: 'success',
-          text: 'Contract submitted successfully! Document generation is in progress.'
+          text: 'Contract submitted successfully!'
         });
       }
 
@@ -318,7 +330,7 @@ const MasterContractSubmission: React.FC = () => {
                 <p>{message.text}</p>
               </div>
               {contractPdfUrl && message.type === 'success' && (
-                <div className="mt-4 pt-4 border-t border-green-200">
+                <div className="mt-4 pt-4 border-t border-green-200 flex gap-3">
                   <a
                     href={contractPdfUrl}
                     target="_blank"
@@ -326,7 +338,15 @@ const MasterContractSubmission: React.FC = () => {
                     className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
                   >
                     <FileText className="h-5 w-5" />
-                    View Contract Document
+                    View PDF
+                  </a>
+                  <a
+                    href={contractPdfUrl}
+                    download
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-mn-primary text-white font-semibold rounded-lg hover:bg-opacity-90 transition-colors"
+                  >
+                    <Download className="h-5 w-5" />
+                    Download PDF
                   </a>
                 </div>
               )}
