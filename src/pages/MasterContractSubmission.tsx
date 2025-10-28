@@ -394,11 +394,11 @@ const MasterContractSubmission: React.FC = () => {
                   <AlertCircle className="h-6 w-6 flex-shrink-0" />
                 )}
                 <div className="text-lg font-semibold">
-                  {message.text.includes('!') ? (
+                  {message.text.includes('Generating your contract document') ? (
                     <>
-                      {message.text.split('!')[0]}!{' '}
+                      Contract submitted successfully!{' '}
                       <span className="animate-pulse">
-                        {message.text.split('!')[1]?.trim()}
+                        Generating your contract document...
                       </span>
                     </>
                   ) : (
