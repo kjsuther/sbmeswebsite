@@ -267,8 +267,26 @@ const MasterContractSubmission: React.FC = () => {
           solicitation: selectedSolicitation,
         };
 
-        console.log('Generating PDF blob...');
-        const pdfBlob = await generateMasterContractPDF(fullContractData, contractId);
+        console.log('Calling edge function to fill PDF template...');
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fill-master-contract-pdf`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ contractData: fullContractData }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Edge function error:', errorText);
+          throw new Error(`PDF generation failed: ${errorText}`);
+        }
+
+        const pdfBlob = await response.blob();
         console.log('PDF blob generated, size:', pdfBlob.size);
 
         const fileName = `contract_${contractId}_${Date.now()}.pdf`;
