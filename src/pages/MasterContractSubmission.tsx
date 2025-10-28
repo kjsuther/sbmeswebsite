@@ -140,7 +140,6 @@ const MasterContractSubmission: React.FC = () => {
     const requiredFields: (keyof FormData)[] = [
       'vendor_name',
       'vendor_address',
-      'solicitation_id',
       'auth_rep_name',
       'auth_rep_title',
       'auth_rep_address',
