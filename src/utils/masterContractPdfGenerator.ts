@@ -23,6 +23,67 @@ interface MasterContractData {
   };
 }
 
+const addSignaturePage = (doc: any, contractData: MasterContractData, pageWidth: number, pageHeight: number, margin: number) => {
+  doc.addPage();
+
+  const yStart = 150;
+  let yPos = yStart;
+  const lineHeight = 13;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+
+  doc.text('2. Contractor', margin, yPos);
+  yPos += 15;
+
+  doc.setFontSize(9);
+  doc.setFont('times', 'italic');
+  doc.text('The Contractor certifies that the appropriate person has', margin, yPos);
+  yPos += lineHeight;
+  doc.text('executed the Contract on behalf of the Contractor as', margin, yPos);
+  yPos += lineHeight;
+  doc.text('required by applicable articles, bylaws, resolutions, or', margin, yPos);
+  yPos += lineHeight;
+  doc.text('ordinances.', margin, yPos);
+  yPos += 25;
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(10);
+
+  const printNameLine = 'Print Name: ';
+  doc.text(printNameLine, margin, yPos);
+  const printNameWidth = doc.getTextWidth(printNameLine);
+  doc.setTextColor(220, 38, 38);
+  doc.text(contractData.submitter_name, margin + printNameWidth, yPos);
+  doc.setTextColor(0, 0, 0);
+  yPos += lineHeight + 5;
+
+  doc.text('Signature: ____________________________________', margin, yPos);
+  yPos += lineHeight + 5;
+
+  const titleLine = 'Title: ';
+  doc.text(titleLine, margin, yPos);
+  const titleWidth = doc.getTextWidth(titleLine);
+  doc.setTextColor(220, 38, 38);
+  doc.text(contractData.submitter_title, margin + titleWidth, yPos);
+  doc.setTextColor(0, 0, 0);
+  const dateLine = '       Date: ';
+  const dateX = margin + titleWidth + doc.getTextWidth(contractData.submitter_title) + 20;
+  doc.text(dateLine, dateX, yPos);
+  const dateWidth = doc.getTextWidth(dateLine);
+  doc.setTextColor(220, 38, 38);
+  const formattedDate = new Date(contractData.submission_date).toLocaleDateString('en-US');
+  doc.text(formattedDate, dateX + dateWidth, yPos);
+  doc.setTextColor(0, 0, 0);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Rev. 07.01.2024', margin, pageHeight - 20);
+  doc.text('Page 4 of 25', pageWidth / 2, pageHeight - 20, { align: 'center' });
+};
+
 const loadMNLogo = async (): Promise<string> => {
   try {
     const response = await fetch('/primary-logo-example_tcm1077-265307.jpg');
@@ -255,7 +316,38 @@ export const generateMasterContractPDF = async (contractData: MasterContractData
   yPos += lineHeight;
   doc.text('individual Work Order Contracts:', margin, yPos);
 
+  yPos += 30;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('6.     Authorized Representative', margin, yPos);
+  yPos += 18;
+
+  doc.setFont('times', 'normal');
+  const authRepStart = 'Contractor\'s Authorized Representative. The Contractor\'s Authorized Representative is ';
+  doc.text(authRepStart, margin, yPos);
+  yPos += lineHeight;
+
+  doc.setTextColor(220, 38, 38);
+  doc.text(`[${contractData.auth_rep_name}, ${contractData.auth_rep_title}]`, margin, yPos);
+  doc.setTextColor(0, 0, 0);
+  yPos += lineHeight;
+
+  doc.text('following business address and telephone number: ', margin, yPos);
+  yPos += lineHeight;
+
+  doc.setTextColor(220, 38, 38);
+  doc.text(`[${contractData.auth_rep_address} and ${contractData.auth_rep_phone}]`, margin, yPos);
+  doc.setTextColor(0, 0, 0);
+  doc.text(', or his/her', margin + doc.getTextWidth(`[${contractData.auth_rep_address} and ${contractData.auth_rep_phone}]`) + 4, yPos);
+  yPos += lineHeight;
+
+  doc.text('successor. If the Contractor\'s Authorized Representative changes at any time during this Contract, the', margin, yPos);
+  yPos += lineHeight;
+  doc.text('Contractor must immediately notify the State.', margin, yPos);
+
   addFooter(1);
+
+  addSignaturePage(doc, contractData, pageWidth, pageHeight, margin);
 
   return doc.output('blob');
 };
