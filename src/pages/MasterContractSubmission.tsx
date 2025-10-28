@@ -58,10 +58,8 @@ const MasterContractSubmission: React.FC = () => {
           const newTestMode = !prev;
           if (newTestMode) {
             populateTestData();
-            console.log('Test Mode ACTIVATED');
           } else {
             clearFormData();
-            console.log('Test Mode DEACTIVATED');
           }
           return newTestMode;
         });
@@ -135,7 +133,6 @@ const MasterContractSubmission: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    console.log('Validating form with data:', formData);
     const requiredFields: (keyof FormData)[] = [
       'vendor_name',
       'vendor_address',
@@ -152,20 +149,19 @@ const MasterContractSubmission: React.FC = () => {
     for (const field of requiredFields) {
       if (!formData[field]) {
         const errorMsg = `Please fill in all required fields: ${field.replace(/_/g, ' ')}`;
-        console.error('Validation failed:', errorMsg, 'Field:', field, 'Value:', formData[field]);
         setMessage({ type: 'error', text: errorMsg });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return false;
       }
     }
 
     const phoneRegex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
     if (!phoneRegex.test(formData.auth_rep_phone)) {
-      console.error('Phone validation failed:', formData.auth_rep_phone);
       setMessage({ type: 'error', text: 'Please enter a valid phone number' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return false;
     }
 
-    console.log('Validation passed!');
     return true;
   };
 
@@ -198,14 +194,11 @@ const MasterContractSubmission: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted!');
 
     if (!validateForm()) {
-      console.log('Validation failed, stopping submission');
       return;
     }
 
-    console.log('Starting submission...');
     setLoading(true);
     setMessage(null);
 
@@ -218,25 +211,27 @@ const MasterContractSubmission: React.FC = () => {
         submission_date: new Date().toISOString(),
       };
 
-      console.log('Submitting data to database:', submissionData);
-
       const { data, error } = await supabase
         .from('master_contracts')
         .insert([submissionData])
         .select();
 
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Submission successful! Inserted data:', data);
+      setMessage({
+        type: 'success',
+        text: 'Contract submitted successfully! Your submission has been received and is being processed.'
+      });
 
-      setMessage({ type: 'success', text: 'Contract submitted successfully! Thank you for your submission.' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      clearFormData();
+      setIsTestMode(false);
     } catch (error) {
       console.error('Error submitting contract:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setMessage({ type: 'error', text: `Failed to submit contract: ${errorMessage}` });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
