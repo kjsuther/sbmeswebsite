@@ -135,6 +135,7 @@ const MasterContractSubmission: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
+    console.log('Validating form with data:', formData);
     const requiredFields: (keyof FormData)[] = [
       'vendor_name',
       'vendor_address',
@@ -150,17 +151,21 @@ const MasterContractSubmission: React.FC = () => {
 
     for (const field of requiredFields) {
       if (!formData[field]) {
-        setMessage({ type: 'error', text: `Please fill in all required fields: ${field.replace(/_/g, ' ')}` });
+        const errorMsg = `Please fill in all required fields: ${field.replace(/_/g, ' ')}`;
+        console.error('Validation failed:', errorMsg, 'Field:', field, 'Value:', formData[field]);
+        setMessage({ type: 'error', text: errorMsg });
         return false;
       }
     }
 
     const phoneRegex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
     if (!phoneRegex.test(formData.auth_rep_phone)) {
+      console.error('Phone validation failed:', formData.auth_rep_phone);
       setMessage({ type: 'error', text: 'Please enter a valid phone number' });
       return false;
     }
 
+    console.log('Validation passed!');
     return true;
   };
 
@@ -193,11 +198,14 @@ const MasterContractSubmission: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted!');
 
     if (!validateForm()) {
+      console.log('Validation failed, stopping submission');
       return;
     }
 
+    console.log('Starting submission...');
     setLoading(true);
     setMessage(null);
 
