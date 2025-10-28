@@ -49,6 +49,7 @@ export const generateMasterContractPDF = async (contractData: MasterContractData
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   const margin = 50;
+  const lineHeight = 13;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -58,49 +59,58 @@ export const generateMasterContractPDF = async (contractData: MasterContractData
     });
   };
 
-  // Load and add the Minnesota logo
-  const logoData = await loadMNLogo();
-  if (logoData) {
-    try {
-      doc.addImage(logoData, 'JPEG', margin - 10, 35, 80, 45);
-    } catch (error) {
-      console.error('Failed to add logo to PDF:', error);
+  const addPageHeader = async (pageNum: number) => {
+    const logoData = await loadMNLogo();
+    if (logoData) {
+      try {
+        doc.addImage(logoData, 'JPEG', margin - 10, 30, 70, 40);
+      } catch (error) {
+        console.error('Failed to add logo:', error);
+      }
     }
-  }
 
-  // Title section (right side)
-  doc.setFontSize(24);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  const titleX = pageWidth - margin;
-  doc.text('State of Minnesota', titleX, 55, { align: 'right' });
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    const titleX = pageWidth - margin;
+    doc.text('State of Minnesota', titleX, 45, { align: 'right' });
 
-  doc.setFontSize(18);
-  doc.text('Professional and Technical', titleX, 80, { align: 'right' });
-  doc.text('Services Master Contract', titleX, 100, { align: 'right' });
+    doc.setFontSize(16);
+    doc.text('Professional and Technical', titleX, 65, { align: 'right' });
+    doc.text('Services Master Contract', titleX, 82, { align: 'right' });
 
-  // SWIFT and Master Contract Numbers (blank lines)
+    if (pageNum === 1) {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('SWIFT Contract Number: _______________', titleX, 110, { align: 'right' });
+      doc.text('Master Contract T-Number: _______________', titleX, 125, { align: 'right' });
+    }
+  };
+
+  const addFooter = (pageNum: number) => {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Rev. 07.01.2024', margin, pageHeight - 20);
+    doc.text(`Page ${pageNum} of 25`, pageWidth / 2, pageHeight - 20, { align: 'center' });
+  };
+
+  await addPageHeader(1);
+
+  let yPos = 150;
+
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('SWIFT Contract Number: _______________', titleX, 130, { align: 'right' });
-  doc.text('Master Contract T-Number: _______________', titleX, 145, { align: 'right' });
-
-  let yPos = 180;
-
-  // Opening paragraph with inline red text
-  doc.setFontSize(11);
   doc.setFont('times', 'normal');
   doc.setTextColor(0, 0, 0);
 
   const line1 = 'This Master Contract is between the State of Minnesota, acting through its Commissioner of the Department of';
   doc.text(line1, margin, yPos, { maxWidth: pageWidth - 2 * margin });
-  yPos += 14;
+  yPos += lineHeight;
 
   const line2Start = 'Human Services ("State") and ';
   doc.text(line2Start, margin, yPos);
   const line2StartWidth = doc.getTextWidth(line2Start);
 
-  // Red text for contractor name
   doc.setTextColor(220, 38, 38);
   doc.text(`[${contractData.vendor_name}]`, margin + line2StartWidth, yPos);
   const contractorWidth = doc.getTextWidth(`[${contractData.vendor_name}]`);
@@ -108,34 +118,30 @@ export const generateMasterContractPDF = async (contractData: MasterContractData
   doc.setTextColor(0, 0, 0);
   const line2End = ' whose designated business address is ';
   doc.text(line2End, margin + line2StartWidth + contractorWidth, yPos);
-  yPos += 14;
+  yPos += lineHeight;
 
-  // Red text for address
   doc.setTextColor(220, 38, 38);
   doc.text(`[${contractData.vendor_address}]`, margin, yPos);
   doc.setTextColor(0, 0, 0);
-  yPos += 14;
+  yPos += lineHeight;
 
   const line3 = '("Contractor"). State and Contractor may be referred to jointly as "Parties."';
   doc.text(line3, margin, yPos, { maxWidth: pageWidth - 2 * margin });
 
-  yPos += 30;
+  yPos += 25;
 
-  // Recitals section
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('Recitals', margin, yPos);
   doc.setLineWidth(0.5);
   doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
 
-  yPos += 25;
+  yPos += 20;
 
-  // Recital items
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont('times', 'normal');
 
-  // Recital 1
-  const rec1Start = '1.    State issued a solicitation identified as ';
+  const rec1Start = '1.     State issued a solicitation identified as ';
   doc.text(rec1Start, margin, yPos);
   const rec1StartWidth = doc.getTextWidth(rec1Start);
 
@@ -163,23 +169,20 @@ export const generateMasterContractPDF = async (contractData: MasterContractData
   doc.text(`[${formatDate(contractData.solicitation_date)}]`, margin + rec1StartWidth + solIdWidth + swiftStartWidth + swiftWidth + onWidth, yPos);
 
   doc.setTextColor(0, 0, 0);
-  yPos += 14;
-  doc.text('      participation in the Great MES Modernization Bake-Off ("Solicitation");', margin, yPos);
+  yPos += lineHeight;
+  doc.text('       participation in the Great MES Modernization Bake-Off ("Solicitation");', margin, yPos);
 
-  yPos += 25;
+  yPos += 20;
 
-  // Recital 2
-  doc.text('2.    Contractor provided a response to the Solicitation indicating its interest in and ability to provide the goods', margin, yPos);
-  yPos += 14;
-  doc.text('      or services requested in the Solicitation; and', margin, yPos);
+  doc.text('2.     Contractor provided a response to the Solicitation indicating its interest in and ability to provide the goods', margin, yPos);
+  yPos += lineHeight;
+  doc.text('       or services requested in the Solicitation; and', margin, yPos);
 
-  yPos += 25;
+  yPos += 20;
 
-  // Recital 3 with underlined text
-  doc.text('3.    ', margin, yPos);
-  const rec3Width = doc.getTextWidth('3.    ');
+  doc.text('3.     ', margin, yPos);
+  const rec3Width = doc.getTextWidth('3.     ');
 
-  // Underline "Subsequent"
   doc.setFont('times', 'underline');
   const subText = 'Subsequent';
   doc.text(subText, margin + rec3Width, yPos);
@@ -187,29 +190,72 @@ export const generateMasterContractPDF = async (contractData: MasterContractData
 
   doc.setFont('times', 'normal');
   doc.text(' to an evaluation in accordance with the terms of the Solicitation and negotiation, the Parties', margin + rec3Width + subWidth, yPos);
-  yPos += 14;
-  doc.text('      desire to enter into a contract.', margin, yPos);
+  yPos += lineHeight;
+  doc.text('       desire to enter into a contract.', margin, yPos);
+
+  yPos += 20;
+
+  doc.text('Accordingly, the Parties agree as follows:', margin, yPos);
 
   yPos += 25;
 
-  // Accordingly
-  doc.text('Accordingly, the Parties agree as follows:', margin, yPos);
-
-  yPos += 30;
-
-  // Contract section
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('Contract', margin, yPos);
   doc.setLineWidth(0.5);
   doc.line(margin, yPos + 2, pageWidth - margin, yPos + 2);
 
-  // Footer with contract ID and page number
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text(`Contract ID: ${contractId}`, margin, pageHeight - 30);
-  doc.text('Page 1', pageWidth - margin, pageHeight - 30, { align: 'right' });
+  yPos += 20;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('1.     Term of Contract', margin, yPos);
+  yPos += 18;
+
+  doc.setFont('times', 'normal');
+  const effectiveLine = `         1.1  Effective date. `;
+  doc.text(effectiveLine, margin, yPos);
+  const effectiveWidth = doc.getTextWidth(effectiveLine);
+  doc.setTextColor(220, 38, 38);
+  doc.text(`[${formatDate(contractData.effective_date)}]`, margin + effectiveWidth, yPos);
+  doc.setTextColor(0, 0, 0);
+  doc.text(', or the date the State obtains all required signatures under Minn. Stat.', margin + effectiveWidth + doc.getTextWidth(`[${formatDate(contractData.effective_date)}]`) + 4, yPos);
+  yPos += lineHeight;
+  doc.text('               § 16C.05, subd. 2, whichever is later. The Contractor must not accept work under this Master Contract', margin, yPos);
+  yPos += lineHeight;
+  doc.text('               until this Master Contract is fully executed and the Contractor has been notified by the State\'s', margin, yPos);
+  yPos += lineHeight;
+  doc.text('               Authorized Representative that it may begin accepting Work Order Contracts.', margin, yPos);
+
+  yPos += 18;
+
+  doc.text('         1.2  Work Order Contracts. The term of work under Work Order contracts issued under this Master', margin, yPos);
+  yPos += lineHeight;
+  doc.text('               Contract may not extend beyond the expiration date of this Master Contract.', margin, yPos);
+
+  yPos += 18;
+
+  doc.text('         1.3  Expiration date. September 30, 2030, or until all obligations have been satisfactorily fulfilled,', margin, yPos);
+  yPos += lineHeight;
+  doc.text('               whichever occurs first. The contract may be extended for up to an additional 2 years in increments as', margin, yPos);
+  yPos += lineHeight;
+  doc.text('               determined by the State, through a duly executed amendment.', margin, yPos);
+
+  yPos += 20;
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('2.     Contractor\'s Duties', margin, yPos);
+  yPos += 15;
+
+  doc.setFont('times', 'normal');
+  doc.text('The Contractor shall perform all duties described in this Master Contract to the satisfaction of the State.', margin, yPos);
+  yPos += 18;
+
+  doc.text('The Contractor, who is not a State employee, may be requested to perform any of the following services under', margin, yPos);
+  yPos += lineHeight;
+  doc.text('individual Work Order Contracts:', margin, yPos);
+
+  addFooter(1);
 
   return doc.output('blob');
 };
