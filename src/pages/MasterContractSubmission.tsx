@@ -29,8 +29,6 @@ interface FormData {
 
 const MasterContractSubmission: React.FC = () => {
   const navigate = useNavigate();
-  const [solicitations, setSolicitations] = useState<Solicitation[]>([]);
-  const [selectedSolicitation, setSelectedSolicitation] = useState<Solicitation | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [contractPdfUrl, setContractPdfUrl] = useState<string | null>(null);
@@ -40,7 +38,7 @@ const MasterContractSubmission: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     vendor_name: '',
     vendor_address: '',
-    solicitation_id: '',
+    solicitation_id: 'MES MODERNIZATION',
     auth_rep_name: '',
     auth_rep_title: '',
     auth_rep_address: '',
@@ -52,9 +50,6 @@ const MasterContractSubmission: React.FC = () => {
     insurance_agency_address: '',
   });
 
-  useEffect(() => {
-    fetchSolicitations();
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -74,29 +69,15 @@ const MasterContractSubmission: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [solicitations]);
+  }, []);
 
-  const fetchSolicitations = async () => {
-    const { data, error } = await supabase
-      .from('solicitations')
-      .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching solicitations:', error);
-      setMessage({ type: 'error', text: 'Failed to load solicitations' });
-    } else if (data) {
-      setSolicitations(data);
-    }
-  };
 
   const populateTestData = () => {
     const testData = generateMasterContractTestData();
     setFormData({
       vendor_name: testData.vendor_name,
       vendor_address: testData.vendor_address,
-      solicitation_id: solicitations.length > 0 ? solicitations[0].id : '',
+      solicitation_id: 'MES MODERNIZATION',
       auth_rep_name: testData.auth_rep_name,
       auth_rep_title: testData.auth_rep_title,
       auth_rep_address: testData.auth_rep_address,
@@ -107,9 +88,6 @@ const MasterContractSubmission: React.FC = () => {
       insurance_cert_holder: testData.insurance_cert_holder,
       insurance_agency_address: testData.insurance_agency_address,
     });
-    if (solicitations.length > 0) {
-      setSelectedSolicitation(solicitations[0]);
-    }
   };
 
   const handleDownloadPdf = async (contractData: any, contractId: string) => {
@@ -140,7 +118,7 @@ const MasterContractSubmission: React.FC = () => {
     setFormData({
       vendor_name: '',
       vendor_address: '',
-      solicitation_id: '',
+      solicitation_id: 'MES MODERNIZATION',
       auth_rep_name: '',
       auth_rep_title: '',
       auth_rep_address: '',
@@ -149,18 +127,13 @@ const MasterContractSubmission: React.FC = () => {
       submitter_signature: '',
       submitter_title: '',
       insurance_cert_holder: '',
+      insurance_agency_address: '',
     });
-    setSelectedSolicitation(null);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
-    if (name === 'solicitation_id') {
-      const selected = solicitations.find(s => s.id === value);
-      setSelectedSolicitation(selected || null);
-    }
   };
 
   const validateForm = (): boolean => {
@@ -238,7 +211,7 @@ const MasterContractSubmission: React.FC = () => {
       const submissionData = {
         ...formData,
         status: 'submitted',
-        solicitation_date: new Date().toISOString(),
+        solicitation_date: '2025-10-01T00:00:00.000Z',
         effective_date: new Date().toISOString(),
         submission_date: new Date().toISOString(),
       };
@@ -267,7 +240,11 @@ const MasterContractSubmission: React.FC = () => {
         console.log('Starting PDF generation...');
         const fullContractData = {
           ...data[0],
-          solicitation: selectedSolicitation,
+          solicitation: {
+            solicitation_id: 'MES MODERNIZATION',
+            swift_event_no: null,
+            description: 'MES MODERNIZATION'
+          },
         };
 
         let pdfBlob: Blob;
@@ -459,45 +436,6 @@ const MasterContractSubmission: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-mn-primary mb-6">Solicitation Information</h2>
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="solicitation_id" className="block text-sm font-medium text-gray-700 mb-2">
-                    Solicitation Identification <span className="text-red-600">*</span>
-                  </label>
-                  <select
-                    id="solicitation_id"
-                    name="solicitation_id"
-                    value={formData.solicitation_id}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select a solicitation</option>
-                    {solicitations.map(sol => (
-                      <option key={sol.id} value={sol.id}>
-                        {sol.solicitation_id} - {sol.description}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedSolicitation && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-700">
-                      <span className="font-semibold">SWIFT Event Number:</span> {selectedSolicitation.swift_event_no}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-2">
-                      <span className="font-semibold">Solicitation Date:</span> {new Date().toLocaleDateString()}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      <span className="font-semibold">Effective Date:</span> {new Date().toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
 
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-mn-primary mb-6">Authorized Representative</h2>
