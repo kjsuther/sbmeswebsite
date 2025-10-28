@@ -378,3 +378,68 @@ export function generateLayerRFPTestData(): LayerRFPTestData {
     monthlySupportCost: `$${(randomNumber(15, 50) * 1000).toLocaleString()}`
   };
 }
+
+export interface MasterContractTestData {
+  vendor_name: string;
+  vendor_address: string;
+  auth_rep_name: string;
+  auth_rep_title: string;
+  auth_rep_address: string;
+  auth_rep_phone: string;
+  submitter_name: string;
+  submitter_signature: string;
+  submitter_title: string;
+  insurance_cert_holder: string;
+}
+
+const titles = [
+  'Chief Executive Officer',
+  'Chief Financial Officer',
+  'Vice President of Operations',
+  'Director of Business Development',
+  'President',
+  'Managing Director',
+  'Senior Vice President',
+  'Chief Operating Officer'
+];
+
+const submitterTitles = [
+  'Contract Manager',
+  'Procurement Specialist',
+  'Business Development Manager',
+  'Legal Counsel',
+  'Compliance Officer',
+  'Contract Administrator'
+];
+
+function generateAddress(): string {
+  const streetNumber = randomNumber(100, 9999);
+  const streets = ['Main St', 'Oak Ave', 'Park Blvd', 'Washington St', 'Commerce Dr', 'Industrial Way', 'Business Pkwy'];
+  const cities = ['Minneapolis', 'St. Paul', 'Bloomington', 'Rochester', 'Duluth', 'Brooklyn Park', 'Plymouth'];
+  const street = randomElement(streets);
+  const city = randomElement(cities);
+
+  return `${streetNumber} ${street}, ${city}, MN ${randomNumber(55001, 55999)}`;
+}
+
+export function generateMasterContractTestData(): MasterContractTestData {
+  const uniqueId = generateUniqueId();
+  const authRepFirstName = randomElement(contactFirstNames);
+  const authRepLastName = randomElement(contactLastNames);
+  const submitterFirstName = randomElement(contactFirstNames);
+  const submitterLastName = randomElement(contactLastNames);
+  const company = randomElement(companyNames);
+
+  return {
+    vendor_name: `${company} (TEST)`,
+    vendor_address: generateAddress(),
+    auth_rep_name: `${authRepFirstName} ${authRepLastName} (TEST)`,
+    auth_rep_title: randomElement(titles),
+    auth_rep_address: generateAddress(),
+    auth_rep_phone: generatePhoneNumber(),
+    submitter_name: `${submitterFirstName} ${submitterLastName} (TEST)`,
+    submitter_signature: `${submitterFirstName} ${submitterLastName}`,
+    submitter_title: randomElement(submitterTitles),
+    insurance_cert_holder: 'State of Minnesota, Department of Human Services'
+  };
+}

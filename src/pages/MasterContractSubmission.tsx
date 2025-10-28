@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Save, Send, AlertCircle, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { generateMasterContractTestData } from '../utils/testDataGenerator';
 
 interface Solicitation {
   id: string;
@@ -30,6 +31,7 @@ const MasterContractSubmission: React.FC = () => {
   const [selectedSolicitation, setSelectedSolicitation] = useState<Solicitation | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isTestMode, setIsTestMode] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     vendor_name: '',
     vendor_address: '',
@@ -48,6 +50,28 @@ const MasterContractSubmission: React.FC = () => {
     fetchSolicitations();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        setIsTestMode(prev => {
+          const newTestMode = !prev;
+          if (newTestMode) {
+            populateTestData();
+            console.log('Test Mode ACTIVATED');
+          } else {
+            clearFormData();
+            console.log('Test Mode DEACTIVATED');
+          }
+          return newTestMode;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [solicitations]);
+
   const fetchSolicitations = async () => {
     const { data, error } = await supabase
       .from('solicitations')
@@ -61,6 +85,43 @@ const MasterContractSubmission: React.FC = () => {
     } else if (data) {
       setSolicitations(data);
     }
+  };
+
+  const populateTestData = () => {
+    const testData = generateMasterContractTestData();
+    setFormData({
+      vendor_name: testData.vendor_name,
+      vendor_address: testData.vendor_address,
+      solicitation_id: solicitations.length > 0 ? solicitations[0].id : '',
+      auth_rep_name: testData.auth_rep_name,
+      auth_rep_title: testData.auth_rep_title,
+      auth_rep_address: testData.auth_rep_address,
+      auth_rep_phone: testData.auth_rep_phone,
+      submitter_name: testData.submitter_name,
+      submitter_signature: testData.submitter_signature,
+      submitter_title: testData.submitter_title,
+      insurance_cert_holder: testData.insurance_cert_holder,
+    });
+    if (solicitations.length > 0) {
+      setSelectedSolicitation(solicitations[0]);
+    }
+  };
+
+  const clearFormData = () => {
+    setFormData({
+      vendor_name: '',
+      vendor_address: '',
+      solicitation_id: '',
+      auth_rep_name: '',
+      auth_rep_title: '',
+      auth_rep_address: '',
+      auth_rep_phone: '',
+      submitter_name: '',
+      submitter_signature: '',
+      submitter_title: '',
+      insurance_cert_holder: '',
+    });
+    setSelectedSolicitation(null);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -170,6 +231,13 @@ const MasterContractSubmission: React.FC = () => {
 
   return (
     <div className="bg-white min-h-screen">
+      {isTestMode && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg border-2 border-yellow-600 flex items-center space-x-2 animate-pulse">
+          <AlertCircle className="h-5 w-5" />
+          <span className="font-bold">TEST MODE ACTIVE (CTRL+I to toggle)</span>
+        </div>
+      )}
+
       <section className="bg-mn-primary text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-6">
