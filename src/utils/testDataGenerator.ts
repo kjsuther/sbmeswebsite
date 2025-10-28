@@ -430,6 +430,15 @@ export function generateMasterContractTestData(): MasterContractTestData {
   const submitterFirstName = randomElement(contactFirstNames);
   const submitterLastName = randomElement(contactLastNames);
   const company = randomElement(companyNames);
+  const insuranceCompany = randomElement(companyNames);
+
+  const departments = [
+    'Department of Human Services',
+    'Department of Health',
+    'Department of Commerce',
+    'Department of Administration',
+    'Department of Revenue'
+  ];
 
   return {
     vendor_name: `${company} (TEST)`,
@@ -441,7 +450,7 @@ export function generateMasterContractTestData(): MasterContractTestData {
     submitter_name: `${submitterFirstName} ${submitterLastName} (TEST)`,
     submitter_signature: `${submitterFirstName} ${submitterLastName}`,
     submitter_title: randomElement(submitterTitles),
-    insurance_cert_holder: 'State of Minnesota\nDepartment of Human Services\n444 Lafayette Rd\nSt. Paul, MN 55155',
-    insurance_agency_address: `${randomElement(companyNames)} Insurance Agency\n${generateAddress()}`
+    insurance_cert_holder: `State of Minnesota\n${randomElement(departments)}\n${randomNumber(100, 999)} Lafayette Rd\nSt. Paul, MN 55155`,
+    insurance_agency_address: `${insuranceCompany} Insurance Agency\n${generateAddress()}`
   };
 }

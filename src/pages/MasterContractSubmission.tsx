@@ -105,6 +105,7 @@ const MasterContractSubmission: React.FC = () => {
       submitter_signature: testData.submitter_signature,
       submitter_title: testData.submitter_title,
       insurance_cert_holder: testData.insurance_cert_holder,
+      insurance_agency_address: testData.insurance_agency_address,
     });
     if (solicitations.length > 0) {
       setSelectedSolicitation(solicitations[0]);
