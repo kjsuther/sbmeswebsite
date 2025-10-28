@@ -26,7 +26,7 @@ serve(async (req: Request) => {
     // Download the template PDF from storage
     const { data: templateData, error: downloadError } = await supabase.storage
       .from('contract-templates')
-      .download('master-contract-template.pdf');
+      .download('master- contract-template.pdf');
 
     if (downloadError) throw downloadError;
 
