@@ -24,6 +24,7 @@ interface FormData {
   submitter_signature: string;
   submitter_title: string;
   insurance_cert_holder: string;
+  insurance_agency_address: string;
 }
 
 const MasterContractSubmission: React.FC = () => {
@@ -48,6 +49,7 @@ const MasterContractSubmission: React.FC = () => {
     submitter_signature: '',
     submitter_title: '',
     insurance_cert_holder: '',
+    insurance_agency_address: '',
   });
 
   useEffect(() => {
@@ -625,19 +627,40 @@ const MasterContractSubmission: React.FC = () => {
 
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-mn-primary mb-6">Insurance Information</h2>
-              <div>
-                <label htmlFor="insurance_cert_holder" className="block text-sm font-medium text-gray-700 mb-2">
-                  Insurance Certificate Holder <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="insurance_cert_holder"
-                  name="insurance_cert_holder"
-                  value={formData.insurance_cert_holder}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                  required
-                />
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="insurance_cert_holder" className="block text-sm font-medium text-gray-700 mb-2">
+                    Insurance Certificate Holder Address <span className="text-red-600">*</span>
+                  </label>
+                  <textarea
+                    id="insurance_cert_holder"
+                    name="insurance_cert_holder"
+                    value={formData.insurance_cert_holder}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    placeholder="Enter the address where certificate holder should be sent"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Section 2.2 - Add agency contract holder's address</p>
+                </div>
+
+                <div>
+                  <label htmlFor="insurance_agency_address" className="block text-sm font-medium text-gray-700 mb-2">
+                    Insurance Agency Mailing Address <span className="text-red-600">*</span>
+                  </label>
+                  <textarea
+                    id="insurance_agency_address"
+                    name="insurance_agency_address"
+                    value={formData.insurance_agency_address}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    placeholder="Enter the insurance agency mailing address"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Section 2.2 - Insert Agency Mailing Address</p>
+                </div>
               </div>
             </div>
 

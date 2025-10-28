@@ -390,6 +390,7 @@ export interface MasterContractTestData {
   submitter_signature: string;
   submitter_title: string;
   insurance_cert_holder: string;
+  insurance_agency_address: string;
 }
 
 const titles = [
@@ -440,6 +441,7 @@ export function generateMasterContractTestData(): MasterContractTestData {
     submitter_name: `${submitterFirstName} ${submitterLastName} (TEST)`,
     submitter_signature: `${submitterFirstName} ${submitterLastName}`,
     submitter_title: randomElement(submitterTitles),
-    insurance_cert_holder: 'State of Minnesota, Department of Human Services'
+    insurance_cert_holder: 'State of Minnesota\nDepartment of Human Services\n444 Lafayette Rd\nSt. Paul, MN 55155',
+    insurance_agency_address: `${randomElement(companyNames)} Insurance Agency\n${generateAddress()}`
   };
 }

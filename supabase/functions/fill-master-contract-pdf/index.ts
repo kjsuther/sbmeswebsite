@@ -127,6 +127,18 @@ serve(async (req: Request) => {
       console.warn('Field submission_date not found');
     }
 
+    try {
+      form.getTextField('insurance_cert_holder').setText(contractData.insurance_cert_holder || '');
+    } catch (e) {
+      console.warn('Field insurance_cert_holder not found');
+    }
+
+    try {
+      form.getTextField('insurance_agency_address').setText(contractData.insurance_agency_address || '');
+    } catch (e) {
+      console.warn('Field insurance_agency_address not found');
+    }
+
     // Flatten the form so fields become regular text
     form.flatten();
 
