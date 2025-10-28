@@ -14,9 +14,9 @@ const Home: React.FC = () => {
                 MES Modernization
                 <span className="block text-mn-accent-yellow">MES Bake Off Challenge</span>
               </h1>
-              <p className="text-xl text-mn-primary leading-relaxed">
-                Join us in transforming Minnesota's Medicaid Enterprise Systems through innovative partnerships, 
-                strategic collaboration, and cutting-edge technology solutions. This is your opportunity to shape 
+              <p className="text-xl text-white leading-relaxed">
+                Join us in transforming Minnesota's Medicaid Enterprise Systems through innovative partnerships,
+                strategic collaboration, and cutting-edge technology solutions. This is your opportunity to shape
                 the future of government services delivery.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
