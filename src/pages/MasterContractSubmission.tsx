@@ -393,7 +393,18 @@ const MasterContractSubmission: React.FC = () => {
                 ) : (
                   <AlertCircle className="h-6 w-6 flex-shrink-0" />
                 )}
-                <p className="text-lg font-semibold">{message.text}</p>
+                <div className="text-lg font-semibold">
+                  {message.text.includes('!') ? (
+                    <>
+                      {message.text.split('!')[0]}!{' '}
+                      <span className="animate-pulse">
+                        {message.text.split('!')[1]?.trim()}
+                      </span>
+                    </>
+                  ) : (
+                    message.text
+                  )}
+                </div>
               </div>
               {contractPdfUrl && message.type === 'success' && submittedContractData && submittedContractId && (
                 <div className="mt-4 pt-4 border-t border-green-300">
