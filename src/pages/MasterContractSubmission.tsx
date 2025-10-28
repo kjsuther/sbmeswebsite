@@ -181,13 +181,11 @@ const MasterContractSubmission: React.FC = () => {
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: 'Draft saved successfully!' });
-      setTimeout(() => {
-        navigate('/vendor/contracts');
-      }, 2000);
+      setMessage({ type: 'success', text: 'Draft saved successfully! You can continue editing or submit when ready.' });
     } catch (error) {
       console.error('Error saving draft:', error);
-      setMessage({ type: 'error', text: 'Failed to save draft. Please try again.' });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setMessage({ type: 'error', text: `Failed to save draft: ${errorMessage}` });
     } finally {
       setLoading(false);
     }
@@ -216,14 +214,11 @@ const MasterContractSubmission: React.FC = () => {
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: 'Contract submitted successfully!' });
-
-      setTimeout(() => {
-        navigate('/vendor/contracts');
-      }, 2000);
+      setMessage({ type: 'success', text: 'Contract submitted successfully! Thank you for your submission.' });
     } catch (error) {
       console.error('Error submitting contract:', error);
-      setMessage({ type: 'error', text: 'Failed to submit contract. Please try again.' });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setMessage({ type: 'error', text: `Failed to submit contract: ${errorMessage}` });
     } finally {
       setLoading(false);
     }
