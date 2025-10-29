@@ -20,19 +20,28 @@ Deno.serve(async (req: Request) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    console.log('Received request to fill PDF template');
     const { contractData } = await req.json();
+    console.log('Contract data:', JSON.stringify(contractData, null, 2));
 
     // Download the template PDF from storage
+    console.log('Downloading template from contract-templates bucket...');
     const { data: templateData, error: downloadError } = await supabase.storage
       .from('contract-templates')
       .download('master- contract-template.pdf');
 
-    if (downloadError) throw downloadError;
+    if (downloadError) {
+      console.error('Download error:', downloadError);
+      throw downloadError;
+    }
+    console.log('Template downloaded successfully');
 
     // Load the PDF template with form fields
+    console.log('Loading PDF template...');
     const templateBytes = await templateData.arrayBuffer();
     const pdfDoc = await PDFDocument.load(templateBytes);
     const form = pdfDoc.getForm();
+    console.log('PDF loaded, filling form fields...');
 
     // Fill the form fields by name
     try {
@@ -139,10 +148,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // Flatten the form so fields become regular text
+    console.log('Flattening form and saving PDF...');
     form.flatten();
 
     // Save the filled PDF
     const pdfBytes = await pdfDoc.save();
+    console.log('PDF saved successfully, size:', pdfBytes.length);
 
     return new Response(pdfBytes, {
       headers: {
