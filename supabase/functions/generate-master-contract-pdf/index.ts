@@ -1,28 +1,10 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { PDFDocument, rgb, StandardFonts } from 'npm:pdf-lib@1.17.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
-
-interface ContractData {
-  id: string;
-  vendor_name: string;
-  vendor_address: string;
-  solicitation_id: string;
-  solicitation_date: string;
-  effective_date: string;
-  auth_rep_name: string;
-  auth_rep_title: string;
-  auth_rep_address: string;
-  auth_rep_phone: string;
-  submitter_name: string;
-  submitter_signature: string;
-  submitter_title: string;
-  submission_date: string;
-  insurance_cert_holder: string;
-}
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -33,75 +15,376 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { contract_id } = await req.json();
+    const { contractData, contractId } = await req.json();
 
-    if (!contract_id) {
-      throw new Error('contract_id is required');
+    if (!contractData) {
+      throw new Error('contractData is required');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('Generating PDF for contract:', contractId);
 
-    // Fetch the contract data
-    const { data: contract, error: contractError } = await supabase
-      .from('master_contracts')
-      .select('*, solicitations(*)')
-      .eq('id', contract_id)
-      .single();
+    const pdfDoc = await PDFDocument.create();
+    const timesRoman = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const timesRomanBold = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    if (contractError || !contract) {
-      throw new Error(`Failed to fetch contract: ${contractError?.message}`);
-    }
-
-    // Generate PDF content as HTML
-    const htmlContent = generateContractHTML(contract);
-
-    // Convert HTML to PDF using a simple approach
-    // Note: In production, you'd use a proper PDF library
-    const pdfBuffer = await generatePDFFromHTML(htmlContent);
-
-    // Upload to storage
-    const fileName = `contract_${contract_id}_${Date.now()}.pdf`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('master-contracts')
-      .upload(fileName, pdfBuffer, {
-        contentType: 'application/pdf',
-        upsert: false,
+    const formatDate = (dateString: string) => {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
+    };
 
-    if (uploadError) {
-      throw new Error(`Failed to upload PDF: ${uploadError.message}`);
-    }
+    let page = pdfDoc.addPage([612, 792]);
+    let yPos = 720;
+    const margin = 50;
+    const lineHeight = 13;
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('master-contracts')
-      .getPublicUrl(fileName);
+    page.drawText('State of Minnesota', {
+      x: page.getWidth() - margin - helveticaBold.widthOfTextAtSize('State of Minnesota', 20),
+      y: yPos,
+      size: 20,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 20;
 
-    // Update contract with document URL
-    const { error: updateError } = await supabase
-      .from('master_contracts')
-      .update({ contract_document_url: urlData.publicUrl })
-      .eq('id', contract_id);
+    page.drawText('Professional and Technical', {
+      x: page.getWidth() - margin - helveticaBold.widthOfTextAtSize('Professional and Technical', 16),
+      y: yPos,
+      size: 16,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 17;
 
-    if (updateError) {
-      throw new Error(`Failed to update contract: ${updateError.message}`);
-    }
+    page.drawText('Services Master Contract', {
+      x: page.getWidth() - margin - helveticaBold.widthOfTextAtSize('Services Master Contract', 16),
+      y: yPos,
+      size: 16,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 30;
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        document_url: urlData.publicUrl,
-        file_name: fileName,
-      }),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    page.drawText('SWIFT Contract Number: _______________', {
+      x: page.getWidth() - margin - helvetica.widthOfTextAtSize('SWIFT Contract Number: _______________', 10),
+      y: yPos,
+      size: 10,
+      font: helvetica,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 15;
+
+    page.drawText('Master Contract T-Number: _______________', {
+      x: page.getWidth() - margin - helvetica.widthOfTextAtSize('Master Contract T-Number: _______________', 10),
+      y: yPos,
+      size: 10,
+      font: helvetica,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 40;
+
+    const vendorName = contractData.vendor_name || '';
+    const vendorAddress = contractData.vendor_address || '';
+
+    page.drawText(`This Master Contract is between the State of Minnesota, acting through its Commissioner of the Department of`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText(`Human Services ("State") and [${vendorName}] whose designated business address is`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText(`[${vendorAddress}]`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0.86, 0.15, 0.15),
+    });
+    yPos -= lineHeight;
+
+    page.drawText(`("Contractor"). State and Contractor may be referred to jointly as "Parties."`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 25;
+
+    page.drawText('Recitals', {
+      x: margin,
+      y: yPos,
+      size: 11,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    page.drawLine({
+      start: { x: margin, y: yPos - 2 },
+      end: { x: page.getWidth() - margin, y: yPos - 2 },
+      thickness: 0.5,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 20;
+
+    const solId = contractData.solicitation?.solicitation_id || contractData.solicitation_id || 'MES MODERNIZATION';
+    const swiftNo = contractData.solicitation?.swift_event_no || 'N/A';
+    const solDate = formatDate(contractData.solicitation_date);
+
+    page.drawText(`1.     State issued a solicitation identified as [${solId}] [${swiftNo}] on [${solDate}]`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+      maxWidth: page.getWidth() - 2 * margin,
+    });
+    yPos -= lineHeight;
+
+    page.drawText('       participation in the Great MES Modernization Bake-Off ("Solicitation");', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 20;
+
+    page.drawText('2.     Contractor provided a response to the Solicitation indicating its interest in and ability to provide the goods', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('       or services requested in the Solicitation; and', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 20;
+
+    page.drawText('3.     Subsequent to an evaluation in accordance with the terms of the Solicitation and negotiation, the Parties', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('       desire to enter into a contract.', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 20;
+
+    page.drawText('Accordingly, the Parties agree as follows:', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 25;
+
+    page.drawText('Contract', {
+      x: margin,
+      y: yPos,
+      size: 11,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    page.drawLine({
+      start: { x: margin, y: yPos - 2 },
+      end: { x: page.getWidth() - margin, y: yPos - 2 },
+      thickness: 0.5,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 20;
+
+    page.drawText('1.     Term of Contract', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 18;
+
+    const effDate = formatDate(contractData.effective_date);
+    page.drawText(`         1.1  Effective date. [${effDate}], or the date the State obtains all required signatures under Minn. Stat.`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('               § 16C.05, subd. 2, whichever is later. The Contractor must not accept work under this Master Contract', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('               until this Master Contract is fully executed and the Contractor has been notified by the State\'s', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('               Authorized Representative that it may begin accepting Work Order Contracts.', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+
+    page.drawText('Rev. 07.01.2024', {
+      x: margin,
+      y: 30,
+      size: 8,
+      font: helvetica,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+
+    page.drawText('Page 1 of 25', {
+      x: page.getWidth() / 2 - 25,
+      y: 30,
+      size: 8,
+      font: helvetica,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+
+    page = pdfDoc.addPage([612, 792]);
+    yPos = 150;
+
+    page.drawText('2. Contractor', {
+      x: margin,
+      y: yPos,
+      size: 11,
+      font: helveticaBold,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 15;
+
+    page.drawText('The Contractor certifies that the appropriate person has', {
+      x: margin,
+      y: yPos,
+      size: 9,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('executed the Contract on behalf of the Contractor as', {
+      x: margin,
+      y: yPos,
+      size: 9,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('required by applicable articles, bylaws, resolutions, or', {
+      x: margin,
+      y: yPos,
+      size: 9,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight;
+
+    page.drawText('ordinances.', {
+      x: margin,
+      y: yPos,
+      size: 9,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= 25;
+
+    page.drawText(`Print Name: ${contractData.submitter_name || ''}`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight + 5;
+
+    page.drawText('Signature: ____________________________________', {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+    yPos -= lineHeight + 5;
+
+    const subDate = new Date(contractData.submission_date).toLocaleDateString('en-US');
+    page.drawText(`Title: ${contractData.submitter_title || ''}       Date: ${subDate}`, {
+      x: margin,
+      y: yPos,
+      size: 10,
+      font: timesRoman,
+      color: rgb(0, 0, 0),
+    });
+
+    page.drawText('Rev. 07.01.2024', {
+      x: margin,
+      y: 30,
+      size: 8,
+      font: helvetica,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+
+    page.drawText('Page 4 of 25', {
+      x: page.getWidth() / 2 - 25,
+      y: 30,
+      size: 8,
+      font: helvetica,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+
+    const pdfBytes = await pdfDoc.save();
+
+    return new Response(pdfBytes, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="master-contract.pdf"',
+      },
+    });
   } catch (error) {
     console.error('Error generating contract PDF:', error);
     return new Response(
@@ -119,176 +402,3 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
-
-function generateContractHTML(contract: any): string {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body {
-      font-family: 'Times New Roman', serif;
-      font-size: 12pt;
-      line-height: 1.6;
-      margin: 1in;
-      color: #000;
-    }
-    h1 {
-      text-align: center;
-      font-size: 16pt;
-      font-weight: bold;
-      margin-bottom: 30px;
-      text-transform: uppercase;
-    }
-    h2 {
-      font-size: 14pt;
-      font-weight: bold;
-      margin-top: 25px;
-      margin-bottom: 15px;
-    }
-    .field-group {
-      margin-bottom: 20px;
-    }
-    .field-label {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .field-value {
-      margin-left: 20px;
-      border-bottom: 1px solid #000;
-      padding: 5px 0;
-    }
-    .signature-section {
-      margin-top: 50px;
-      page-break-inside: avoid;
-    }
-    .signature-line {
-      border-top: 1px solid #000;
-      width: 300px;
-      margin-top: 50px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-    }
-    td {
-      padding: 10px;
-      vertical-align: top;
-    }
-  </style>
-</head>
-<body>
-  <h1>Master Contract Pre-Qualification</h1>
-  
-  <h2>I. Vendor Information</h2>
-  <div class="field-group">
-    <div class="field-label">Contractor Name (Vendor Name):</div>
-    <div class="field-value">${contract.vendor_name}</div>
-  </div>
-  
-  <div class="field-group">
-    <div class="field-label">Contractor Business Address:</div>
-    <div class="field-value">${contract.vendor_address}</div>
-  </div>
-  
-  <h2>II. Solicitation Information</h2>
-  <div class="field-group">
-    <div class="field-label">Solicitation Identification:</div>
-    <div class="field-value">${contract.solicitations?.solicitation_id || 'N/A'}</div>
-  </div>
-  
-  <div class="field-group">
-    <div class="field-label">SWIFT Event Number:</div>
-    <div class="field-value">${contract.solicitations?.swift_event_no || 'N/A'}</div>
-  </div>
-  
-  <table>
-    <tr>
-      <td>
-        <div class="field-label">Solicitation Date:</div>
-        <div class="field-value">${formatDate(contract.solicitation_date)}</div>
-      </td>
-      <td>
-        <div class="field-label">Effective Date:</div>
-        <div class="field-value">${formatDate(contract.effective_date)}</div>
-      </td>
-    </tr>
-  </table>
-  
-  <h2>III. Authorized Representative</h2>
-  <table>
-    <tr>
-      <td>
-        <div class="field-label">Name:</div>
-        <div class="field-value">${contract.auth_rep_name}</div>
-      </td>
-      <td>
-        <div class="field-label">Title:</div>
-        <div class="field-value">${contract.auth_rep_title}</div>
-      </td>
-    </tr>
-  </table>
-  
-  <div class="field-group">
-    <div class="field-label">Address:</div>
-    <div class="field-value">${contract.auth_rep_address}</div>
-  </div>
-  
-  <div class="field-group">
-    <div class="field-label">Telephone:</div>
-    <div class="field-value">${contract.auth_rep_phone}</div>
-  </div>
-  
-  <h2>IV. Submitter Information</h2>
-  <table>
-    <tr>
-      <td>
-        <div class="field-label">Name:</div>
-        <div class="field-value">${contract.submitter_name}</div>
-      </td>
-      <td>
-        <div class="field-label">Title:</div>
-        <div class="field-value">${contract.submitter_title}</div>
-      </td>
-    </tr>
-  </table>
-  
-  <div class="signature-section">
-    <div class="field-label">Digital Signature:</div>
-    <div class="field-value">${contract.submitter_signature || 'Not provided'}</div>
-    
-    <div class="field-label" style="margin-top: 20px;">Submission Date:</div>
-    <div class="field-value">${formatDate(contract.submission_date)}</div>
-  </div>
-  
-  <h2>V. Insurance Information</h2>
-  <div class="field-group">
-    <div class="field-label">Insurance Certificate Holder:</div>
-    <div class="field-value">${contract.insurance_cert_holder}</div>
-  </div>
-  
-  <div style="margin-top: 50px; text-align: center; font-size: 10pt; color: #666;">
-    <p>Contract ID: ${contract.id}</p>
-    <p>Generated: ${new Date().toLocaleString('en-US')}</p>
-  </div>
-</body>
-</html>
-  `;
-}
-
-async function generatePDFFromHTML(html: string): Promise<Uint8Array> {
-  // For now, we'll create a simple text-based PDF
-  // In production, you'd use a library like puppeteer or jsPDF
-  const encoder = new TextEncoder();
-  return encoder.encode(html);
-}

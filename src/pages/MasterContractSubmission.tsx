@@ -264,16 +264,40 @@ const MasterContractSubmission: React.FC = () => {
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.warn('Edge function failed, falling back to client-side generation:', errorText);
+            console.warn('Template edge function failed, trying server-side generation:', errorText);
             throw new Error('Template not available');
           }
 
           pdfBlob = await response.blob();
           console.log('PDF blob generated from template, size:', pdfBlob.size);
         } catch (templateError) {
-          console.log('Template filling failed, using fallback generation');
-          pdfBlob = await generateMasterContractPDF(fullContractData, contractId);
-          console.log('PDF blob generated using fallback, size:', pdfBlob.size);
+          try {
+            console.log('Attempting server-side PDF generation...');
+            const response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-master-contract-pdf`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ contractData: fullContractData, contractId }),
+              }
+            );
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.warn('Server-side generation failed, falling back to client-side:', errorText);
+              throw new Error('Server-side generation failed');
+            }
+
+            pdfBlob = await response.blob();
+            console.log('PDF blob generated from server, size:', pdfBlob.size);
+          } catch (serverError) {
+            console.log('Server-side generation failed, using client-side fallback');
+            pdfBlob = await generateMasterContractPDF(fullContractData, contractId);
+            console.log('PDF blob generated using client-side fallback, size:', pdfBlob.size);
+          }
         }
 
         const fileName = `contract_${contractId}_${Date.now()}.pdf`;
