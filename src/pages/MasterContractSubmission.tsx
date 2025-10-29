@@ -250,6 +250,8 @@ const MasterContractSubmission: React.FC = () => {
 
         try {
           console.log('Attempting to call edge function to fill PDF template...');
+          console.log('Contract data being sent:', JSON.stringify(fullContractData, null, 2));
+
           const response = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fill-master-contract-pdf`,
             {
@@ -264,40 +266,21 @@ const MasterContractSubmission: React.FC = () => {
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.warn('Template edge function failed, trying server-side generation:', errorText);
-            throw new Error('Template not available');
+            console.error('Template edge function failed:', errorText);
+            console.error('Response status:', response.status);
+            console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+            throw new Error(`Template filling failed: ${errorText}`);
           }
 
           pdfBlob = await response.blob();
-          console.log('PDF blob generated from template, size:', pdfBlob.size);
+          console.log('PDF blob generated from template successfully!');
+          console.log('PDF size:', pdfBlob.size, 'bytes');
+          console.log('PDF type:', pdfBlob.type);
         } catch (templateError) {
-          try {
-            console.log('Attempting server-side PDF generation...');
-            const response = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-master-contract-pdf`,
-              {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ contractData: fullContractData, contractId }),
-              }
-            );
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.warn('Server-side generation failed, falling back to client-side:', errorText);
-              throw new Error('Server-side generation failed');
-            }
-
-            pdfBlob = await response.blob();
-            console.log('PDF blob generated from server, size:', pdfBlob.size);
-          } catch (serverError) {
-            console.log('Server-side generation failed, using client-side fallback');
-            pdfBlob = await generateMasterContractPDF(fullContractData, contractId);
-            console.log('PDF blob generated using client-side fallback, size:', pdfBlob.size);
-          }
+          console.error('Failed to fill PDF template:', templateError);
+          console.log('Falling back to client-side PDF generation...');
+          pdfBlob = await generateMasterContractPDF(fullContractData, contractId);
+          console.log('PDF blob generated using client-side fallback, size:', pdfBlob.size);
         }
 
         const fileName = `contract_${contractId}_${Date.now()}.pdf`;
