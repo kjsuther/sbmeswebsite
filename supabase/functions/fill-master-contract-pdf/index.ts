@@ -18,23 +18,40 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    console.log('Supabase URL:', supabaseUrl);
+    console.log('Service key exists:', !!supabaseKey);
+
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('Received request to fill PDF template');
     const { contractData } = await req.json();
-    console.log('Contract data:', JSON.stringify(contractData, null, 2));
+    console.log('Contract data vendor:', contractData?.vendor_name);
+
+    // First, check if the bucket exists and list files
+    console.log('Checking contract-templates bucket...');
+    const { data: files, error: listError } = await supabase.storage
+      .from('contract-templates')
+      .list();
+
+    if (listError) {
+      console.error('List bucket error:', listError);
+    } else {
+      console.log('Files in bucket:', files?.map(f => f.name));
+    }
 
     // Download the template PDF from storage
-    console.log('Downloading template from contract-templates bucket...');
+    console.log('Downloading template: master- contract-template.pdf');
     const { data: templateData, error: downloadError } = await supabase.storage
       .from('contract-templates')
       .download('master- contract-template.pdf');
 
     if (downloadError) {
-      console.error('Download error:', downloadError);
-      throw downloadError;
+      console.error('Download error details:', JSON.stringify(downloadError));
+      throw new Error(`Failed to download template: ${downloadError.message}`);
     }
-    console.log('Template downloaded successfully');
+
+    console.log('Template downloaded successfully, size:', templateData?.size);
 
     // Load the PDF template with form fields
     console.log('Loading PDF template...');
@@ -165,7 +182,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error('Error filling PDF:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message, stack: error.stack }),
       {
         status: 500,
         headers: {
