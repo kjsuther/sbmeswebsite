@@ -30,6 +30,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import MESAdmin from './pages/MESAdmin';
 import RFIEngagementInsights from './pages/RFIEngagementInsights';
 import MasterContractSubmission from './pages/MasterContractSubmission';
+import WorkOrderContract from './pages/WorkOrderContract';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/mes-admin" element={<MESAdmin />} />
           <Route path="/master-contract-submission" element={<MasterContractSubmission />} />
+          <Route path="/work-order-contract" element={<WorkOrderContract />} />
         </Routes>
       </Layout>
     </Router>
