@@ -99,6 +99,13 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
+      form.getTextField('project_manager').setText(data.stateProjectManager || '');
+      console.log('Set project_manager:', data.stateProjectManager);
+    } catch (e) {
+      console.warn('Field project_manager not found');
+    }
+
+    try {
       // Format: "6A - Multiple PMI – Newborn (also on a food support case)"
       const sliceFocusText = data.sliceFocus || data.customSliceFocus || '';
       form.getTextField('slice_number_description').setText(sliceFocusText);
