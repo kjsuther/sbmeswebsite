@@ -226,7 +226,7 @@ const SliceMaintenance: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, outcomes: e.target.value })}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
-              placeholder="e.g., New enrollment&#10;• Elapsed processing duration&#10;• Agency effectiveness (staff effort and satisfaction)&#10;• Customer satisfaction"
+              placeholder="e.g.,&#10;&#10;New enrollment&#10;• Elapsed processing duration&#10;• Agency effectiveness (staff effort and satisfaction)&#10;• Customer satisfaction"
             />
           </div>
 
