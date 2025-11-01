@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface Slice {
@@ -27,7 +27,6 @@ const SliceMaintenance: React.FC = () => {
     outcomes: [],
     slice_focus: '',
   });
-  const [outcomeInput, setOutcomeInput] = useState('');
 
   useEffect(() => {
     fetchSlices();
@@ -120,27 +119,10 @@ const SliceMaintenance: React.FC = () => {
       outcomes: [],
       slice_focus: '',
     });
-    setOutcomeInput('');
     setEditingId(null);
     setIsEditing(false);
   };
 
-  const addOutcome = () => {
-    if (outcomeInput.trim()) {
-      setFormData({
-        ...formData,
-        outcomes: [...formData.outcomes, outcomeInput.trim()],
-      });
-      setOutcomeInput('');
-    }
-  };
-
-  const removeOutcome = (index: number) => {
-    setFormData({
-      ...formData,
-      outcomes: formData.outcomes.filter((_, i) => i !== index),
-    });
-  };
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
@@ -239,46 +221,13 @@ const SliceMaintenance: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Outcomes
             </label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={outcomeInput}
-                  onChange={(e) => setOutcomeInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addOutcome();
-                    }
-                  }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
-                  placeholder="Add an outcome measurement"
-                />
-                <button
-                  type="button"
-                  onClick={addOutcome}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-              {formData.outcomes.length > 0 && (
-                <ul className="space-y-1">
-                  {formData.outcomes.map((outcome, index) => (
-                    <li key={index} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
-                      <span className="text-sm">{outcome}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeOutcome(index)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <textarea
+              value={formData.outcomes.join('\n')}
+              onChange={(e) => setFormData({ ...formData, outcomes: e.target.value.split('\n').filter(line => line.trim()) })}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
+              placeholder="New enrollment&#10;• Elapsed processing duration&#10;• Agency effectiveness (staff effort and satisfaction)&#10;• Customer satisfaction"
+            />
           </div>
 
           <div>
@@ -306,9 +255,8 @@ const SliceMaintenance: React.FC = () => {
             <button
               type="button"
               onClick={resetForm}
-              className="flex items-center gap-2 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
-              <X className="h-4 w-4" />
               Cancel
             </button>
           </div>
