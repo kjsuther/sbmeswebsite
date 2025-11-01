@@ -562,7 +562,7 @@ const SliceRFPResponse: React.FC = () => {
 
                 <div>
                   <label htmlFor="monthlyTeamCost" className="block text-sm font-medium text-gray-700 mb-2">
-                    Monthly cost of your baker team to deliver additional slices *
+                    Monthly Delivery Cost of Your Baker Team *
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-3 text-gray-500">$</span>
