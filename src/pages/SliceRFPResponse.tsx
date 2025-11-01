@@ -136,12 +136,20 @@ const SliceRFPResponse: React.FC = () => {
 
   const populateTestData = () => {
     const testData = generateSliceRFPTestData();
+
+    const availableSlices = sliceOptions.filter(opt => opt !== 'Custom/Other (specify below)');
+    const randomSlice = availableSlices.length > 0
+      ? availableSlices[Math.floor(Math.random() * availableSlices.length)]
+      : '';
+
+    const sliceData = randomSlice ? sliceDetails.get(randomSlice) : null;
+
     setFormData({
       companyName: testData.companyName,
       contactName: testData.contactName,
       contactEmail: testData.contactEmail,
       contactPhone: testData.contactPhone,
-      sliceFocus: testData.sliceFocus,
+      sliceFocus: randomSlice,
       customSliceFocus: testData.customSliceFocus,
       cakeSolution: testData.cakeSolution,
       ingredientsNeeded: testData.ingredientsNeeded,
@@ -156,6 +164,8 @@ const SliceRFPResponse: React.FC = () => {
       resume2: null,
       resume3: null
     });
+
+    setSelectedSliceData(sliceData);
   };
 
   const clearFormData = () => {
