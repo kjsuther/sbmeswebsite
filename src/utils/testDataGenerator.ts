@@ -316,8 +316,8 @@ export function generateSliceRFPTestData(): SliceRFPTestData {
     deliveryContactEmail: `${deliveryFirstName.toLowerCase()}.${deliveryLastName.toLowerCase()}@test.com`,
     deliveryContactPhone: generatePhoneNumber(),
     teamDescription: generateSliceTeamDescription(),
-    firstSliceCost: `$${(randomNumber(150, 400) * 1000).toLocaleString()}`,
-    monthlyTeamCost: `$${(randomNumber(40, 100) * 1000).toLocaleString()}`
+    firstSliceCost: (randomNumber(150, 400) * 1000).toString(),
+    monthlyTeamCost: (randomNumber(40, 100) * 1000).toString()
   };
 }
 
