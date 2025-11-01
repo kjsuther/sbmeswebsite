@@ -250,10 +250,6 @@ export const generateSliceRFPPDF = (formData: SliceRFPFormData) => {
   yPosition += 6;
   doc.text('• Legal obligations', margin + 5, yPosition);
 
-  // Generate filename with timestamp
-  const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-  const filename = `Slice_RFP_Response_${formData.companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown'}_${timestamp}.pdf`;
-
-  // Save the PDF
-  doc.save(filename);
+  // Return PDF as Blob for upload
+  return doc.output('blob');
 };

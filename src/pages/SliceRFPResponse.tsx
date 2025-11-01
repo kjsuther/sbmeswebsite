@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChefHat, DollarSign, Users, Package, FileText, Send, AlertCircle, Search, ChevronDown } from 'lucide-react';
+import { ChefHat, DollarSign, Users, Package, FileText, Send, AlertCircle, Search, ChevronDown, CheckCircle, Download } from 'lucide-react';
 import { generateSliceRFPPDF } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabase';
 import { generateSliceRFPTestData } from '../utils/testDataGenerator';
@@ -39,6 +39,8 @@ const SliceRFPResponse: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isTestMode, setIsTestMode] = useState(false);
   const [sliceOptions, setSliceOptions] = useState<string[]>([]);
   const [sliceDetails, setSliceDetails] = useState<Map<string, any>>(new Map());
@@ -232,7 +234,8 @@ const SliceRFPResponse: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitStatus('idle');
+    setMessage(null);
+    setPdfUrl(null);
 
     try {
       const submissionData = {
@@ -271,40 +274,103 @@ const SliceRFPResponse: React.FC = () => {
         throw error;
       }
 
-      try {
-        generateSliceRFPPDF(formData);
-      } catch (pdfError) {
-        console.error('Error generating PDF:', pdfError);
+      if (!data) {
+        throw new Error('No submission data returned');
       }
 
-      setSubmitStatus('success');
-      setFormData({
-        companyName: '',
-        contactName: '',
-        contactEmail: '',
-        contactPhone: '',
-        sliceFocus: '',
-        customSliceFocus: '',
-        cakeSolution: '',
-        ingredientsNeeded: '',
-        dependencies: '',
-        teamDescription: '',
-        resume1: null,
-        resume2: null,
-        resume3: null,
-        deliveryContactName: '',
-        deliveryContactEmail: '',
-        deliveryContactPhone: '',
-        firstSliceCost: '',
-        monthlyTeamCost: ''
+      const submissionId = data.id;
+
+      setMessage({
+        type: 'success',
+        text: 'Contract submitted successfully! Generating your contract document...'
       });
 
-      setTimeout(() => {
-        setSubmitStatus('idle');
-      }, 5000);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      try {
+        console.log('Starting PDF generation...');
+        let pdfBlob: Blob;
+
+        try {
+          console.log('Attempting to call edge function to fill PDF template...');
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fill-slice-rfp-pdf`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ submissionData: data }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Template edge function failed:', errorText);
+            throw new Error(`Template filling failed: ${errorText}`);
+          }
+
+          pdfBlob = await response.blob();
+          console.log('PDF blob generated from template successfully!');
+        } catch (templateError) {
+          console.error('Failed to fill PDF template:', templateError);
+          console.log('Falling back to client-side PDF generation...');
+          pdfBlob = await generateSliceRFPPDF(formData);
+          console.log('PDF blob generated using client-side fallback');
+        }
+
+        const fileName = `slice_rfp_${submissionId}_${Date.now()}.pdf`;
+        console.log('Uploading PDF to storage:', fileName);
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('slice-rfp-submissions')
+          .upload(fileName, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error('PDF upload error:', uploadError);
+          setMessage({
+            type: 'success',
+            text: 'Contract submitted successfully!'
+          });
+          clearFormData();
+        } else {
+          console.log('PDF uploaded successfully!');
+          const { data: urlData } = supabase.storage
+            .from('slice-rfp-submissions')
+            .getPublicUrl(fileName);
+
+          console.log('Public URL:', urlData.publicUrl);
+
+          await supabase
+            .from('rfp_submissions')
+            .update({ submission_pdf_url: urlData.publicUrl })
+            .eq('id', submissionId);
+
+          setPdfUrl(urlData.publicUrl);
+          setMessage({
+            type: 'success',
+            text: 'Contract submitted successfully! Your contract PDF is ready.'
+          });
+        }
+      } catch (pdfError) {
+        console.error('PDF generation error:', pdfError);
+        setMessage({
+          type: 'success',
+          text: 'Contract submitted successfully!'
+        });
+        clearFormData();
+      }
+
+      setIsTestMode(false);
     } catch (error) {
       console.error('Error submitting RFP:', error);
-      setSubmitStatus('error');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setMessage({ type: 'error', text: `Failed to submit: ${errorMessage}` });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
     }
@@ -790,14 +856,35 @@ const SliceRFPResponse: React.FC = () => {
 
             {/* Submit Button */}
             <div className="text-center space-y-4">
-              {submitStatus === 'success' && (
-                <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg">
-                  Thank you for your submission! We will review your Slice RFP response and contact you soon.
-                </div>
-              )}
-              {submitStatus === 'error' && (
-                <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg">
-                  There was an error submitting your response. Please try again or contact support.
+              {message && (
+                <div className={`p-6 rounded-xl border-2 ${
+                  message.type === 'success'
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <div className="flex items-start space-x-3">
+                    {message.type === 'success' ? (
+                      <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1 text-left">
+                      <p className={`font-semibold text-lg ${
+                        message.type === 'success' ? 'text-green-900' : 'text-red-900'
+                      }`}>
+                        {message.text}
+                      </p>
+                      {message.type === 'success' && pdfUrl && (
+                        <button
+                          onClick={() => window.open(pdfUrl, '_blank')}
+                          className="mt-4 inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                        >
+                          <Download className="h-5 w-5" />
+                          <span>View PDF</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
               <button
