@@ -66,99 +66,89 @@ Deno.serve(async (req: Request) => {
 
     console.log('Filling form fields...');
 
+    const data = submissionData.submission_data || {};
+
+    // Map form data to actual PDF field names
     try {
       form.getTextField('company_name').setText(submissionData.company_name || '');
+      console.log('Set company_name:', submissionData.company_name);
     } catch (e) {
       console.warn('Field company_name not found');
     }
 
     try {
-      form.getTextField('contact_person').setText(submissionData.contact_person || '');
+      const date = submissionData.created_at
+        ? new Date(submissionData.created_at).toLocaleDateString('en-US')
+        : new Date().toLocaleDateString('en-US');
+      form.getTextField('current_date').setText(date);
+      console.log('Set current_date:', date);
     } catch (e) {
-      console.warn('Field contact_person not found');
-    }
-
-    try {
-      form.getTextField('email').setText(submissionData.email || '');
-    } catch (e) {
-      console.warn('Field email not found');
-    }
-
-    try {
-      form.getTextField('phone').setText(submissionData.phone || '');
-    } catch (e) {
-      console.warn('Field phone not found');
-    }
-
-    const data = submissionData.submission_data || {};
-
-    try {
-      form.getTextField('slice_focus').setText(data.sliceFocus || data.customSliceFocus || '');
-    } catch (e) {
-      console.warn('Field slice_focus not found');
-    }
-
-    try {
-      form.getTextField('cake_solution').setText(data.cakeSolution || '');
-    } catch (e) {
-      console.warn('Field cake_solution not found');
-    }
-
-    try {
-      form.getTextField('ingredients_needed').setText(data.ingredientsNeeded || '');
-    } catch (e) {
-      console.warn('Field ingredients_needed not found');
-    }
-
-    try {
-      form.getTextField('dependencies').setText(data.dependencies || '');
-    } catch (e) {
-      console.warn('Field dependencies not found');
-    }
-
-    try {
-      form.getTextField('team_description').setText(data.teamDescription || '');
-    } catch (e) {
-      console.warn('Field team_description not found');
+      console.warn('Field current_date not found');
     }
 
     try {
       form.getTextField('delivery_contact_name').setText(data.deliveryContactName || '');
+      console.log('Set delivery_contact_name:', data.deliveryContactName);
     } catch (e) {
       console.warn('Field delivery_contact_name not found');
     }
 
     try {
-      form.getTextField('delivery_contact_email').setText(data.deliveryContactEmail || '');
+      // Slice description with details
+      const sliceDesc = [
+        data.sliceFocus || data.customSliceFocus || '',
+        data.cakeSolution || '',
+        data.ingredientsNeeded || '',
+        data.dependencies || '',
+        data.teamDescription || ''
+      ].filter(Boolean).join('\n\n');
+
+      form.getTextField('slice_number_description').setText(sliceDesc);
+      console.log('Set slice_number_description with combined data');
     } catch (e) {
-      console.warn('Field delivery_contact_email not found');
+      console.warn('Field slice_number_description not found');
     }
 
     try {
-      form.getTextField('delivery_contact_phone').setText(data.deliveryContactPhone || '');
+      // Additional description field if needed
+      const contactInfo = [
+        `Primary Contact: ${data.deliveryContactName || 'N/A'}`,
+        `Email: ${data.deliveryContactEmail || 'N/A'}`,
+        `Phone: ${data.deliveryContactPhone || 'N/A'}`
+      ].join('\n');
+
+      form.getTextField('slice_number_description_2').setText(contactInfo);
+      console.log('Set slice_number_description_2 with contact info');
     } catch (e) {
-      console.warn('Field delivery_contact_phone not found');
+      console.warn('Field slice_number_description_2 not found');
     }
 
     try {
-      form.getTextField('first_slice_cost').setText(data.firstSliceCost || '');
+      form.getTextField('cost_of_delivering').setText(data.firstSliceCost || '');
+      console.log('Set cost_of_delivering:', data.firstSliceCost);
     } catch (e) {
-      console.warn('Field first_slice_cost not found');
+      console.warn('Field cost_of_delivering not found');
     }
 
     try {
-      form.getTextField('monthly_team_cost').setText(data.monthlyTeamCost || '');
+      form.getTextField('monthly_delivery_cost').setText(data.monthlyTeamCost || '');
+      console.log('Set monthly_delivery_cost:', data.monthlyTeamCost);
     } catch (e) {
-      console.warn('Field monthly_team_cost not found');
+      console.warn('Field monthly_delivery_cost not found');
     }
 
     try {
-      if (submissionData.created_at) {
-        const subDate = new Date(submissionData.created_at).toLocaleDateString('en-US');
-        form.getTextField('submission_date').setText(subDate);
+      // Calculate total if both costs are provided
+      const firstCost = parseFloat(data.firstSliceCost?.replace(/[^0-9.]/g, '') || '0');
+      const monthlyCost = parseFloat(data.monthlyTeamCost?.replace(/[^0-9.]/g, '') || '0');
+      const total = firstCost + monthlyCost;
+
+      if (total > 0) {
+        form.getTextField('calculated_total').setText(`$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+        console.log('Set calculated_total:', total);
       }
     } catch (e) {
-      console.warn('Field submission_date not found');
+      console.warn('Field calculated_total not found or calculation error');
     }
 
     console.log('Flattening form and saving PDF...');
