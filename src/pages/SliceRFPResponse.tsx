@@ -22,11 +22,15 @@ const SliceRFPResponse: React.FC = () => {
     dependencies: '',
 
     // Baker Team
-    primaryDeliveryContact: '',
     teamDescription: '',
     resume1: null as File | null,
     resume2: null as File | null,
     resume3: null as File | null,
+
+    // Primary Delivery Contact
+    deliveryContactName: '',
+    deliveryContactEmail: '',
+    deliveryContactPhone: '',
 
     // Costs
     firstSliceCost: '',
@@ -75,8 +79,10 @@ const SliceRFPResponse: React.FC = () => {
       cakeSolution: testData.cakeSolution,
       ingredientsNeeded: testData.ingredientsNeeded,
       dependencies: testData.dependencies,
-      primaryDeliveryContact: testData.primaryDeliveryContact,
       teamDescription: testData.teamDescription,
+      deliveryContactName: testData.primaryDeliveryContact,
+      deliveryContactEmail: testData.contactEmail,
+      deliveryContactPhone: testData.contactPhone,
       firstSliceCost: testData.firstSliceCost,
       monthlyTeamCost: testData.monthlyTeamCost,
       resume1: null,
@@ -96,8 +102,10 @@ const SliceRFPResponse: React.FC = () => {
       cakeSolution: '',
       ingredientsNeeded: '',
       dependencies: '',
-      primaryDeliveryContact: '',
       teamDescription: '',
+      deliveryContactName: '',
+      deliveryContactEmail: '',
+      deliveryContactPhone: '',
       firstSliceCost: '',
       monthlyTeamCost: '',
       resume1: null,
@@ -134,8 +142,10 @@ const SliceRFPResponse: React.FC = () => {
         cakeSolution: formData.cakeSolution,
         ingredientsNeeded: formData.ingredientsNeeded,
         dependencies: formData.dependencies,
-        primaryDeliveryContact: formData.primaryDeliveryContact,
         teamDescription: formData.teamDescription,
+        deliveryContactName: formData.deliveryContactName,
+        deliveryContactEmail: formData.deliveryContactEmail,
+        deliveryContactPhone: formData.deliveryContactPhone,
         firstSliceCost: formData.firstSliceCost,
         monthlyTeamCost: formData.monthlyTeamCost,
         resumeFiles: {
@@ -179,11 +189,13 @@ const SliceRFPResponse: React.FC = () => {
         cakeSolution: '',
         ingredientsNeeded: '',
         dependencies: '',
-        primaryDeliveryContact: '',
         teamDescription: '',
         resume1: null,
         resume2: null,
         resume3: null,
+        deliveryContactName: '',
+        deliveryContactEmail: '',
+        deliveryContactPhone: '',
         firstSliceCost: '',
         monthlyTeamCost: ''
       });
@@ -449,24 +461,8 @@ const SliceRFPResponse: React.FC = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-mn-primary">Describe Your Baker Team</h2>
               </div>
-              
-              <div className="space-y-6">
-                <div>
-                  <label htmlFor="primaryDeliveryContact" className="block text-sm font-medium text-gray-700 mb-2">
-                    Primary Delivery Contact (Name) *
-                  </label>
-                  <input
-                    type="text"
-                    id="primaryDeliveryContact"
-                    name="primaryDeliveryContact"
-                    required
-                    value={formData.primaryDeliveryContact}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                    placeholder="Enter the primary contact person for delivery coordination"
-                  />
-                </div>
 
+              <div className="space-y-6">
                 <div>
                   <label htmlFor="teamDescription" className="block text-sm font-medium text-gray-700 mb-2">
                     Why is your team best equipped to deliver the tastiest cake? *
@@ -530,7 +526,67 @@ const SliceRFPResponse: React.FC = () => {
               </div>
             </div>
 
-            {/* Step 4: Costs */}
+            {/* Step 4: Primary Delivery Contact */}
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="bg-mn-accent-teal rounded-full w-12 h-12 flex items-center justify-center">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-mn-primary">Primary Delivery Contact</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label htmlFor="deliveryContactName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Contact Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="deliveryContactName"
+                    name="deliveryContactName"
+                    required
+                    value={formData.deliveryContactName}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    placeholder="Enter the primary contact person for delivery coordination"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="deliveryContactEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Contact Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="deliveryContactEmail"
+                    name="deliveryContactEmail"
+                    required
+                    value={formData.deliveryContactEmail}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    placeholder="delivery@company.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="deliveryContactPhone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Contact Phone *
+                  </label>
+                  <input
+                    type="tel"
+                    id="deliveryContactPhone"
+                    name="deliveryContactPhone"
+                    required
+                    value={formData.deliveryContactPhone}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Step 5: Costs */}
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="bg-mn-accent-purple rounded-full w-12 h-12 flex items-center justify-center">
