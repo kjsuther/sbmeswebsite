@@ -7,14 +7,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-  server: {
-    middlewareMode: false,
-    fs: {
-      strict: false,
-    },
-  },
-  preview: {
-    port: 4173,
-  },
-  appType: 'spa',
 });
