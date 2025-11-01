@@ -124,9 +124,9 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      // Format as dollar amount
+      // Format as dollar amount without cents
       const costValue = parseFloat(data.firstSliceCost?.replace(/[^0-9.]/g, '') || '0');
-      const formattedCost = costValue > 0 ? `$${costValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+      const formattedCost = costValue > 0 ? `$${Math.round(costValue).toLocaleString('en-US')}` : '';
       form.getTextField('cost_of_delivering').setText(formattedCost);
       console.log('Set cost_of_delivering:', formattedCost);
     } catch (e) {
@@ -156,7 +156,7 @@ Deno.serve(async (req: Request) => {
       const total = (firstCost + monthlyCost) * monthsDiff;
 
       if (total > 0) {
-        const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const formattedTotal = `$${Math.round(total).toLocaleString('en-US')}`;
         form.getTextField('calculated_total').setText(formattedTotal);
         console.log('Set calculated_total:', formattedTotal, `(${monthsDiff} months until expiration)`);
       }
