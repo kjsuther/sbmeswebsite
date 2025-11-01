@@ -8,9 +8,13 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   server: {
-    historyApiFallback: true,
+    middlewareMode: false,
+    fs: {
+      strict: false,
+    },
   },
   preview: {
-    historyApiFallback: true,
+    port: 4173,
   },
+  appType: 'spa',
 });
