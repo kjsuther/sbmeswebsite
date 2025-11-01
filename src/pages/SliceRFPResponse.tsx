@@ -351,10 +351,12 @@ const SliceRFPResponse: React.FC = () => {
             .eq('id', submissionId);
 
           setPdfUrl(urlData.publicUrl);
+          console.log('Setting PDF URL:', urlData.publicUrl);
           setMessage({
             type: 'success',
             text: 'Contract submitted successfully! Your contract PDF is ready.'
           });
+          console.log('Message state updated to show PDF ready');
         }
       } catch (pdfError) {
         console.error('PDF generation error:', pdfError);
