@@ -143,6 +143,29 @@ const SliceMaintenance: React.FC = () => {
         )}
       </div>
 
+      {!isEditing && slices.length > 0 && (
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select a Slice to Edit
+          </label>
+          <select
+            onChange={(e) => {
+              const slice = slices.find(s => s.id === e.target.value);
+              if (slice) handleEdit(slice);
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
+            defaultValue=""
+          >
+            <option value="" disabled>Choose a slice...</option>
+            {slices.map((slice) => (
+              <option key={slice.id} value={slice.id}>
+                {slice.slice_code} - {slice.slice_description}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {isEditing && (
         <form onSubmit={handleSubmit} className="bg-gray-50 p-6 rounded-lg space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
