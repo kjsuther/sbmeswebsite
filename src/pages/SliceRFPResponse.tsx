@@ -131,7 +131,7 @@ const SliceRFPResponse: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [sliceOptions, sliceDetails]);
 
   const populateTestData = () => {
     const testData = generateSliceRFPTestData();
