@@ -36,6 +36,22 @@ const SliceMaintenance: React.FC = () => {
     fetchSlices();
   }, []);
 
+  const sortSlicesByCode = (sliceA: Slice, sliceB: Slice) => {
+    const extractNumber = (code: string) => {
+      const match = code.match(/^(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    };
+
+    const numA = extractNumber(sliceA.slice_code);
+    const numB = extractNumber(sliceB.slice_code);
+
+    if (numA !== numB) {
+      return numA - numB;
+    }
+
+    return sliceA.slice_code.localeCompare(sliceB.slice_code);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -55,7 +71,8 @@ const SliceMaintenance: React.FC = () => {
         .order('slice_code');
 
       if (error) throw error;
-      setSlices(data || []);
+      const sortedSlices = (data || []).sort(sortSlicesByCode);
+      setSlices(sortedSlices);
     } catch (error) {
       console.error('Error fetching slices:', error);
     } finally {
@@ -148,9 +165,11 @@ const SliceMaintenance: React.FC = () => {
     setIsDropdownOpen(false);
   };
 
-  const filteredSlices = slices.filter(slice =>
-    `${slice.slice_code} - ${slice.slice_description}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSlices = slices
+    .filter(slice =>
+      `${slice.slice_code} - ${slice.slice_description}`.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort(sortSlicesByCode);
 
 
   if (isLoading) {

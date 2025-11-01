@@ -62,6 +62,25 @@ const SliceRFPResponse: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const sortSlicesByCode = (a: string, b: string) => {
+    if (a === 'Custom/Other (specify below)') return 1;
+    if (b === 'Custom/Other (specify below)') return -1;
+
+    const extractNumber = (code: string) => {
+      const match = code.match(/^(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    };
+
+    const numA = extractNumber(a);
+    const numB = extractNumber(b);
+
+    if (numA !== numB) {
+      return numA - numB;
+    }
+
+    return a.localeCompare(b);
+  };
+
   const loadSlices = async () => {
     try {
       const { data, error } = await supabase
@@ -73,6 +92,7 @@ const SliceRFPResponse: React.FC = () => {
 
       if (data) {
         const options = data.map(slice => `${slice.slice_code} - ${slice.slice_description}`);
+        options.sort(sortSlicesByCode);
         options.push('Custom/Other (specify below)');
         setSliceOptions(options);
       }
@@ -170,9 +190,11 @@ const SliceRFPResponse: React.FC = () => {
     setIsDropdownOpen(false);
   };
 
-  const filteredOptions = sliceOptions.filter(option =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOptions = sliceOptions
+    .filter(option =>
+      option.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort(sortSlicesByCode);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, resumeField: string) => {
     const file = e.target.files?.[0] || null;
