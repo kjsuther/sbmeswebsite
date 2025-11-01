@@ -11,6 +11,7 @@ interface Slice {
   expected_result: string;
   outcomes: string;
   slice_focus: string;
+  state_project_manager?: string;
 }
 
 const SliceMaintenance: React.FC = () => {
@@ -30,6 +31,7 @@ const SliceMaintenance: React.FC = () => {
     expected_result: '',
     outcomes: '',
     slice_focus: '',
+    state_project_manager: '',
   });
 
   useEffect(() => {
@@ -121,6 +123,7 @@ const SliceMaintenance: React.FC = () => {
       expected_result: selectedSlice.expected_result,
       outcomes: selectedSlice.outcomes,
       slice_focus: selectedSlice.slice_focus,
+      state_project_manager: selectedSlice.state_project_manager || '',
     });
     setIsEditing(true);
   };
@@ -153,6 +156,7 @@ const SliceMaintenance: React.FC = () => {
       expected_result: '',
       outcomes: '',
       slice_focus: '',
+      state_project_manager: '',
     });
     setEditingId(null);
     setIsEditing(false);
@@ -348,6 +352,19 @@ const SliceMaintenance: React.FC = () => {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              State Project Manager
+            </label>
+            <input
+              type="text"
+              value={formData.state_project_manager || ''}
+              onChange={(e) => setFormData({ ...formData, state_project_manager: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
+              placeholder="Enter the state project manager name (optional)"
+            />
+          </div>
+
           <div className="flex gap-3">
             <button
               type="submit"
@@ -420,6 +437,13 @@ const SliceMaintenance: React.FC = () => {
               <h4 className="font-semibold text-gray-900 mb-2">Slice Focus</h4>
               <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSlice.slice_focus}</p>
             </div>
+
+            {selectedSlice.state_project_manager && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">State Project Manager</h4>
+                <p className="text-sm text-gray-600">{selectedSlice.state_project_manager}</p>
+              </div>
+            )}
           </div>
 
           {selectedSlice.outcomes && (

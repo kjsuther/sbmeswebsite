@@ -31,7 +31,6 @@ const SliceRFPResponse: React.FC = () => {
     deliveryContactName: '',
     deliveryContactEmail: '',
     deliveryContactPhone: '',
-    stateProjectManager: '',
 
     // Costs
     firstSliceCost: '',
@@ -160,7 +159,6 @@ const SliceRFPResponse: React.FC = () => {
       deliveryContactName: testData.deliveryContactName,
       deliveryContactEmail: testData.deliveryContactEmail,
       deliveryContactPhone: testData.deliveryContactPhone,
-      stateProjectManager: testData.stateProjectManager || 'Jane Smith',
       firstSliceCost: testData.firstSliceCost,
       monthlyTeamCost: testData.monthlyTeamCost,
       resume1: null,
@@ -186,7 +184,6 @@ const SliceRFPResponse: React.FC = () => {
       deliveryContactName: '',
       deliveryContactEmail: '',
       deliveryContactPhone: '',
-      stateProjectManager: '',
       firstSliceCost: '',
       monthlyTeamCost: '',
       resume1: null,
@@ -251,7 +248,6 @@ const SliceRFPResponse: React.FC = () => {
         deliveryContactName: formData.deliveryContactName,
         deliveryContactEmail: formData.deliveryContactEmail,
         deliveryContactPhone: formData.deliveryContactPhone,
-        stateProjectManager: formData.stateProjectManager,
         firstSliceCost: formData.firstSliceCost,
         monthlyTeamCost: formData.monthlyTeamCost,
         resumeFiles: {
@@ -837,21 +833,6 @@ const SliceRFPResponse: React.FC = () => {
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label htmlFor="stateProjectManager" className="block text-sm font-medium text-gray-700 mb-2">
-                    State Project Manager Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="stateProjectManager"
-                    name="stateProjectManager"
-                    required
-                    value={formData.stateProjectManager}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                    placeholder="Enter the state project manager name"
-                  />
-                </div>
               </div>
             </div>
 
