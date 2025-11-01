@@ -78,10 +78,15 @@ Deno.serve(async (req: Request) => {
 
     try {
       const date = submissionData.created_at
-        ? new Date(submissionData.created_at).toLocaleDateString('en-US')
-        : new Date().toLocaleDateString('en-US');
-      form.getTextField('current_date').setText(date);
-      console.log('Set current_date:', date);
+        ? new Date(submissionData.created_at)
+        : new Date();
+      const formattedDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      form.getTextField('current_date').setText(formattedDate);
+      console.log('Set current_date:', formattedDate);
     } catch (e) {
       console.warn('Field current_date not found');
     }
@@ -94,31 +99,19 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      // Slice description with details
-      const sliceDesc = [
-        data.sliceFocus || data.customSliceFocus || '',
-        data.cakeSolution || '',
-        data.ingredientsNeeded || '',
-        data.dependencies || '',
-        data.teamDescription || ''
-      ].filter(Boolean).join('\n\n');
-
-      form.getTextField('slice_number_description').setText(sliceDesc);
-      console.log('Set slice_number_description with combined data');
+      // Format: "6A - Multiple PMI – Newborn (also on a food support case)"
+      const sliceFocusText = data.sliceFocus || data.customSliceFocus || '';
+      form.getTextField('slice_number_description').setText(sliceFocusText);
+      console.log('Set slice_number_description:', sliceFocusText);
     } catch (e) {
       console.warn('Field slice_number_description not found');
     }
 
     try {
-      // Additional description field if needed
-      const contactInfo = [
-        `Primary Contact: ${data.deliveryContactName || 'N/A'}`,
-        `Email: ${data.deliveryContactEmail || 'N/A'}`,
-        `Phone: ${data.deliveryContactPhone || 'N/A'}`
-      ].join('\n');
-
-      form.getTextField('slice_number_description_2').setText(contactInfo);
-      console.log('Set slice_number_description_2 with contact info');
+      // Same as slice_number_description
+      const sliceFocusText = data.sliceFocus || data.customSliceFocus || '';
+      form.getTextField('slice_number_description_2').setText(sliceFocusText);
+      console.log('Set slice_number_description_2:', sliceFocusText);
     } catch (e) {
       console.warn('Field slice_number_description_2 not found');
     }
@@ -138,14 +131,20 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      // Calculate total if both costs are provided
+      // Calculate: (Cost of first slice + Monthly Cost) x months until Sept 30, 2026
       const firstCost = parseFloat(data.firstSliceCost?.replace(/[^0-9.]/g, '') || '0');
       const monthlyCost = parseFloat(data.monthlyTeamCost?.replace(/[^0-9.]/g, '') || '0');
-      const total = firstCost + monthlyCost;
+
+      // Calculate months from today to September 30, 2026
+      const today = new Date();
+      const expirationDate = new Date('2026-09-30');
+      const monthsDiff = Math.max(0, Math.round((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30.44)));
+
+      const total = (firstCost + monthlyCost) * monthsDiff;
 
       if (total > 0) {
         form.getTextField('calculated_total').setText(`$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-        console.log('Set calculated_total:', total);
+        console.log('Set calculated_total:', total, `(${monthsDiff} months until expiration)`);
       }
     } catch (e) {
       console.warn('Field calculated_total not found or calculation error');
