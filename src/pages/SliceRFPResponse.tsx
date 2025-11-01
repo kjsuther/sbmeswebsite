@@ -248,6 +248,7 @@ const SliceRFPResponse: React.FC = () => {
         deliveryContactName: formData.deliveryContactName,
         deliveryContactEmail: formData.deliveryContactEmail,
         deliveryContactPhone: formData.deliveryContactPhone,
+        stateProjectManager: selectedSliceData?.state_project_manager || '',
         firstSliceCost: formData.firstSliceCost,
         monthlyTeamCost: formData.monthlyTeamCost,
         resumeFiles: {
