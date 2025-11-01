@@ -40,10 +40,35 @@ const SliceRFPResponse: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isTestMode, setIsTestMode] = useState(false);
+  const [sliceOptions, setSliceOptions] = useState<string[]>([]);
+  const [isLoadingSlices, setIsLoadingSlices] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    loadSlices();
   }, []);
+
+  const loadSlices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('slices')
+        .select('slice_code, slice_description')
+        .order('slice_code');
+
+      if (error) throw error;
+
+      if (data) {
+        const options = data.map(slice => `${slice.slice_code} - ${slice.slice_description}`);
+        options.push('Custom/Other (specify below)');
+        setSliceOptions(options);
+      }
+    } catch (error) {
+      console.error('Error loading slices:', error);
+      setSliceOptions(['Custom/Other (specify below)']);
+    } finally {
+      setIsLoadingSlices(false);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -211,40 +236,6 @@ const SliceRFPResponse: React.FC = () => {
     }
   };
 
-  const sliceOptions = [
-    '1A - New applicant (ineligible for MA, but eligible for MSP)',
-    '1B - Household Change',
-    '1C - Reduce Income',
-    '1D - Annual Redetermination (Version 1 - Auto Renew)',
-    '1E - Annual Redetermination (Version 2 - Manual Review Required)',
-    '1F - New Enrollment',
-    '1G - Asset reduction increases coverage and authorized rep',
-    '1H - Household Change and Spend-Down Transition',
-    '1I - Asset change for household',
-    '1J - Pregnancy',
-    '1K - Give birth',
-    '1L - Additional pregnancy',
-    '1M - Remove child from the home',
-    '1N - Foster Care',
-    '1O - Adoption',
-    '1P - Annual Reviews for automatically eligible cases',
-    '2A - New Disability Application with Spenddown',
-    '3A - New application for LTC Facility',
-    '4A - Children with a MA basis due to disability turning 18',
-    '5A - Tribal enrollment',
-    '5B - Tribal and limited internet access enrollment',
-    '6A - Multiple PMI – Newborn (also on a food support case)',
-    '6B - Multiple PMI – Same person applies with alternative demographic details',
-    '7A - MA-EPD New Application',
-    '7B - MA-EPD – Income decrease due to job loss',
-    '7C - MA-EPD – Income Increase due to marriage',
-    '8A - Work Requirements ("Community Engagement") – New Enrollment',
-    '8B - Work Requirements ("Community Engagement") – 6 Month renewal',
-    '8C - Work Requirements ("Community Engagement") – No longer meeting work requirements',
-    '8D - Work Requirements ("Community Engagement") – New enrollment with employment',
-    'Custom/Other (specify below)'
-  ];
-
   return (
     <div className="bg-white">
       {isTestMode && (
@@ -364,9 +355,12 @@ const SliceRFPResponse: React.FC = () => {
                     required
                     value={formData.sliceFocus}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    disabled={isLoadingSlices}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <option value="">Select a slice focus</option>
+                    <option value="">
+                      {isLoadingSlices ? 'Loading slices...' : 'Select a slice focus'}
+                    </option>
                     {sliceOptions.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
