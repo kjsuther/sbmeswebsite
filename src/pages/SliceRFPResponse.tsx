@@ -409,11 +409,11 @@ const SliceRFPResponse: React.FC = () => {
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {message && (
-            <div className={`mb-8 p-6 rounded-xl border-2 ${
+            <div className={`mb-8 p-6 rounded-xl border-2 transition-opacity duration-1000 ${
               message.type === 'success'
-                ? 'bg-green-50 border-green-200'
+                ? 'bg-green-50 border-green-200 animate-pulse'
                 : 'bg-red-50 border-red-200'
-            }`}>
+            } ${!pdfUrl && message.type === 'success' ? 'opacity-100' : ''}`}>
               <div className="flex items-start space-x-3">
                 {message.type === 'success' ? (
                   <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />

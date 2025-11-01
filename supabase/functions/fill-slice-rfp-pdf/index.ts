@@ -124,8 +124,11 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      form.getTextField('cost_of_delivering').setText(data.firstSliceCost || '');
-      console.log('Set cost_of_delivering:', data.firstSliceCost);
+      // Format as dollar amount
+      const costValue = parseFloat(data.firstSliceCost?.replace(/[^0-9.]/g, '') || '0');
+      const formattedCost = costValue > 0 ? `$${costValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+      form.getTextField('cost_of_delivering').setText(formattedCost);
+      console.log('Set cost_of_delivering:', formattedCost);
     } catch (e) {
       console.warn('Field cost_of_delivering not found');
     }
@@ -150,8 +153,9 @@ Deno.serve(async (req: Request) => {
       const total = (firstCost + monthlyCost) * monthsDiff;
 
       if (total > 0) {
-        form.getTextField('calculated_total').setText(`$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-        console.log('Set calculated_total:', total, `(${monthsDiff} months until expiration)`);
+        const formattedTotal = `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        form.getTextField('calculated_total').setText(formattedTotal);
+        console.log('Set calculated_total:', formattedTotal, `(${monthsDiff} months until expiration)`);
       }
     } catch (e) {
       console.warn('Field calculated_total not found or calculation error');
