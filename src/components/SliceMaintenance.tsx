@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, CreditCard as Edit2, Trash2, Save } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, CreditCard as Edit2, Trash2, Save, Search, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface Slice {
@@ -19,6 +19,9 @@ const SliceMaintenance: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedSlice, setSelectedSlice] = useState<Slice | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<Omit<Slice, 'id'>>({
     slice_code: '',
     slice_description: '',
@@ -31,6 +34,17 @@ const SliceMaintenance: React.FC = () => {
 
   useEffect(() => {
     fetchSlices();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const fetchSlices = async () => {
@@ -128,6 +142,16 @@ const SliceMaintenance: React.FC = () => {
     setSelectedSlice(null);
   };
 
+  const handleSliceSelect = (slice: Slice) => {
+    setSelectedSlice(slice);
+    setSearchTerm('');
+    setIsDropdownOpen(false);
+  };
+
+  const filteredSlices = slices.filter(slice =>
+    `${slice.slice_code} - ${slice.slice_description}`.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
@@ -153,21 +177,54 @@ const SliceMaintenance: React.FC = () => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select a Slice
           </label>
-          <select
-            value={selectedSlice?.id || ''}
-            onChange={(e) => {
-              const slice = slices.find(s => s.id === e.target.value);
-              setSelectedSlice(slice || null);
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
-          >
-            <option value="">Choose a slice...</option>
-            {slices.map((slice) => (
-              <option key={slice.id} value={slice.id}>
-                {slice.slice_code} - {slice.slice_description}
-              </option>
-            ))}
-          </select>
+          <div ref={dropdownRef} className="relative">
+            <div
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-mn-accent-teal focus-within:border-transparent cursor-pointer bg-white flex items-center justify-between"
+            >
+              <span className={selectedSlice ? 'text-gray-900' : 'text-gray-500'}>
+                {selectedSlice ? `${selectedSlice.slice_code} - ${selectedSlice.slice_description}` : 'Choose a slice...'}
+              </span>
+              <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </div>
+
+            {isDropdownOpen && (
+              <div className="absolute z-50 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 flex flex-col">
+                <div className="p-3 border-b border-gray-200 sticky top-0 bg-white">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search slices..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+                <div className="overflow-y-auto max-h-80">
+                  {filteredSlices.length > 0 ? (
+                    filteredSlices.map((slice) => (
+                      <div
+                        key={slice.id}
+                        onClick={() => handleSliceSelect(slice)}
+                        className={`px-4 py-3 hover:bg-mn-accent-teal hover:text-white cursor-pointer transition-colors ${
+                          selectedSlice?.id === slice.id ? 'bg-mn-accent-teal/10 text-mn-accent-teal font-medium' : 'text-gray-900'
+                        }`}
+                      >
+                        {slice.slice_code} - {slice.slice_description}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-8 text-center text-gray-500">
+                      No slices found matching "{searchTerm}"
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
