@@ -39,10 +39,10 @@ Deno.serve(async (req: Request) => {
       console.log('Files in bucket:', files?.map(f => f.name));
     }
 
-    console.log('Downloading template: slice-rfp-template.pdf');
+    console.log('Downloading template: work-order-contract-template.pdf');
     const { data: templateData, error: downloadError } = await supabase.storage
       .from('contract-templates')
-      .download('slice-rfp-template.pdf');
+      .download('work-order-contract-template.pdf');
 
     if (downloadError) {
       console.error('Download error details:', JSON.stringify(downloadError));

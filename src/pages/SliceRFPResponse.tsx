@@ -289,9 +289,36 @@ const SliceRFPResponse: React.FC = () => {
 
       try {
         console.log('Starting PDF generation...');
-        console.log('Generating PDF using client-side generation...');
-        const pdfBlob = await generateSliceRFPPDF(formData);
-        console.log('PDF blob generated, size:', pdfBlob.size);
+        let pdfBlob: Blob;
+
+        try {
+          console.log('Attempting to call edge function to fill PDF template...');
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fill-slice-rfp-pdf`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ submissionData: data }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Template edge function failed:', errorText);
+            throw new Error(`Template filling failed: ${errorText}`);
+          }
+
+          pdfBlob = await response.blob();
+          console.log('PDF blob generated from template successfully!');
+        } catch (templateError) {
+          console.error('Failed to fill PDF template:', templateError);
+          console.log('Falling back to client-side PDF generation...');
+          pdfBlob = await generateSliceRFPPDF(formData);
+          console.log('PDF blob generated using client-side fallback');
+        }
 
         const fileName = `slice_rfp_${submissionId}_${Date.now()}.pdf`;
         console.log('Uploading PDF to storage:', fileName);
