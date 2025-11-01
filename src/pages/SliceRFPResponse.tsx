@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ChefHat, DollarSign, Users, Package, FileText, Send, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChefHat, DollarSign, Users, Package, FileText, Send, AlertCircle, Search, ChevronDown } from 'lucide-react';
 import { generateSliceRFPPDF } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabase';
 import { generateSliceRFPTestData } from '../utils/testDataGenerator';
@@ -42,10 +42,24 @@ const SliceRFPResponse: React.FC = () => {
   const [isTestMode, setIsTestMode] = useState(false);
   const [sliceOptions, setSliceOptions] = useState<string[]>([]);
   const [isLoadingSlices, setIsLoadingSlices] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     loadSlices();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const loadSlices = async () => {
@@ -146,6 +160,19 @@ const SliceRFPResponse: React.FC = () => {
       [name]: value
     }));
   };
+
+  const handleSliceSelect = (option: string) => {
+    setFormData(prev => ({
+      ...prev,
+      sliceFocus: option
+    }));
+    setSearchTerm('');
+    setIsDropdownOpen(false);
+  };
+
+  const filteredOptions = sliceOptions.filter(option =>
+    option.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, resumeField: string) => {
     const file = e.target.files?.[0] || null;
@@ -349,22 +376,61 @@ const SliceRFPResponse: React.FC = () => {
                   <label htmlFor="sliceFocus" className="block text-sm font-medium text-gray-700 mb-2">
                     Select from delivery backlog or propose your own *
                   </label>
-                  <select
-                    id="sliceFocus"
-                    name="sliceFocus"
-                    required
-                    value={formData.sliceFocus}
-                    onChange={handleInputChange}
-                    disabled={isLoadingSlices}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">
-                      {isLoadingSlices ? 'Loading slices...' : 'Select a slice focus'}
-                    </option>
-                    {sliceOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
+                  <div ref={dropdownRef} className="relative">
+                    <div
+                      onClick={() => !isLoadingSlices && setIsDropdownOpen(!isDropdownOpen)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-mn-accent-teal focus-within:border-transparent cursor-pointer bg-white flex items-center justify-between"
+                    >
+                      <span className={formData.sliceFocus ? 'text-gray-900' : 'text-gray-500'}>
+                        {isLoadingSlices ? 'Loading slices...' : (formData.sliceFocus || 'Select a slice focus')}
+                      </span>
+                      <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    </div>
+
+                    {isDropdownOpen && (
+                      <div className="absolute z-50 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 flex flex-col">
+                        <div className="p-3 border-b border-gray-200 sticky top-0 bg-white">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                              type="text"
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              placeholder="Search slices..."
+                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </div>
+                        <div className="overflow-y-auto max-h-80">
+                          {filteredOptions.length > 0 ? (
+                            filteredOptions.map((option) => (
+                              <div
+                                key={option}
+                                onClick={() => handleSliceSelect(option)}
+                                className={`px-4 py-3 hover:bg-mn-accent-teal hover:text-white cursor-pointer transition-colors ${
+                                  formData.sliceFocus === option ? 'bg-mn-accent-teal/10 text-mn-accent-teal font-medium' : 'text-gray-900'
+                                }`}
+                              >
+                                {option}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-8 text-center text-gray-500">
+                              No slices found matching "{searchTerm}"
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <input
+                      type="hidden"
+                      name="sliceFocus"
+                      value={formData.sliceFocus}
+                      required
+                    />
+                  </div>
                 </div>
                 
                 {formData.sliceFocus === 'Custom/Other (specify below)' && (
