@@ -259,7 +259,6 @@ const Chatbot: React.FC = () => {
       const route = routeMap[pageName];
       if (route) {
         navigate(route);
-        window.scrollTo(0, 0);
       }
       return;
     }

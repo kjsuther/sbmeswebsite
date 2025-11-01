@@ -52,7 +52,6 @@ const MasterContractSubmission: React.FC = () => {
 
 
   useEffect(() => {
-    window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
@@ -157,7 +156,8 @@ const MasterContractSubmission: React.FC = () => {
       if (!formData[field]) {
         const errorMsg = `Please fill in all required fields: ${field.replace(/_/g, ' ')}`;
         setMessage({ type: 'error', text: errorMsg });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
         return false;
       }
     }
