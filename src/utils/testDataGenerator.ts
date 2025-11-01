@@ -213,6 +213,7 @@ export interface SliceRFPTestData {
   cakeSolution: string;
   ingredientsNeeded: string;
   dependencies: string;
+  primaryDeliveryContact: string;
   teamDescription: string;
   firstSliceCost: string;
   cakeBatterScaleCost: string;
@@ -297,6 +298,8 @@ export function generateSliceRFPTestData(): SliceRFPTestData {
   const uniqueId = generateUniqueId();
   const firstName = randomElement(contactFirstNames);
   const lastName = randomElement(contactLastNames);
+  const deliveryFirstName = randomElement(contactFirstNames);
+  const deliveryLastName = randomElement(contactLastNames);
   const company = randomElement(companyNames);
   const sliceFocus = randomElement(sliceFocusOptions);
 
@@ -310,6 +313,7 @@ export function generateSliceRFPTestData(): SliceRFPTestData {
     cakeSolution: generateSliceSolution(),
     ingredientsNeeded: generateIngredientsNeeded(),
     dependencies: generateDependencies(),
+    primaryDeliveryContact: `${deliveryFirstName} ${deliveryLastName} (TEST)`,
     teamDescription: generateSliceTeamDescription(),
     firstSliceCost: `$${(randomNumber(150, 400) * 1000).toLocaleString()}`,
     cakeBatterScaleCost: `$${(randomNumber(50, 150) * 1000).toLocaleString()}`,
