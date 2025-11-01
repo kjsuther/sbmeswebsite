@@ -134,8 +134,11 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      form.getTextField('monthly_delivery_cost').setText(data.monthlyTeamCost || '');
-      console.log('Set monthly_delivery_cost:', data.monthlyTeamCost);
+      // Format as dollar amount
+      const monthlyValue = parseFloat(data.monthlyTeamCost?.replace(/[^0-9.]/g, '') || '0');
+      const formattedMonthly = monthlyValue > 0 ? `$${monthlyValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+      form.getTextField('monthly_delivery_cost').setText(formattedMonthly);
+      console.log('Set monthly_delivery_cost:', formattedMonthly);
     } catch (e) {
       console.warn('Field monthly_delivery_cost not found');
     }
