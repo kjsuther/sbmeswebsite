@@ -49,7 +49,6 @@ const SliceRFPResponse: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     loadSlices();
   }, []);
 
