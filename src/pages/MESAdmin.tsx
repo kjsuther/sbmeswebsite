@@ -12,7 +12,6 @@ const MESAdmin: React.FC = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-mn-primary">MES Admin Dashboard</h1>
-            <p className="text-gray-600 mt-1">Manufacturing Execution System Administration</p>
           </div>
         </div>
 
