@@ -38,6 +38,10 @@ const SliceRFPResponse: React.FC = () => {
   const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
         e.preventDefault();
