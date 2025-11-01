@@ -404,6 +404,37 @@ const SliceRFPResponse: React.FC = () => {
       {/* Form */}
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {message && (
+            <div className={`mb-8 p-6 rounded-xl border-2 ${
+              message.type === 'success'
+                ? 'bg-green-50 border-green-200'
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <div className="flex items-start space-x-3">
+                {message.type === 'success' ? (
+                  <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1 text-left">
+                  <p className={`font-semibold text-lg ${
+                    message.type === 'success' ? 'text-green-900' : 'text-red-900'
+                  }`}>
+                    {message.text}
+                  </p>
+                  {message.type === 'success' && pdfUrl && (
+                    <button
+                      onClick={() => window.open(pdfUrl, '_blank')}
+                      className="mt-4 inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span>View PDF</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-12">
             {/* Company Information */}
             <div className="bg-white rounded-xl shadow-lg p-8">
@@ -858,37 +889,6 @@ const SliceRFPResponse: React.FC = () => {
 
             {/* Submit Button */}
             <div className="text-center space-y-4">
-              {message && (
-                <div className={`p-6 rounded-xl border-2 ${
-                  message.type === 'success'
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-red-50 border-red-200'
-                }`}>
-                  <div className="flex items-start space-x-3">
-                    {message.type === 'success' ? (
-                      <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1 text-left">
-                      <p className={`font-semibold text-lg ${
-                        message.type === 'success' ? 'text-green-900' : 'text-red-900'
-                      }`}>
-                        {message.text}
-                      </p>
-                      {message.type === 'success' && pdfUrl && (
-                        <button
-                          onClick={() => window.open(pdfUrl, '_blank')}
-                          className="mt-4 inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-                        >
-                          <Download className="h-5 w-5" />
-                          <span>View PDF</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
               <button
                 type="submit"
                 disabled={isSubmitting}
