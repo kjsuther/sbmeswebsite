@@ -17,6 +17,7 @@ const SliceMaintenance: React.FC = () => {
   const [slices, setSlices] = useState<Slice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedSlice, setSelectedSlice] = useState<Slice | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Omit<Slice, 'id'>>({
     slice_code: '',
@@ -78,30 +79,33 @@ const SliceMaintenance: React.FC = () => {
     }
   };
 
-  const handleEdit = (slice: Slice) => {
-    setEditingId(slice.id);
+  const handleEdit = () => {
+    if (!selectedSlice) return;
+    setEditingId(selectedSlice.id);
     setFormData({
-      slice_code: slice.slice_code,
-      slice_description: slice.slice_description,
-      customer_journey: slice.customer_journey,
-      persona_definition: slice.persona_definition,
-      expected_result: slice.expected_result,
-      outcomes: slice.outcomes,
-      slice_focus: slice.slice_focus,
+      slice_code: selectedSlice.slice_code,
+      slice_description: selectedSlice.slice_description,
+      customer_journey: selectedSlice.customer_journey,
+      persona_definition: selectedSlice.persona_definition,
+      expected_result: selectedSlice.expected_result,
+      outcomes: selectedSlice.outcomes,
+      slice_focus: selectedSlice.slice_focus,
     });
     setIsEditing(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!selectedSlice) return;
     if (!confirm('Are you sure you want to delete this slice?')) return;
 
     try {
       const { error } = await supabase
         .from('slices')
         .delete()
-        .eq('id', id);
+        .eq('id', selectedSlice.id);
 
       if (error) throw error;
+      setSelectedSlice(null);
       await fetchSlices();
     } catch (error) {
       console.error('Error deleting slice:', error);
@@ -121,6 +125,7 @@ const SliceMaintenance: React.FC = () => {
     });
     setEditingId(null);
     setIsEditing(false);
+    setSelectedSlice(null);
   };
 
 
@@ -146,17 +151,17 @@ const SliceMaintenance: React.FC = () => {
       {!isEditing && slices.length > 0 && (
         <div className="bg-gray-50 p-6 rounded-lg">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select a Slice to Edit
+            Select a Slice
           </label>
           <select
+            value={selectedSlice?.id || ''}
             onChange={(e) => {
               const slice = slices.find(s => s.id === e.target.value);
-              if (slice) handleEdit(slice);
+              setSelectedSlice(slice || null);
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
-            defaultValue=""
           >
-            <option value="" disabled>Choose a slice...</option>
+            <option value="">Choose a slice...</option>
             {slices.map((slice) => (
               <option key={slice.id} value={slice.id}>
                 {slice.slice_code} - {slice.slice_description}
@@ -286,69 +291,69 @@ const SliceMaintenance: React.FC = () => {
         </form>
       )}
 
-      <div className="space-y-4">
-        {slices.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No slices found. Click "Add New Slice" to create one.
-          </div>
-        ) : (
-          slices.map((slice) => (
-            <div key={slice.id} className="border border-gray-200 rounded-lg p-6 bg-white">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-mn-primary">
-                    Slice {slice.slice_code}
-                  </h3>
-                  <p className="text-gray-600">{slice.slice_description}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(slice)}
-                    className="p-2 text-mn-primary hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(slice.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+      {!isEditing && slices.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          No slices found. Click "Add New Slice" to create one.
+        </div>
+      )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Customer Journey</h4>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{slice.customer_journey}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Persona Definition</h4>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{slice.persona_definition}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Expected Result</h4>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{slice.expected_result}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Slice Focus</h4>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{slice.slice_focus}</p>
-                </div>
-              </div>
-
-              {slice.outcomes && (
-                <div className="mt-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Outcomes</h4>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{slice.outcomes}</p>
-                </div>
-              )}
+      {!isEditing && selectedSlice && (
+        <div className="border border-gray-200 rounded-lg p-6 bg-white">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-mn-primary">
+                Slice {selectedSlice.slice_code}
+              </h3>
+              <p className="text-gray-600">{selectedSlice.slice_description}</p>
             </div>
-          ))
-        )}
-      </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleEdit}
+                className="flex items-center gap-2 px-4 py-2 text-mn-primary bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <Edit2 className="h-4 w-4" />
+                Edit
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Customer Journey</h4>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSlice.customer_journey}</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Persona Definition</h4>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSlice.persona_definition}</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Expected Result</h4>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSlice.expected_result}</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Slice Focus</h4>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSlice.slice_focus}</p>
+            </div>
+          </div>
+
+          {selectedSlice.outcomes && (
+            <div className="mt-4">
+              <h4 className="font-semibold text-gray-900 mb-2">Outcomes</h4>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSlice.outcomes}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
