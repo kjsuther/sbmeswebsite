@@ -55,7 +55,16 @@ Deno.serve(async (req: Request) => {
     const templateBytes = await templateData.arrayBuffer();
     const pdfDoc = await PDFDocument.load(templateBytes);
     const form = pdfDoc.getForm();
-    console.log('PDF loaded, filling form fields...');
+    console.log('PDF loaded, inspecting form fields...');
+
+    const fields = form.getFields();
+    console.log(`Found ${fields.length} form fields:`);
+    fields.forEach((field) => {
+      const name = field.getName();
+      console.log(`  - ${name}`);
+    });
+
+    console.log('Filling form fields...');
 
     try {
       form.getTextField('company_name').setText(submissionData.company_name || '');
