@@ -9,7 +9,7 @@ interface Slice {
   customer_journey: string;
   persona_definition: string;
   expected_result: string;
-  outcomes: string[];
+  outcomes: string;
   slice_focus: string;
 }
 
@@ -24,7 +24,7 @@ const SliceMaintenance: React.FC = () => {
     customer_journey: '',
     persona_definition: '',
     expected_result: '',
-    outcomes: [],
+    outcomes: '',
     slice_focus: '',
   });
 
@@ -116,7 +116,7 @@ const SliceMaintenance: React.FC = () => {
       customer_journey: '',
       persona_definition: '',
       expected_result: '',
-      outcomes: [],
+      outcomes: '',
       slice_focus: '',
     });
     setEditingId(null);
@@ -222,8 +222,8 @@ const SliceMaintenance: React.FC = () => {
               Outcomes
             </label>
             <textarea
-              value={formData.outcomes.join('\n')}
-              onChange={(e) => setFormData({ ...formData, outcomes: e.target.value.split('\n').filter(line => line.trim()) })}
+              value={formData.outcomes}
+              onChange={(e) => setFormData({ ...formData, outcomes: e.target.value })}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mn-accent-teal"
               placeholder="New enrollment&#10;• Elapsed processing duration&#10;• Agency effectiveness (staff effort and satisfaction)&#10;• Customer satisfaction"
@@ -316,14 +316,10 @@ const SliceMaintenance: React.FC = () => {
                 </div>
               </div>
 
-              {slice.outcomes.length > 0 && (
+              {slice.outcomes && (
                 <div className="mt-4">
                   <h4 className="font-semibold text-gray-900 mb-2">Outcomes</h4>
-                  <ul className="list-disc list-inside space-y-1">
-                    {slice.outcomes.map((outcome, index) => (
-                      <li key={index} className="text-sm text-gray-600">{outcome}</li>
-                    ))}
-                  </ul>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{slice.outcomes}</p>
                 </div>
               )}
             </div>
