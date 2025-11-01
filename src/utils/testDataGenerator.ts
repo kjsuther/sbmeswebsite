@@ -216,7 +216,6 @@ export interface SliceRFPTestData {
   primaryDeliveryContact: string;
   teamDescription: string;
   firstSliceCost: string;
-  cakeBatterScaleCost: string;
   monthlyTeamCost: string;
 }
 
@@ -316,7 +315,6 @@ export function generateSliceRFPTestData(): SliceRFPTestData {
     primaryDeliveryContact: `${deliveryFirstName} ${deliveryLastName} (TEST)`,
     teamDescription: generateSliceTeamDescription(),
     firstSliceCost: `$${(randomNumber(150, 400) * 1000).toLocaleString()}`,
-    cakeBatterScaleCost: `$${(randomNumber(50, 150) * 1000).toLocaleString()}`,
     monthlyTeamCost: `$${(randomNumber(40, 100) * 1000).toLocaleString()}`
   };
 }

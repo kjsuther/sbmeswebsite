@@ -30,7 +30,6 @@ const SliceRFPResponse: React.FC = () => {
 
     // Costs
     firstSliceCost: '',
-    cakeBatterScaleCost: '',
     monthlyTeamCost: ''
   });
 
@@ -79,7 +78,6 @@ const SliceRFPResponse: React.FC = () => {
       primaryDeliveryContact: testData.primaryDeliveryContact,
       teamDescription: testData.teamDescription,
       firstSliceCost: testData.firstSliceCost,
-      cakeBatterScaleCost: testData.cakeBatterScaleCost,
       monthlyTeamCost: testData.monthlyTeamCost,
       resume1: null,
       resume2: null,
@@ -101,7 +99,6 @@ const SliceRFPResponse: React.FC = () => {
       primaryDeliveryContact: '',
       teamDescription: '',
       firstSliceCost: '',
-      cakeBatterScaleCost: '',
       monthlyTeamCost: '',
       resume1: null,
       resume2: null,
@@ -140,7 +137,6 @@ const SliceRFPResponse: React.FC = () => {
         primaryDeliveryContact: formData.primaryDeliveryContact,
         teamDescription: formData.teamDescription,
         firstSliceCost: formData.firstSliceCost,
-        cakeBatterScaleCost: formData.cakeBatterScaleCost,
         monthlyTeamCost: formData.monthlyTeamCost,
         resumeFiles: {
           resume1: formData.resume1?.name || null,
@@ -189,7 +185,6 @@ const SliceRFPResponse: React.FC = () => {
         resume2: null,
         resume3: null,
         firstSliceCost: '',
-        cakeBatterScaleCost: '',
         monthlyTeamCost: ''
       });
 
@@ -564,27 +559,7 @@ const SliceRFPResponse: React.FC = () => {
                     />
                   </div>
                 </div>
-                
-                <div>
-                  <label htmlFor="cakeBatterScaleCost" className="block text-sm font-medium text-gray-700 mb-2">
-                    Estimated cost of your proposed cake batter when at scale *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-3 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      id="cakeBatterScaleCost"
-                      name="cakeBatterScaleCost"
-                      required
-                      min="0"
-                      value={formData.cakeBatterScaleCost}
-                      onChange={handleInputChange}
-                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-                
+
                 <div>
                   <label htmlFor="monthlyTeamCost" className="block text-sm font-medium text-gray-700 mb-2">
                     Monthly cost of your baker team to deliver additional slices *
