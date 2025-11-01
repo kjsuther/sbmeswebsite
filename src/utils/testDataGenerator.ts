@@ -303,16 +303,18 @@ export function generateSliceRFPTestData(): SliceRFPTestData {
   const sliceFocus = randomElement(sliceFocusOptions);
 
   return {
-    companyName: `${company} (TEST)`,
-    contactName: `${firstName} ${lastName} (TEST)`,
-    contactEmail: `${firstName.toLowerCase()}.${lastName.toLowerCase()}.test.${uniqueId}@example.com`,
+    companyName: company,
+    contactName: `${firstName} ${lastName}`,
+    contactEmail: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@test.com`,
     contactPhone: generatePhoneNumber(),
     sliceFocus: sliceFocus,
     customSliceFocus: '',
     cakeSolution: generateSliceSolution(),
     ingredientsNeeded: generateIngredientsNeeded(),
     dependencies: generateDependencies(),
-    primaryDeliveryContact: `${deliveryFirstName} ${deliveryLastName} (TEST)`,
+    deliveryContactName: `${deliveryFirstName} ${deliveryLastName}`,
+    deliveryContactEmail: `${deliveryFirstName.toLowerCase()}.${deliveryLastName.toLowerCase()}@test.com`,
+    deliveryContactPhone: generatePhoneNumber(),
     teamDescription: generateSliceTeamDescription(),
     firstSliceCost: `$${(randomNumber(150, 400) * 1000).toLocaleString()}`,
     monthlyTeamCost: `$${(randomNumber(40, 100) * 1000).toLocaleString()}`
