@@ -1,44 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock } from 'lucide-react';
-import { verifyAdminPassword, createAdminSession, isAdminAuthenticated } from '../lib/adminAuth';
+import { Lock, Bot, Settings } from 'lucide-react';
+
+type AdminType = 'ai-assistant' | 'mes' | null;
 
 const AdminLogin: React.FC = () => {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState<AdminType>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isAdminAuthenticated()) {
+  const handleAdminSelect = (type: AdminType) => {
+    if (type === 'ai-assistant') {
       navigate('/admin');
-    }
-  }, [navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      const isValid = await verifyAdminPassword(password);
-
-      if (isValid) {
-        createAdminSession();
-        navigate('/admin');
-      } else {
-        setError('Invalid password');
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } else if (type === 'mes') {
+      navigate('/mes-admin');
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-2xl w-full space-y-8">
         <div>
           <div className="flex justify-center">
             <div className="bg-mn-primary rounded-full p-4">
@@ -46,46 +26,44 @@ const AdminLogin: React.FC = () => {
             </div>
           </div>
           <h2 className="mt-6 text-center text-3xl font-bold text-mn-primary">
-            Admin Login
+            Admin Portal
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Enter the admin password to access the chatbot dashboard
+            Select the admin area you would like to access
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="password" className="sr-only">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-mn-accent-teal focus:border-mn-accent-teal focus:z-10 sm:text-sm"
-              placeholder="Admin password"
-              disabled={isLoading}
-            />
-          </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-              {error}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <button
+            onClick={() => handleAdminSelect('ai-assistant')}
+            className="group relative flex flex-col items-center p-8 border-2 border-gray-300 rounded-lg hover:border-mn-accent-teal hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mn-accent-teal"
+          >
+            <div className="bg-mn-primary rounded-full p-4 mb-4 group-hover:bg-mn-accent-teal transition-colors">
+              <Bot className="h-10 w-10 text-white" />
             </div>
-          )}
+            <h3 className="text-xl font-semibold text-mn-primary mb-2">
+              AI Assistant Admin
+            </h3>
+            <p className="text-sm text-gray-600 text-center">
+              Manage chatbot content, documents, and knowledge base
+            </p>
+          </button>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading || !password}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-mn-primary hover:bg-mn-accent-teal focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mn-accent-teal disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? 'Verifying...' : 'Sign In'}
-            </button>
-          </div>
-        </form>
+          <button
+            onClick={() => handleAdminSelect('mes')}
+            className="group relative flex flex-col items-center p-8 border-2 border-gray-300 rounded-lg hover:border-mn-accent-teal hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mn-accent-teal"
+          >
+            <div className="bg-mn-primary rounded-full p-4 mb-4 group-hover:bg-mn-accent-teal transition-colors">
+              <Settings className="h-10 w-10 text-white" />
+            </div>
+            <h3 className="text-xl font-semibold text-mn-primary mb-2">
+              MES Admin
+            </h3>
+            <p className="text-sm text-gray-600 text-center">
+              Manage MES system configuration and settings
+            </p>
+          </button>
+        </div>
       </div>
     </div>
   );
