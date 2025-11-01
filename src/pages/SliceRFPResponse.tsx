@@ -41,6 +41,8 @@ const SliceRFPResponse: React.FC = () => {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isTestMode, setIsTestMode] = useState(false);
   const [sliceOptions, setSliceOptions] = useState<string[]>([]);
+  const [sliceDetails, setSliceDetails] = useState<Map<string, any>>(new Map());
+  const [selectedSliceData, setSelectedSliceData] = useState<any>(null);
   const [isLoadingSlices, setIsLoadingSlices] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -85,16 +87,22 @@ const SliceRFPResponse: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('slices')
-        .select('slice_code, slice_description')
+        .select('*')
         .order('slice_code');
 
       if (error) throw error;
 
       if (data) {
-        const options = data.map(slice => `${slice.slice_code} - ${slice.slice_description}`);
+        const detailsMap = new Map();
+        const options = data.map(slice => {
+          const key = `${slice.slice_code} - ${slice.slice_description}`;
+          detailsMap.set(key, slice);
+          return key;
+        });
         options.sort(sortSlicesByCode);
         options.push('Custom/Other (specify below)');
         setSliceOptions(options);
+        setSliceDetails(detailsMap);
       }
     } catch (error) {
       console.error('Error loading slices:', error);
@@ -186,6 +194,14 @@ const SliceRFPResponse: React.FC = () => {
       ...prev,
       sliceFocus: option
     }));
+
+    if (option === 'Custom/Other (specify below)') {
+      setSelectedSliceData(null);
+    } else {
+      const details = sliceDetails.get(option);
+      setSelectedSliceData(details || null);
+    }
+
     setSearchTerm('');
     setIsDropdownOpen(false);
   };
@@ -455,8 +471,52 @@ const SliceRFPResponse: React.FC = () => {
                   </div>
                 </div>
                 
+                {selectedSliceData && (
+                  <div className="mt-6 border border-mn-accent-teal/30 rounded-lg p-6 bg-gradient-to-br from-mn-accent-teal/5 to-transparent">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="h-1 w-12 bg-mn-accent-teal rounded"></div>
+                      <h3 className="text-lg font-semibold text-mn-primary">Slice Details</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="text-sm font-semibold text-mn-primary mb-1">Customer Journey</h4>
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedSliceData.customer_journey}</p>
+                          </div>
+
+                          <div>
+                            <h4 className="text-sm font-semibold text-mn-primary mb-1">Expected Result</h4>
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedSliceData.expected_result}</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="text-sm font-semibold text-mn-primary mb-1">Persona Definition</h4>
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedSliceData.persona_definition}</p>
+                          </div>
+
+                          <div>
+                            <h4 className="text-sm font-semibold text-mn-primary mb-1">Slice Focus</h4>
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedSliceData.slice_focus}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectedSliceData.outcomes && (
+                        <div className="pt-3 border-t border-mn-accent-teal/20">
+                          <h4 className="text-sm font-semibold text-mn-primary mb-1">Outcomes</h4>
+                          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedSliceData.outcomes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {formData.sliceFocus === 'Custom/Other (specify below)' && (
-                  <div>
+                  <div className="mt-4">
                     <label htmlFor="customSliceFocus" className="block text-sm font-medium text-gray-700 mb-2">
                       Describe your proposed slice focus *
                     </label>
