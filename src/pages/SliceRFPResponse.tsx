@@ -631,7 +631,7 @@ const SliceRFPResponse: React.FC = () => {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-semibold text-mn-primary mb-4">Expert Baker Resumes (1-3 required)</h3>
+                  <h3 className="text-lg font-semibold text-mn-primary mb-4">Expert Baker Resumes (at least 1 required)</h3>
                   <div className="space-y-4">
                     <div>
                       <label htmlFor="resume1" className="block text-sm font-medium text-gray-700 mb-2">
