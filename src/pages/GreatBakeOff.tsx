@@ -743,7 +743,7 @@ const GreatBakeOff: React.FC = () => {
               <Package className="h-12 w-12 text-mn-secondary mx-auto mb-4" />
               <h3 className="text-xl font-bold text-mn-primary mb-4">Software Providers</h3>
               <p className="text-gray-700 mb-6">
-                Add your product to the MES Cupboard <br />
+                Add your product to the MES Cupboard <br></br>
               </p>
               <Link
                 to="/software-rfp-requirements"
