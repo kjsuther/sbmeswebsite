@@ -33,7 +33,7 @@ interface SliceEvaluationPackageData {
 
 const loadMNLogo = async (): Promise<string> => {
   try {
-    const response = await fetch('/primary-logo-example_tcm1077-265307.jpg');
+    const response = await fetch('/horizontal-logo_tcm1077-265300.jpg');
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -60,13 +60,13 @@ export const generateSliceEvaluationPackage = async (
   const logoDataUrl = await loadMNLogo();
   if (logoDataUrl) {
     try {
-      doc.addImage(logoDataUrl, 'JPEG', margin, yPosition, 40, 15);
+      doc.addImage(logoDataUrl, 'JPEG', margin, yPosition, 80, 12);
     } catch (error) {
       console.error('Error adding logo to PDF:', error);
     }
   }
 
-  yPosition += 25;
+  yPosition += 20;
 
   const addWrappedText = (
     text: string,
