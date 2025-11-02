@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChefHat, DollarSign, Users, Package, FileText, Send, AlertCircle, Search, ChevronDown, CheckCircle, Download } from 'lucide-react';
 import { generateSliceRFPPDF } from '../utils/pdfGenerator';
+import { generateSliceEvaluationPackage } from '../utils/sliceEvaluationPackageGenerator';
 import { supabase } from '../lib/supabase';
 import { generateSliceRFPTestData } from '../utils/testDataGenerator';
 
@@ -40,6 +41,7 @@ const SliceRFPResponse: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [evaluationPackageUrl, setEvaluationPackageUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isTestMode, setIsTestMode] = useState(false);
   const [sliceOptions, setSliceOptions] = useState<string[]>([]);
@@ -283,13 +285,13 @@ const SliceRFPResponse: React.FC = () => {
 
       setMessage({
         type: 'success',
-        text: 'Contract submitted successfully! Generating your contract document...'
+        text: 'Contract submitted successfully! Generating your documents...'
       });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       try {
-        console.log('Starting PDF generation...');
+        console.log('Starting contract PDF generation...');
         let pdfBlob: Blob;
 
         try {
@@ -313,16 +315,16 @@ const SliceRFPResponse: React.FC = () => {
           }
 
           pdfBlob = await response.blob();
-          console.log('PDF blob generated from template successfully!');
+          console.log('Contract PDF blob generated from template successfully!');
         } catch (templateError) {
           console.error('Failed to fill PDF template:', templateError);
           console.log('Falling back to client-side PDF generation...');
           pdfBlob = await generateSliceRFPPDF(formData);
-          console.log('PDF blob generated using client-side fallback');
+          console.log('Contract PDF blob generated using client-side fallback');
         }
 
         const fileName = `slice_rfp_${submissionId}_${Date.now()}.pdf`;
-        console.log('Uploading PDF to storage:', fileName);
+        console.log('Uploading contract PDF to storage:', fileName);
 
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('slice-rfp-submissions')
@@ -332,19 +334,14 @@ const SliceRFPResponse: React.FC = () => {
           });
 
         if (uploadError) {
-          console.error('PDF upload error:', uploadError);
-          setMessage({
-            type: 'success',
-            text: 'Contract submitted successfully!'
-          });
-          clearFormData();
+          console.error('Contract PDF upload error:', uploadError);
         } else {
-          console.log('PDF uploaded successfully!');
+          console.log('Contract PDF uploaded successfully!');
           const { data: urlData } = supabase.storage
             .from('slice-rfp-submissions')
             .getPublicUrl(fileName);
 
-          console.log('Public URL:', urlData.publicUrl);
+          console.log('Contract Public URL:', urlData.publicUrl);
 
           await supabase
             .from('rfp_submissions')
@@ -352,21 +349,57 @@ const SliceRFPResponse: React.FC = () => {
             .eq('id', submissionId);
 
           setPdfUrl(urlData.publicUrl);
-          console.log('Setting PDF URL:', urlData.publicUrl);
-          setMessage({
-            type: 'success',
-            text: 'Contract submitted successfully! Your contract PDF is ready.'
-          });
-          console.log('Message state updated to show PDF ready');
+          console.log('Contract PDF URL set:', urlData.publicUrl);
         }
       } catch (pdfError) {
-        console.error('PDF generation error:', pdfError);
-        setMessage({
-          type: 'success',
-          text: 'Contract submitted successfully!'
-        });
-        clearFormData();
+        console.error('Contract PDF generation error:', pdfError);
       }
+
+      try {
+        console.log('Starting evaluation package generation...');
+        const evaluationPackageBlob = await generateSliceEvaluationPackage({
+          ...formData,
+          selectedSliceData
+        });
+        console.log('Evaluation package blob generated successfully!');
+
+        const evalFileName = `slice_evaluation_${submissionId}_${Date.now()}.pdf`;
+        console.log('Uploading evaluation package to storage:', evalFileName);
+
+        const { data: evalUploadData, error: evalUploadError } = await supabase.storage
+          .from('slice-rfp-submissions')
+          .upload(evalFileName, evaluationPackageBlob, {
+            contentType: 'application/pdf',
+            upsert: false,
+          });
+
+        if (evalUploadError) {
+          console.error('Evaluation package upload error:', evalUploadError);
+        } else {
+          console.log('Evaluation package uploaded successfully!');
+          const { data: evalUrlData } = supabase.storage
+            .from('slice-rfp-submissions')
+            .getPublicUrl(evalFileName);
+
+          console.log('Evaluation Package Public URL:', evalUrlData.publicUrl);
+
+          await supabase
+            .from('rfp_submissions')
+            .update({ evaluation_package_url: evalUrlData.publicUrl })
+            .eq('id', submissionId);
+
+          setEvaluationPackageUrl(evalUrlData.publicUrl);
+          console.log('Evaluation package URL set:', evalUrlData.publicUrl);
+        }
+      } catch (evalError) {
+        console.error('Evaluation package generation error:', evalError);
+      }
+
+      setMessage({
+        type: 'success',
+        text: 'Contract submitted successfully! Your documents are ready.'
+      });
+      clearFormData();
 
       setIsTestMode(false);
     } catch (error) {
@@ -423,14 +456,27 @@ const SliceRFPResponse: React.FC = () => {
                   }`}>
                     {message.text}
                   </p>
-                  {message.type === 'success' && pdfUrl && (
-                    <button
-                      onClick={() => window.open(pdfUrl, '_blank')}
-                      className="mt-4 inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-                    >
-                      <Download className="h-5 w-5" />
-                      <span>View PDF</span>
-                    </button>
+                  {message.type === 'success' && (pdfUrl || evaluationPackageUrl) && (
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {pdfUrl && (
+                        <button
+                          onClick={() => window.open(pdfUrl, '_blank')}
+                          className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        >
+                          <Download className="h-5 w-5" />
+                          <span>View Contract</span>
+                        </button>
+                      )}
+                      {evaluationPackageUrl && (
+                        <button
+                          onClick={() => window.open(evaluationPackageUrl, '_blank')}
+                          className="inline-flex items-center space-x-2 bg-mn-primary hover:bg-mn-secondary text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        >
+                          <FileText className="h-5 w-5" />
+                          <span>View Evaluation Package</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
