@@ -133,14 +133,14 @@ const GreatBakeOff: React.FC = () => {
                   <div className="bg-gray-50 rounded-lg p-6">
                     <ol className="space-y-3 list-decimal list-inside text-gray-700">
                       <li><strong>Certificate of Insurance</strong>: see the contract for required coverage.</li>
-                      <li><strong>Workforce Certificate</strong>: vendors with 40 or more full-time employees must apply for a workforce certificate from the Minnesota Department of Human Rights.</li>
-                      <li><strong>Equal Pay Certificate</strong>: vendors with 40 or more full-time employees must apply for an equal pay certificate from the Minnesota Department of Human Rights.</li>
+                      <li><strong>Workforce Certificate</strong>: vendors with 40 or more full-time employees must <a href="https://mn.gov/mdhr/certificates/workforce-certificate/" target="_blank" rel="noopener noreferrer" className="text-mn-accent-teal hover:text-mn-primary underline font-semibold">apply for a workforce certificate</a> from the Minnesota Department of Human Rights.</li>
+                      <li><strong>Equal Pay Certificate</strong>: vendors with 40 or more full-time employees must <a href="https://mn.gov/mdhr/certificates/equalpay/" target="_blank" rel="noopener noreferrer" className="text-mn-accent-teal hover:text-mn-primary underline font-semibold">apply for an equal pay certificate</a> from the Minnesota Department of Human Rights.</li>
                       <li><strong>Lobbying Certificate</strong>: vendors must sign a form certifying and disclosing lobbying activity.</li>
                       <li><strong>Conflict of Interest Certificate</strong>: vendors must sign a form confirming that they do not have any conflicts of interest and that they have not received or offered any payment, incentives, or benefits in exchange for proposing specific products to the State of Minnesota.</li>
-                      <li>
+                      <li><strong>Acquire a License to Bake</strong>:
                         <Link
                           to="/master-contract-submission"
-                          className="inline-flex items-center gap-2 text-mn-accent-teal hover:text-mn-primary font-semibold transition-all duration-200 group"
+                          className="inline-flex items-center gap-2 text-mn-accent-teal hover:text-mn-primary font-semibold transition-all duration-200 group ml-2"
                         >
                           <span className="inline-flex items-center gap-2">
                             <Sparkles className="h-4 w-4 text-mn-accent-yellow flex-shrink-0" />
