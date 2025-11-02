@@ -144,7 +144,7 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      // Calculate: (Cost of first slice + Monthly Cost) x months until Sept 30, 2026
+      // Calculate: Cost of first slice + (Monthly Cost x months) until Sept 30, 2026
       const firstCost = parseFloat(data.firstSliceCost?.replace(/[^0-9.]/g, '') || '0');
       const monthlyCost = parseFloat(data.monthlyTeamCost?.replace(/[^0-9.]/g, '') || '0');
 
@@ -153,7 +153,7 @@ Deno.serve(async (req: Request) => {
       const expirationDate = new Date('2026-09-30');
       const monthsDiff = Math.max(0, Math.round((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30.44)));
 
-      const total = (firstCost + monthlyCost) * monthsDiff;
+      const total = firstCost + (monthlyCost * monthsDiff);
 
       if (total > 0) {
         const formattedTotal = `$${Math.round(total).toLocaleString('en-US')}`;
