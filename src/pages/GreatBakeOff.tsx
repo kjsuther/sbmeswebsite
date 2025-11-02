@@ -128,14 +128,15 @@ const GreatBakeOff: React.FC = () => {
               {openSteps.has(0.5) && (
                 <div className="px-8 pb-8">
                   <p className="text-gray-700 mb-4">
-                    To participate in the Master Contract Pre-Qualification process, vendors must complete the following requirements:
+                    To become an eligible baker who can deliver cakes through bake-off proposals to the State, several steps must be completed in advance:
                   </p>
                   <div className="bg-gray-50 rounded-lg p-6">
                     <ol className="space-y-3 list-decimal list-inside text-gray-700">
-                      <li>Upload proof of insurance coverage meeting the contractual guidelines</li>
-                      <li>If the vendor has more than 40 employees, upload a workforce certificate</li>
-                      <li>If the vendor has more than 40 employees, upload an equal pay certificate</li>
-                      <li>Sign the certification regarding lobbying</li>
+                      <li><strong>Certificate of Insurance</strong>: see the contract for required coverage.</li>
+                      <li><strong>Workforce Certificate</strong>: vendors with 40 or more full-time employees must apply for a workforce certificate from the Minnesota Department of Human Rights.</li>
+                      <li><strong>Equal Pay Certificate</strong>: vendors with 40 or more full-time employees must apply for an equal pay certificate from the Minnesota Department of Human Rights.</li>
+                      <li><strong>Lobbying Certificate</strong>: vendors must sign a form certifying and disclosing lobbying activity.</li>
+                      <li><strong>Conflict of Interest Certificate</strong>: vendors must sign a form confirming that they do not have any conflicts of interest and that they have not received or offered any payment, incentives, or benefits in exchange for proposing specific products to the State of Minnesota.</li>
                       <li>
                         <Link
                           to="/master-contract-submission"
