@@ -27,6 +27,8 @@ import MESTraining from './pages/MESTraining';
 import Chatbot from './pages/Chatbot';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminPortal from './pages/AdminPortal';
+import ProjectArtifactsAdmin from './pages/ProjectArtifactsAdmin';
 import MESAdmin from './pages/MESAdmin';
 import RFIEngagementInsights from './pages/RFIEngagementInsights';
 import MasterContractSubmission from './pages/MasterContractSubmission';
@@ -54,7 +56,9 @@ function App() {
           <Route path="/rfi-engagement-insights" element={<RFIEngagementInsights />} />
           <Route path="/chatbot" element={<Chatbot />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/portal" element={<AdminPortal />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/artifacts" element={<ProjectArtifactsAdmin />} />
           <Route path="/mes-admin" element={<MESAdmin />} />
           <Route path="/master-contract-submission" element={<MasterContractSubmission />} />
           <Route path="/work-order-contract" element={<WorkOrderContract />} />
