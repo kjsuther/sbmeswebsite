@@ -66,6 +66,7 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
       const data = await readFile(selectedFile);
       if (data.length > 0) {
         const columns = Object.keys(data[0]);
+        console.log('Detected columns:', columns);
         setAvailableColumns(columns);
 
         const autoMapping = {
@@ -75,12 +76,13 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
           category: findColumn(columns, ['category', 'type', 'classification']),
           subCategory: findColumn(columns, ['sub-category', 'subcategory', 'sub category']),
           linkType: findColumn(columns, ['link type', 'linktype', 'link-type']),
-          contentNotes: findColumn(columns, ['content notes', 'contentnotes', 'notes']),
+          contentNotes: findColumn(columns, ['content notes', 'contentnotes', 'notes', 'content_notes']),
           tags: findColumn(columns, ['tags', 'keywords']),
           fileType: findColumn(columns, ['file type', 'filetype', 'type']),
           owner: findColumn(columns, ['owner', 'responsible', 'contact']),
         };
 
+        console.log('Auto-mapped columns:', autoMapping);
         setColumnMapping(autoMapping);
         setPreviewData(data.slice(0, 5));
       }
@@ -114,7 +116,11 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
           }
 
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet, {
+            defval: '',
+            blankrows: false,
+            raw: false
+          });
           resolve(jsonData);
         } catch (error) {
           reject(error);
