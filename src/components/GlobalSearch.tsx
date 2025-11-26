@@ -109,28 +109,25 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ sessionId, onSearch }) => {
 
   return (
     <>
-      {/* Search Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:border-mn-accent-teal focus:outline-none focus:ring-2 focus:ring-mn-accent-teal transition-colors"
+        className="flex items-center space-x-2 px-4 py-2 bg-white border-2 border-mn-neutral-lightblue rounded-lg hover:border-mn-accent-teal hover:shadow-md focus:outline-none focus:ring-2 focus:ring-mn-accent-teal transition-all duration-200"
       >
-        <Search className="h-4 w-4 text-gray-500" />
-        <span className="text-sm text-gray-500 hidden sm:inline">Search...</span>
-        <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-semibold text-gray-600 bg-gray-100 border border-gray-200 rounded">
+        <Search className="h-5 w-5 text-mn-accent-teal" />
+        <span className="text-sm text-mn-primary font-medium hidden sm:inline">Search</span>
+        <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 text-xs font-semibold text-mn-primary bg-mn-neutral-lightblue bg-opacity-30 border border-mn-neutral-lightblue rounded">
           ⌘K
         </kbd>
       </button>
 
-      {/* Search Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-start justify-center p-4 pt-20">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setIsOpen(false)} />
+            <div className="fixed inset-0 bg-mn-primary bg-opacity-60 backdrop-blur-sm transition-opacity" onClick={() => setIsOpen(false)} />
 
-            <div ref={dropdownRef} className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl">
-              {/* Search Input */}
-              <div className="flex items-center border-b border-gray-200 p-4">
-                <Search className="h-5 w-5 text-gray-400 mr-3" />
+            <div ref={dropdownRef} className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border-2 border-mn-accent-teal">
+              <div className="flex items-center border-b-2 border-mn-neutral-lightblue p-6 bg-gradient-to-r from-white to-mn-neutral-lightblue bg-opacity-10">
+                <Search className="h-6 w-6 text-mn-accent-teal mr-3" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -138,26 +135,25 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ sessionId, onSearch }) => {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Search documents, conversations, and pages..."
-                  className="flex-1 text-lg outline-none"
+                  className="flex-1 text-lg outline-none text-mn-primary placeholder-gray-400"
                   autoFocus
                 />
-                {isLoading && <Loader2 className="h-5 w-5 text-gray-400 animate-spin mr-3" />}
+                {isLoading && <Loader2 className="h-5 w-5 text-mn-accent-teal animate-spin mr-3" />}
                 <button
                   onClick={() => {
                     setIsOpen(false);
                     setQuery('');
                   }}
-                  className="p-1 hover:bg-gray-100 rounded"
+                  className="p-2 hover:bg-mn-neutral-lightblue hover:bg-opacity-20 rounded-lg transition-colors"
                 >
-                  <X className="h-5 w-5 text-gray-400" />
+                  <X className="h-5 w-5 text-mn-primary" />
                 </button>
               </div>
 
-              {/* Suggestions and History */}
-              <div className="max-h-96 overflow-y-auto p-2">
+              <div className="max-h-96 overflow-y-auto p-3">
                 {query.length >= 2 && suggestions.length > 0 && (
                   <div className="mb-4">
-                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center">
+                    <div className="px-4 py-3 text-xs font-bold text-mn-accent-teal uppercase tracking-wider flex items-center">
                       <TrendingUp className="h-4 w-4 mr-2" />
                       Suggestions
                     </div>
@@ -165,13 +161,13 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ sessionId, onSearch }) => {
                       <button
                         key={idx}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg transition-colors ${
-                          selectedIndex === idx ? 'bg-mn-accent-teal bg-opacity-10' : ''
+                        className={`w-full text-left px-4 py-3 hover:bg-mn-neutral-lightblue hover:bg-opacity-20 rounded-lg transition-all duration-200 ${
+                          selectedIndex === idx ? 'bg-mn-accent-teal bg-opacity-10 border-l-4 border-mn-accent-teal' : ''
                         }`}
                       >
                         <div className="flex items-center">
-                          <Search className="h-4 w-4 text-gray-400 mr-3" />
-                          <span className="text-sm font-medium text-gray-900">{suggestion}</span>
+                          <Search className="h-4 w-4 text-mn-accent-teal mr-3" />
+                          <span className="text-sm font-semibold text-mn-primary">{suggestion}</span>
                         </div>
                       </button>
                     ))}
@@ -180,7 +176,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ sessionId, onSearch }) => {
 
                 {query.length === 0 && searchHistory.length > 0 && (
                   <div>
-                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center">
+                    <div className="px-4 py-3 text-xs font-bold text-mn-accent-teal uppercase tracking-wider flex items-center">
                       <Clock className="h-4 w-4 mr-2" />
                       Recent Searches
                     </div>
@@ -188,16 +184,16 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ sessionId, onSearch }) => {
                       <button
                         key={item.id}
                         onClick={() => handleSuggestionClick(item.query_text)}
-                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg transition-colors ${
-                          selectedIndex === idx ? 'bg-mn-accent-teal bg-opacity-10' : ''
+                        className={`w-full text-left px-4 py-3 hover:bg-mn-neutral-lightblue hover:bg-opacity-20 rounded-lg transition-all duration-200 ${
+                          selectedIndex === idx ? 'bg-mn-accent-teal bg-opacity-10 border-l-4 border-mn-accent-teal' : ''
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center flex-1">
-                            <Clock className="h-4 w-4 text-gray-400 mr-3" />
-                            <span className="text-sm font-medium text-gray-900">{item.query_text}</span>
+                            <Clock className="h-4 w-4 text-mn-accent-teal mr-3" />
+                            <span className="text-sm font-semibold text-mn-primary">{item.query_text}</span>
                           </div>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs font-medium text-mn-accent-teal bg-mn-neutral-lightblue bg-opacity-30 px-2 py-1 rounded">
                             {item.results_count} results
                           </span>
                         </div>
@@ -207,35 +203,38 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ sessionId, onSearch }) => {
                 )}
 
                 {query.length >= 2 && suggestions.length === 0 && !isLoading && (
-                  <div className="px-4 py-8 text-center text-gray-500">
-                    <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No suggestions found. Press Enter to search.</p>
+                  <div className="px-4 py-12 text-center">
+                    <div className="bg-mn-neutral-lightblue bg-opacity-20 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                      <Search className="h-10 w-10 text-mn-accent-teal" />
+                    </div>
+                    <p className="text-mn-primary font-medium">No suggestions found. Press Enter to search.</p>
                   </div>
                 )}
 
                 {query.length === 0 && searchHistory.length === 0 && (
-                  <div className="px-4 py-8 text-center text-gray-500">
-                    <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>Start typing to search across all content</p>
-                    <p className="text-sm mt-2">Search documents, conversations, and pages</p>
+                  <div className="px-4 py-12 text-center">
+                    <div className="bg-mn-neutral-lightblue bg-opacity-20 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                      <Search className="h-10 w-10 text-mn-accent-teal" />
+                    </div>
+                    <p className="text-lg font-semibold text-mn-primary mb-2">Start typing to search</p>
+                    <p className="text-sm text-gray-600">Search documents, conversations, and pages</p>
                   </div>
                 )}
               </div>
 
-              {/* Footer */}
-              <div className="border-t border-gray-200 px-4 py-3 bg-gray-50 rounded-b-xl">
-                <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="border-t-2 border-mn-neutral-lightblue px-6 py-4 bg-gradient-to-r from-mn-neutral-lightblue from-opacity-10 to-white rounded-b-2xl">
+                <div className="flex items-center justify-between text-xs text-mn-primary font-medium">
                   <div className="flex items-center space-x-4">
                     <span className="flex items-center">
-                      <kbd className="px-2 py-1 bg-white border border-gray-200 rounded mr-1">↑↓</kbd>
+                      <kbd className="px-2 py-1 bg-white border-2 border-mn-neutral-lightblue rounded font-semibold mr-1">↑↓</kbd>
                       Navigate
                     </span>
                     <span className="flex items-center">
-                      <kbd className="px-2 py-1 bg-white border border-gray-200 rounded mr-1">↵</kbd>
+                      <kbd className="px-2 py-1 bg-white border-2 border-mn-neutral-lightblue rounded font-semibold mr-1">↵</kbd>
                       Select
                     </span>
                     <span className="flex items-center">
-                      <kbd className="px-2 py-1 bg-white border border-gray-200 rounded mr-1">esc</kbd>
+                      <kbd className="px-2 py-1 bg-white border-2 border-mn-neutral-lightblue rounded font-semibold mr-1">esc</kbd>
                       Close
                     </span>
                   </div>
