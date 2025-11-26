@@ -6,13 +6,6 @@ import ReactMarkdown from 'react-markdown';
 import { Message } from '../lib/chatbot-types';
 import { processUserMessage, getConversationMessages, submitFeedback } from '../lib/chatbotService';
 
-const SUGGESTED_QUESTIONS = [
-  "What is the Great Bake Off?",
-  "How do I submit an RFP response?",
-  "What are the evaluation criteria?",
-  "What's the difference between a slice and a layer?",
-];
-
 export const ChatWidget: React.FC = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +13,7 @@ export const ChatWidget: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [sessionId] = useState(() => {
     const stored = localStorage.getItem('chatbot_session_id');
     if (stored) return stored;
@@ -42,6 +36,26 @@ export const ChatWidget: React.FC = () => {
       inputRef.current.focus();
     }
   }, [isOpen, isMinimized]);
+
+  useEffect(() => {
+    loadSuggestedQuestions();
+  }, []);
+
+  const loadSuggestedQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('canned_questions')
+        .select('question_text')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      setSuggestedQuestions((data || []).map(q => q.question_text));
+    } catch (error) {
+      console.error('Error loading suggested questions:', error);
+      setSuggestedQuestions([]);
+    }
+  };
 
   const handleSendMessage = async (text?: string) => {
     const messageText = text || inputValue.trim();
@@ -237,7 +251,7 @@ export const ChatWidget: React.FC = () => {
                   </p>
                   <div className="space-y-2">
                     <p className="text-sm font-semibold text-gray-600">Try asking:</p>
-                    {SUGGESTED_QUESTIONS.map((question, index) => (
+                    {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
                         onClick={() => handleSendMessage(question)}

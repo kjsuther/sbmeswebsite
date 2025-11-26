@@ -13,15 +13,6 @@ import {
 import { supabase } from '../lib/supabase';
 import VideoReference from '../components/VideoReference';
 
-const SUGGESTED_QUESTIONS = [
-  "What is the Great Bake Off?",
-  "How do I submit a slice RFP response?",
-  "What are the evaluation criteria for vendors?",
-  "What's the difference between a slice and a layer?",
-  "When are RFP submissions evaluated?",
-  "What is the budget for the project?",
-];
-
 const Chatbot: React.FC = () => {
   const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -30,6 +21,7 @@ const Chatbot: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [sessionId] = useState(() => {
     const stored = localStorage.getItem('chatbot_session_id');
     if (stored) return stored;
@@ -43,6 +35,7 @@ const Chatbot: React.FC = () => {
 
   useEffect(() => {
     loadConversations();
+    loadSuggestedQuestions();
   }, []);
 
   useEffect(() => {
@@ -63,6 +56,22 @@ const Chatbot: React.FC = () => {
       setConversations(convos);
     } catch (error) {
       console.error('Error loading conversations:', error);
+    }
+  };
+
+  const loadSuggestedQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('canned_questions')
+        .select('question_text')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      setSuggestedQuestions((data || []).map(q => q.question_text));
+    } catch (error) {
+      console.error('Error loading suggested questions:', error);
+      setSuggestedQuestions([]);
     }
   };
 
@@ -373,7 +382,7 @@ const Chatbot: React.FC = () => {
                   <div className="bg-gray-50 rounded-lg p-6">
                     <h3 className="font-semibold text-mn-primary mb-4">Suggested Questions:</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {SUGGESTED_QUESTIONS.map((question, index) => (
+                      {suggestedQuestions.map((question, index) => (
                         <button
                           key={index}
                           onClick={() => {
