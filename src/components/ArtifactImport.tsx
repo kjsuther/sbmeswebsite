@@ -219,6 +219,7 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
           const { error } = await supabase.from('project_artifacts').insert([artifact]);
 
           if (error) {
+            console.error(`Row ${i + 2} error:`, error);
             results.failed++;
             results.errors.push({ row: i + 2, error: error.message });
           } else {
