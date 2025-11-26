@@ -94,6 +94,7 @@ const ArtifactsTable: React.FC<ArtifactsTableProps> = ({ refreshTrigger, onUpdat
           artifact.title.toLowerCase().includes(query) ||
           artifact.description?.toLowerCase().includes(query) ||
           artifact.url.toLowerCase().includes(query) ||
+          artifact.content_notes?.toLowerCase().includes(query) ||
           artifact.tags.some((tag) => tag.toLowerCase().includes(query)) ||
           artifact.owner?.toLowerCase().includes(query)
       );
@@ -234,7 +235,7 @@ const ArtifactsTable: React.FC<ArtifactsTableProps> = ({ refreshTrigger, onUpdat
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search artifacts by title, description, URL, tags, or owner..."
+                placeholder="Search artifacts by title, description, URL, content notes, tags, or owner..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
