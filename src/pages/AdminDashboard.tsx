@@ -10,9 +10,12 @@ import DocumentList from '../components/DocumentList';
 import QuestionsList from '../components/QuestionsList';
 import AnalyticsCharts from '../components/AnalyticsCharts';
 import CannedQuestionsManager from '../components/CannedQuestionsManager';
+import ContentGapAnalysis from '../components/ContentGapAnalysis';
+import KnowledgeBaseEffectiveness from '../components/KnowledgeBaseEffectiveness';
 
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'knowledge' | 'documents' | 'questions' | 'analytics'>('knowledge');
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<'overview' | 'gaps' | 'effectiveness'>('overview');
   const [documentRefreshTrigger, setDocumentRefreshTrigger] = useState(0);
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedProgress, setSeedProgress] = useState({ current: 0, total: 0, message: '' });
@@ -372,6 +375,43 @@ const AdminDashboard: React.FC = () => {
               </button>
             </div>
 
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setAnalyticsSubTab('overview')}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    analyticsSubTab === 'overview'
+                      ? 'border-mn-accent-teal text-mn-accent-teal'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Overview
+                </button>
+                <button
+                  onClick={() => setAnalyticsSubTab('gaps')}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    analyticsSubTab === 'gaps'
+                      ? 'border-mn-accent-teal text-mn-accent-teal'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Content Gaps
+                </button>
+                <button
+                  onClick={() => setAnalyticsSubTab('effectiveness')}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    analyticsSubTab === 'effectiveness'
+                      ? 'border-mn-accent-teal text-mn-accent-teal'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  KB Effectiveness
+                </button>
+              </nav>
+            </div>
+
+            {analyticsSubTab === 'overview' && (
+              <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -435,6 +475,16 @@ const AdminDashboard: React.FC = () => {
             <AnalyticsCharts data={analyticsData} />
 
             <QuestionsList refreshTrigger={analyticsRefreshTrigger} />
+              </>
+            )}
+
+            {analyticsSubTab === 'gaps' && (
+              <ContentGapAnalysis refreshTrigger={analyticsRefreshTrigger} />
+            )}
+
+            {analyticsSubTab === 'effectiveness' && (
+              <KnowledgeBaseEffectiveness refreshTrigger={analyticsRefreshTrigger} />
+            )}
           </div>
         )}
       </div>
