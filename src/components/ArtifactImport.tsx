@@ -8,6 +8,9 @@ interface ImportRow {
   description: string;
   url: string;
   category: string;
+  subCategory: string;
+  linkType: string;
+  contentNotes: string;
   tags: string;
   fileType: string;
   owner: string;
@@ -31,6 +34,9 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
     description: '',
     url: '',
     category: '',
+    subCategory: '',
+    linkType: '',
+    contentNotes: '',
     tags: '',
     fileType: '',
     owner: '',
@@ -67,6 +73,9 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
           description: findColumn(columns, ['description', 'desc', 'details']),
           url: findColumn(columns, ['url', 'link', 'path']),
           category: findColumn(columns, ['category', 'type', 'classification']),
+          subCategory: findColumn(columns, ['sub-category', 'subcategory', 'sub category']),
+          linkType: findColumn(columns, ['link type', 'linktype', 'link-type']),
+          contentNotes: findColumn(columns, ['content notes', 'contentnotes', 'notes']),
           tags: findColumn(columns, ['tags', 'keywords']),
           fileType: findColumn(columns, ['file type', 'filetype', 'type']),
           owner: findColumn(columns, ['owner', 'responsible', 'contact']),
@@ -193,6 +202,9 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
             description: columnMapping.description ? row[columnMapping.description]?.toString().trim() || null : null,
             url,
             category_id: categoryId,
+            sub_category: columnMapping.subCategory ? row[columnMapping.subCategory]?.toString().trim() || null : null,
+            link_type: columnMapping.linkType ? row[columnMapping.linkType]?.toString().trim() || null : null,
+            content_notes: columnMapping.contentNotes ? row[columnMapping.contentNotes]?.toString().trim() || null : null,
             tags,
             file_type: fileType || null,
             owner: columnMapping.owner ? row[columnMapping.owner]?.toString().trim() || null : null,
@@ -384,6 +396,54 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
               <select
                 value={columnMapping.owner}
                 onChange={(e) => setColumnMapping({ ...columnMapping, owner: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal"
+              >
+                <option value="">Select column (optional)</option>
+                {availableColumns.map((col) => (
+                  <option key={col} value={col}>
+                    {col}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sub-Category</label>
+              <select
+                value={columnMapping.subCategory}
+                onChange={(e) => setColumnMapping({ ...columnMapping, subCategory: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal"
+              >
+                <option value="">Select column (optional)</option>
+                {availableColumns.map((col) => (
+                  <option key={col} value={col}>
+                    {col}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Link Type</label>
+              <select
+                value={columnMapping.linkType}
+                onChange={(e) => setColumnMapping({ ...columnMapping, linkType: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal"
+              >
+                <option value="">Select column (optional)</option>
+                {availableColumns.map((col) => (
+                  <option key={col} value={col}>
+                    {col}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Content Notes</label>
+              <select
+                value={columnMapping.contentNotes}
+                onChange={(e) => setColumnMapping({ ...columnMapping, contentNotes: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal"
               >
                 <option value="">Select column (optional)</option>

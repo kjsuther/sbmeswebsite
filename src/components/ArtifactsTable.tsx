@@ -11,6 +11,9 @@ interface Artifact {
   category_id: string | null;
   category_name?: string;
   category_color?: string;
+  sub_category: string | null;
+  link_type: string | null;
+  content_notes: string | null;
   tags: string[];
   file_type: string | null;
   owner: string | null;
@@ -179,13 +182,16 @@ const ArtifactsTable: React.FC<ArtifactsTableProps> = ({ refreshTrigger, onUpdat
 
   const handleExport = () => {
     const csv = [
-      ['Title', 'Description', 'URL', 'Category', 'Tags', 'File Type', 'Owner', 'Created At'].join(','),
+      ['Title', 'Description', 'URL', 'Category', 'Sub-Category', 'Link Type', 'Content Notes', 'Tags', 'File Type', 'Owner', 'Created At'].join(','),
       ...filteredArtifacts.map((artifact) =>
         [
           `"${artifact.title}"`,
           `"${artifact.description || ''}"`,
           `"${artifact.url}"`,
           `"${artifact.category_name || ''}"`,
+          `"${artifact.sub_category || ''}"`,
+          `"${artifact.link_type || ''}"`,
+          `"${artifact.content_notes || ''}"`,
           `"${artifact.tags.join('; ')}"`,
           `"${artifact.file_type || ''}"`,
           `"${artifact.owner || ''}"`,
@@ -322,7 +328,8 @@ const ArtifactsTable: React.FC<ArtifactsTableProps> = ({ refreshTrigger, onUpdat
                   Title {sortField === 'title' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Sub-Category</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Link Type</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Owner</th>
                 <th
                   className="text-left py-3 px-4 font-semibold text-gray-700 cursor-pointer hover:text-mn-primary"
@@ -336,7 +343,7 @@ const ArtifactsTable: React.FC<ArtifactsTableProps> = ({ refreshTrigger, onUpdat
             <tbody>
               {filteredArtifacts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                  <td colSpan={9} className="text-center py-12 text-gray-500">
                     No artifacts found
                   </td>
                 </tr>
@@ -379,7 +386,8 @@ const ArtifactsTable: React.FC<ArtifactsTableProps> = ({ refreshTrigger, onUpdat
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">{artifact.file_type || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600">{artifact.sub_category || '-'}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600">{artifact.link_type || '-'}</td>
                     <td className="py-3 px-4 text-sm text-gray-600">{artifact.owner || '-'}</td>
                     <td className="py-3 px-4 text-sm text-gray-600">
                       {new Date(artifact.updated_at).toLocaleDateString()}

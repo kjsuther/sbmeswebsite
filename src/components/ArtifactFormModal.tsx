@@ -14,6 +14,9 @@ interface Artifact {
   description: string | null;
   url: string;
   category_id: string | null;
+  sub_category: string | null;
+  link_type: string | null;
+  content_notes: string | null;
   tags: string[];
   file_type: string | null;
   owner: string | null;
@@ -32,6 +35,9 @@ const ArtifactFormModal: React.FC<ArtifactFormModalProps> = ({ artifact, categor
     description: '',
     url: '',
     category_id: '',
+    sub_category: '',
+    link_type: '',
+    content_notes: '',
     tags: '',
     file_type: '',
     owner: '',
@@ -46,6 +52,9 @@ const ArtifactFormModal: React.FC<ArtifactFormModalProps> = ({ artifact, categor
         description: artifact.description || '',
         url: artifact.url,
         category_id: artifact.category_id || '',
+        sub_category: artifact.sub_category || '',
+        link_type: artifact.link_type || '',
+        content_notes: artifact.content_notes || '',
         tags: artifact.tags.join(', '),
         file_type: artifact.file_type || '',
         owner: artifact.owner || '',
@@ -142,6 +151,9 @@ const ArtifactFormModal: React.FC<ArtifactFormModalProps> = ({ artifact, categor
         description: formData.description.trim() || null,
         url: formData.url.trim(),
         category_id: formData.category_id || null,
+        sub_category: formData.sub_category.trim() || null,
+        link_type: formData.link_type.trim() || null,
+        content_notes: formData.content_notes.trim() || null,
         tags: tagsArray,
         file_type: formData.file_type.trim() || null,
         owner: formData.owner.trim() || null,
@@ -245,6 +257,39 @@ const ArtifactFormModal: React.FC<ArtifactFormModalProps> = ({ artifact, categor
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sub-Category</label>
+            <input
+              type="text"
+              value={formData.sub_category}
+              onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+              placeholder="Enter sub-category (optional)"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Link Type</label>
+            <input
+              type="text"
+              value={formData.link_type}
+              onChange={(e) => setFormData({ ...formData, link_type: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+              placeholder="e.g., Internal, External, Documentation (optional)"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Content Notes</label>
+            <textarea
+              value={formData.content_notes}
+              onChange={(e) => setFormData({ ...formData, content_notes: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+              placeholder="Additional notes about the content (optional)"
+            />
           </div>
 
           <div>
