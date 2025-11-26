@@ -2,7 +2,6 @@ import { supabase } from './supabase';
 import { generateEmbedding } from './openai';
 import { processDocument, calculateFileHash, isSupportedFileType } from '../utils/documentProcessor';
 import { chunkText } from '../utils/contentExtractor';
-import { addToQueue } from './queueService';
 import { retryWithBackoff } from '../utils/retryUtil';
 import { parseExcelToStructuredData, saveStructuredData } from './structuredDataService';
 import { detectVideoContent, enhanceChunkWithVideoMetadata } from '../utils/videoContentDetector';
@@ -117,8 +116,6 @@ export const uploadDocument = async (
       await supabase.storage.from('documents').remove([storagePath]);
       throw new Error('Failed to create document record');
     }
-
-    await addToQueue(document.id, 0);
 
     try {
       onProgress?.({ stage: 'extracting', message: 'Extracting text from document...' });
