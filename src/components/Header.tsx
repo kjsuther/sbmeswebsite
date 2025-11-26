@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import GlobalSearch from './GlobalSearch';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const [sessionId] = useState(() => {
+    const stored = localStorage.getItem('chatbot_session_id');
+    if (stored) return stored;
+    const newId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    localStorage.setItem('chatbot_session_id', newId);
+    return newId;
+  });
 
   const navigationItems = [
     { path: '/mes-modernization', label: 'MES Modernization Strategy' },
@@ -34,20 +42,23 @@ const Header: React.FC = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-8" role="navigation" aria-label="Main navigation">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`text-white hover:text-mn-accent-yellow transition-colors duration-200 font-medium ${
-                  location.pathname === item.path ? 'text-mn-accent-yellow border-b-2 border-mn-accent-yellow' : ''
-                }`}
-                aria-current={location.pathname === item.path ? 'page' : undefined}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="hidden lg:flex items-center space-x-6">
+            <nav className="flex space-x-8" role="navigation" aria-label="Main navigation">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`text-white hover:text-mn-accent-yellow transition-colors duration-200 font-medium ${
+                    location.pathname === item.path ? 'text-mn-accent-yellow border-b-2 border-mn-accent-yellow' : ''
+                  }`}
+                  aria-current={location.pathname === item.path ? 'page' : undefined}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <GlobalSearch sessionId={sessionId} />
+          </div>
 
           {/* Mobile Menu Button */}
           <button

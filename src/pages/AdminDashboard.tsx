@@ -12,10 +12,12 @@ import AnalyticsCharts from '../components/AnalyticsCharts';
 import CannedQuestionsManager from '../components/CannedQuestionsManager';
 import ContentGapAnalysis from '../components/ContentGapAnalysis';
 import KnowledgeBaseEffectiveness from '../components/KnowledgeBaseEffectiveness';
+import TagsManager from '../components/TagsManager';
+import SearchAnalytics from '../components/SearchAnalytics';
 
 const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'documents' | 'questions' | 'analytics'>('knowledge');
-  const [analyticsSubTab, setAnalyticsSubTab] = useState<'overview' | 'gaps' | 'effectiveness'>('overview');
+  const [activeTab, setActiveTab] = useState<'knowledge' | 'documents' | 'questions' | 'analytics' | 'tags'>('knowledge');
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<'overview' | 'gaps' | 'effectiveness' | 'search'>('overview');
   const [documentRefreshTrigger, setDocumentRefreshTrigger] = useState(0);
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedProgress, setSeedProgress] = useState({ current: 0, total: 0, message: '' });
@@ -254,6 +256,16 @@ const AdminDashboard: React.FC = () => {
               >
                 Analytics
               </button>
+              <button
+                onClick={() => setActiveTab('tags')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'tags'
+                    ? 'border-mn-accent-teal text-mn-accent-teal'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Tags
+              </button>
             </nav>
           </div>
         </div>
@@ -407,6 +419,16 @@ const AdminDashboard: React.FC = () => {
                 >
                   KB Effectiveness
                 </button>
+                <button
+                  onClick={() => setAnalyticsSubTab('search')}
+                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    analyticsSubTab === 'search'
+                      ? 'border-mn-accent-teal text-mn-accent-teal'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Search Analytics
+                </button>
               </nav>
             </div>
 
@@ -485,8 +507,14 @@ const AdminDashboard: React.FC = () => {
             {analyticsSubTab === 'effectiveness' && (
               <KnowledgeBaseEffectiveness refreshTrigger={analyticsRefreshTrigger} />
             )}
+
+            {analyticsSubTab === 'search' && (
+              <SearchAnalytics />
+            )}
           </div>
         )}
+
+        {activeTab === 'tags' && <TagsManager />}
       </div>
     </div>
   );
