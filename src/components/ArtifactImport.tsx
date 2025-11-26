@@ -171,6 +171,7 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
       const results: ImportResult = { success: 0, failed: 0, errors: [] };
 
       const categoryMap = new Map(categories.map((cat) => [cat.name.toLowerCase(), cat.id]));
+      console.log('Available categories:', Array.from(categoryMap.keys()));
 
       for (let i = 0; i < allData.length; i++) {
         const row = allData[i];
@@ -193,6 +194,10 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
 
           const categoryName = columnMapping.category ? row[columnMapping.category]?.toString().trim() : '';
           const categoryId = categoryName ? categoryMap.get(categoryName.toLowerCase()) || null : null;
+
+          if (categoryName && !categoryId) {
+            console.warn(`Row ${i + 2}: Category "${categoryName}" not found in database. Available: ${Array.from(categoryMap.keys()).join(', ')}`);
+          }
 
           const tagsString = columnMapping.tags ? row[columnMapping.tags]?.toString().trim() : '';
           const tags = tagsString
