@@ -51,8 +51,14 @@ const ArtifactImport: React.FC<ArtifactImportProps> = ({ onImportComplete }) => 
   }, []);
 
   const loadCategories = async () => {
-    const { data } = await supabase.from('artifact_categories').select('id, name').order('display_order');
-    if (data) setCategories(data);
+    const { data, error } = await supabase.from('artifact_categories').select('id, name').order('display_order');
+    if (error) {
+      console.error('Failed to load categories:', error);
+    }
+    if (data) {
+      console.log('Loaded categories:', data);
+      setCategories(data);
+    }
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
