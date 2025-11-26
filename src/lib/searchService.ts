@@ -55,8 +55,13 @@ export async function performUnifiedSearch(
   try {
     const results: SearchResult[] = [];
 
-    // Generate embedding for semantic search
-    const embedding = await generateEmbedding(query);
+    // Try to generate embedding for semantic search (optional enhancement)
+    let embedding: number[] | null = null;
+    try {
+      embedding = await generateEmbedding(query);
+    } catch (error) {
+      console.log('Embedding generation failed, falling back to text search only');
+    }
 
     // Search document chunks with hybrid approach
     const chunkResults = await searchDocumentChunks(query, embedding, filters, limit);
@@ -86,23 +91,64 @@ export async function performUnifiedSearch(
 
 async function searchDocumentChunks(
   query: string,
-  embedding: number[],
+  embedding: number[] | null,
   filters: SearchFilters,
   limit: number
 ): Promise<SearchResult[]> {
   try {
-    // Build the query
-    let dbQuery = supabase.rpc('match_document_chunks', {
-      query_embedding: embedding,
-      match_threshold: filters.minRelevance || 0.1,
-      match_count: limit,
-    });
+    let results: any[] = [];
 
-    const { data, error } = await dbQuery;
+    // If we have embeddings, try vector search first
+    if (embedding && embedding.length > 0) {
+      try {
+        const { data, error } = await supabase.rpc('match_document_chunks', {
+          query_embedding: embedding,
+          match_threshold: filters.minRelevance || 0.1,
+          match_count: limit,
+        });
 
-    if (error) throw error;
+        if (!error && data) {
+          results = data;
+        }
+      } catch (error) {
+        console.log('Vector search failed, falling back to text search');
+      }
+    }
 
-    return (data || []).map((chunk: any) => {
+    // Fallback to text search if vector search didn't work or returned no results
+    if (results.length === 0) {
+      const tsQuery = query.split(' ').filter(w => w.length > 2).join(' & ');
+
+      let dbQuery = supabase
+        .from('document_chunks')
+        .select('id, content, document_name, created_at, metadata')
+        .textSearch('content_tsv', tsQuery, {
+          type: 'websearch',
+          config: 'english'
+        })
+        .limit(limit);
+
+      if (filters.dateFrom) {
+        dbQuery = dbQuery.gte('created_at', filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        dbQuery = dbQuery.lte('created_at', filters.dateTo);
+      }
+
+      const { data, error } = await dbQuery;
+
+      if (error) {
+        console.error('Text search error:', error);
+        return [];
+      }
+
+      results = (data || []).map((chunk: any) => ({
+        ...chunk,
+        similarity: 0.7,
+      }));
+    }
+
+    return results.map((chunk: any) => {
       const isWebsitePage = chunk.document_name?.startsWith('Website - ');
       const pageName = isWebsitePage
         ? chunk.document_name.replace('Website - ', '')
@@ -115,7 +161,7 @@ async function searchDocumentChunks(
         description: chunk.content.substring(0, 200),
         snippet: highlightSnippet(chunk.content, query),
         source: chunk.document_name || 'Unknown',
-        relevance_score: chunk.similarity || 0,
+        relevance_score: chunk.similarity || 0.7,
         created_at: chunk.created_at,
         metadata: chunk.metadata,
         url: pageName && WEBSITE_PAGES[pageName] ? WEBSITE_PAGES[pageName] : undefined,
@@ -133,12 +179,12 @@ async function searchUploadedDocuments(
   limit: number
 ): Promise<SearchResult[]> {
   try {
-    const tsQuery = query.split(' ').join(' & ');
+    const tsQuery = query.split(' ').filter(w => w.length > 2).join(' | ');
 
     let dbQuery = supabase
       .from('uploaded_documents')
       .select('*')
-      .textSearch('file_name', tsQuery)
+      .or(`file_name.ilike.%${query}%`)
       .limit(limit);
 
     if (filters.dateFrom) {
@@ -175,14 +221,25 @@ async function searchConversations(
   limit: number
 ): Promise<SearchResult[]> {
   try {
-    const tsQuery = query.split(' ').join(' & ');
+    const tsQuery = query.split(' ').filter(w => w.length > 2).join(' & ');
 
     let dbQuery = supabase
       .from('messages')
       .select('id, content, created_at, conversation_id, conversations(title)')
-      .eq('role', 'assistant')
-      .textSearch('content_tsv', tsQuery)
-      .limit(limit);
+      .eq('role', 'assistant');
+
+    // Try text search if content_tsv column exists
+    try {
+      dbQuery = dbQuery.textSearch('content_tsv', tsQuery, {
+        type: 'websearch',
+        config: 'english'
+      });
+    } catch {
+      // Fallback to ilike if text search fails
+      dbQuery = dbQuery.ilike('content', `%${query}%`);
+    }
+
+    dbQuery = dbQuery.limit(limit);
 
     if (filters.dateFrom) {
       dbQuery = dbQuery.gte('created_at', filters.dateFrom);
@@ -214,7 +271,7 @@ async function searchConversations(
 }
 
 function highlightSnippet(text: string, query: string): string {
-  const queryWords = query.toLowerCase().split(' ');
+  const queryWords = query.toLowerCase().split(' ').filter(w => w.length > 2);
   const lowerText = text.toLowerCase();
 
   let bestPosition = 0;
@@ -262,17 +319,12 @@ async function trackSearch(
     });
 
     // Update popular searches
-    await supabase.rpc('upsert_popular_search', {
-      search_text: query,
-    }).catch(() => {
-      // Fallback if function doesn't exist yet
-      supabase
-        .from('popular_searches')
-        .upsert(
-          { query_text: query, search_count: 1, last_searched_at: new Date().toISOString() },
-          { onConflict: 'query_text' }
-        );
-    });
+    await supabase
+      .from('popular_searches')
+      .upsert(
+        { query_text: query, search_count: 1, last_searched_at: new Date().toISOString() },
+        { onConflict: 'query_text' }
+      );
   } catch (error) {
     console.error('Error tracking search:', error);
   }
