@@ -1,18 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import GlobalSearch from './GlobalSearch';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const [sessionId] = useState(() => {
-    const stored = localStorage.getItem('chatbot_session_id');
-    if (stored) return stored;
-    const newId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    localStorage.setItem('chatbot_session_id', newId);
-    return newId;
-  });
 
   const navigationItems = [
     { path: '/mes-modernization', label: 'MES Modernization Strategy' },
@@ -57,7 +49,6 @@ const Header: React.FC = () => {
                 </Link>
               ))}
             </nav>
-            <GlobalSearch sessionId={sessionId} />
           </div>
 
           {/* Mobile Menu Button */}
