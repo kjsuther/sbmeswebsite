@@ -186,58 +186,70 @@ async function extractWithBrowserless(url: string): Promise<string> {
             // Take a screenshot to help debug what's visible
             const screenshot = await page.screenshot({ encoding: 'base64', fullPage: false });
 
+            // Debug: Get page info
+            const pageInfo = await page.evaluate(() => {
+              return {
+                title: document.title,
+                url: window.location.href,
+                svgCount: document.querySelectorAll('svg').length,
+                textElementCount: document.querySelectorAll('svg text').length,
+                allElementsCount: document.querySelectorAll('*').length,
+                bodyText: document.body.innerText.substring(0, 500)
+              };
+            });
+
+            console.log('Page info:', JSON.stringify(pageInfo, null, 2));
+
             // Extract all visible text content
             const extractedTexts = await page.evaluate(() => {
               const texts = new Set();
 
-              // Get all text from SVG text elements (Mural uses SVG for sticky notes)
-              document.querySelectorAll('svg text, svg tspan').forEach(el => {
+              // Get ALL text from SVG text elements
+              document.querySelectorAll('svg text').forEach(el => {
                 const text = el.textContent?.trim();
-                if (text && text.length > 2) {
+                if (text && text.length > 0) {
                   texts.add(text);
                 }
               });
 
-              // Look for specific Mural widget containers
-              document.querySelectorAll('[class*="widget"], [class*="sticky"], [class*="note"], [data-widget-id]').forEach(el => {
+              // Get ALL tspan elements
+              document.querySelectorAll('svg tspan').forEach(el => {
                 const text = el.textContent?.trim();
-                if (text && text.length > 5) {
+                if (text && text.length > 0) {
                   texts.add(text);
                 }
               });
 
-              // Get text from contenteditable elements (editable text areas)
-              document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+              // Get text from any element with specific data attributes
+              document.querySelectorAll('[data-widget-id], [data-id], [class*="widget"], [class*="sticky"]').forEach(el => {
                 const text = el.textContent?.trim();
-                if (text && text.length > 2) {
+                if (text && text.length > 3) {
                   texts.add(text);
                 }
               });
 
-              // Get visible divs and spans that might contain content
-              document.querySelectorAll('div, span').forEach(el => {
-                // Skip if element is not visible
-                const style = window.getComputedStyle(el);
-                if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
-                  return;
-                }
-
-                // Get direct text only
-                const text = Array.from(el.childNodes)
-                  .filter(node => node.nodeType === Node.TEXT_NODE)
-                  .map(node => node.textContent?.trim())
-                  .filter(text => text && text.length > 2)
-                  .join(' ');
-
-                if (text) {
+              // Get all contenteditable elements
+              document.querySelectorAll('[contenteditable]').forEach(el => {
+                const text = el.textContent?.trim();
+                if (text && text.length > 0) {
                   texts.add(text);
                 }
               });
+
+              // Fallback: Get all text from body
+              const allText = document.body.innerText.split('\\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 2);
+              allText.forEach(line => texts.add(line));
 
               return Array.from(texts);
             });
 
-            return { extractedTexts, hasScreenshot: !!screenshot };
+            return {
+              extractedTexts,
+              hasScreenshot: !!screenshot,
+              pageInfo
+            };
           };
         `,
       }),
