@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
       metadata: {
         elementsFound: countElements(extractedContent),
         processingTime: Date.now() - startTime,
-        extractionMethod: "browser-automation",
+        extractionMethod: "browser-automation-scrape",
       },
     };
 
@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
 
 async function extractWithBrowserless(url: string): Promise<string> {
   try {
-    const browserlessUrl = "https://chrome.browserless.io/content";
+    const browserlessUrl = "https://chrome.browserless.io/scrape";
     const browserlessToken = Deno.env.get("BROWSERLESS_TOKEN");
 
     if (!browserlessToken) {
@@ -132,6 +132,12 @@ async function extractWithBrowserless(url: string): Promise<string> {
           waitUntil: "networkidle2",
           timeout: 30000,
         },
+        elements: [
+          {
+            selector: "body",
+            timeout: 10000,
+          }
+        ],
         addScriptTag: [
           {
             content: `
@@ -143,11 +149,12 @@ async function extractWithBrowserless(url: string): Promise<string> {
                   const text = button.textContent || button.getAttribute('aria-label') || '';
                   if (text.toLowerCase().includes('enter') && text.toLowerCase().includes('visitor')) {
                     button.click();
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    break;
                   }
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                await new Promise(resolve => setTimeout(resolve, 8000));
               })();
             `,
           },
@@ -160,48 +167,95 @@ async function extractWithBrowserless(url: string): Promise<string> {
       throw new Error(`Browserless API error: ${response.status} - ${errorText}`);
     }
 
-    const html = await response.text();
+    const result = await response.json();
 
-    const extractedTexts = new Set<string>();
-
-    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-    const bodyContent = bodyMatch ? bodyMatch[1] : html;
-
-    const textMatches = bodyContent.match(/>([^<]+)</g);
-    if (textMatches) {
-      textMatches.forEach((match) => {
-        const text = match.slice(1, -1).trim();
-        if (text && text.length > 2) {
-          if (!/^[\d\s\W]+$/.test(text) &&
-              !text.includes('function(') &&
-              !text.includes('var ') &&
-              !text.startsWith('window.') &&
-              !text.startsWith('{') &&
-              !text.startsWith('[')) {
-            extractedTexts.add(text);
-          }
-        }
-      });
-    }
-
-    const dataAttributeMatches = bodyContent.match(/(?:data-text|aria-label|title)=["']([^"']+)["']/gi);
-    if (dataAttributeMatches) {
-      dataAttributeMatches.forEach((match) => {
-        const valueMatch = match.match(/=["']([^"']+)["']/);
-        if (valueMatch && valueMatch[1]) {
-          const text = decodeHtml(valueMatch[1]).trim();
-          if (text && text.length > 2) {
-            extractedTexts.add(text);
-          }
-        }
-      });
-    }
-
-    if (extractedTexts.size === 0) {
+    if (!result.data || result.data.length === 0) {
       return "No content could be extracted. The Mural board may require authentication or have restricted access.";
     }
 
-    return Array.from(extractedTexts).join('\n');
+    const scrapedData = result.data[0];
+    let extractedText = scrapedData.text || "";
+
+    const uiElementsToRemove = [
+      /Go to (Canvas|Shortcuts|Navigation Controls)/gi,
+      /Unlock additional collaboration features/gi,
+      /Log in/gi,
+      /Sign up for free/gi,
+      /Press enter to begin editing.*/gi,
+      /Add objects/gi,
+      /Double-click on the canvas.*/gi,
+      /Drag text, shapes.*/gi,
+      /Drag and drop images.*/gi,
+      /Paste links and files.*/gi,
+      /Move around/gi,
+      /Use your mouse to zoom/gi,
+      /Click and drag to move/gi,
+      /Check Zoom Settings.*/gi,
+      /Getting Started/gi,
+      /Create an account/gi,
+      /Enter as a visitor/gi,
+      /Skip Links/gi,
+      /Mural (canvas|Notification Bar|Top Bar|options|Sidebar|Bottom Panel|Right Column).*/gi,
+      /Canvas Tools/gi,
+      /Templates/gi,
+      /Sticky notes/gi,
+      /Text/gi,
+      /Shapes and connectors/gi,
+      /Icons/gi,
+      /Images/gi,
+      /More tools/gi,
+      /Show more sessions/gi,
+      /Close/gi,
+      /Voting/gi,
+      /Present/gi,
+      /Comments/gi,
+      /Users, \d+ members/gi,
+      /Help/gi,
+      /Profile and account/gi,
+      /Nothing to (undo|redo)/gi,
+      /Move mode/gi,
+      /Navigation settings/gi,
+      /Map/gi,
+      /Zoom (out|in) \(CTRL[+-]\)/gi,
+      /Focus mode/gi,
+      /Hello, have a question.*/gi,
+      /Mural home page/gi,
+      /Collaborate with .* and \d+ others/gi,
+      /Reactions/gi,
+      /Visiting Shark.*/gi,
+      /Next/gi,
+      /navigation/gi,
+      /MiniMap/gi,
+      />>>\d+/g,
+      />>0\?1:0/g,
+      /<<<\d+/g,
+    ];
+
+    uiElementsToRemove.forEach(pattern => {
+      extractedText = extractedText.replace(pattern, '');
+    });
+
+    const lines = extractedText
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => {
+        if (line.length < 3) return false;
+        if (/^[<>&|^~*+\-=()[\]{}:;,."'`]+$/.test(line)) return false;
+        if (line.includes('>>>') || line.includes('<<<')) return false;
+        if (line.includes('function(') || line.includes('var ')) return false;
+        if (line.startsWith('window.') || line.startsWith('document.')) return false;
+        if (line.match(/^\d+$/)) return false;
+        if (line.match(/^[<>%]+$/)) return false;
+        return true;
+      });
+
+    const uniqueLines = [...new Set(lines)];
+
+    if (uniqueLines.length === 0) {
+      return "No meaningful content could be extracted from the Mural board.";
+    }
+
+    return uniqueLines.join('\n');
 
   } catch (error) {
     console.error('Browser automation extraction error:', error);
@@ -216,20 +270,6 @@ async function extractWithBrowserless(url: string): Promise<string> {
 
     throw error;
   }
-}
-
-function decodeHtml(text: string): string {
-  return text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\\n/g, "\n")
-    .replace(/\\t/g, "\t")
-    .replace(/\\/g, "")
-    .trim();
 }
 
 function countElements(content: string): number {
