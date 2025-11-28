@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderKanban, LogOut, Upload, Tag, BarChart3, RefreshCw, TestTube } from 'lucide-react';
+import { FolderKanban, LogOut, Upload, Tag, BarChart3, RefreshCw } from 'lucide-react';
 import { isAdminAuthenticated, clearAdminSession } from '../lib/adminAuth';
 import { supabase } from '../lib/supabase';
 import ArtifactsTable from '../components/ArtifactsTable';
 import ArtifactImport from '../components/ArtifactImport';
 import CategoryManager from '../components/CategoryManager';
 import ArtifactsAnalytics from '../components/ArtifactsAnalytics';
-import MuralTester from '../components/MuralTester';
 
 const ProjectArtifactsAdmin: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'artifacts' | 'import' | 'categories' | 'analytics' | 'mural-tester'>('artifacts');
+  const [activeTab, setActiveTab] = useState<'artifacts' | 'import' | 'categories' | 'analytics'>('artifacts');
   const [stats, setStats] = useState({
     totalArtifacts: 0,
     totalCategories: 0,
@@ -175,17 +174,6 @@ const ProjectArtifactsAdmin: React.FC = () => {
                 <BarChart3 className="h-4 w-4" />
                 <span>Analytics</span>
               </button>
-              <button
-                onClick={() => setActiveTab('mural-tester')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center space-x-2 ${
-                  activeTab === 'mural-tester'
-                    ? 'border-mn-accent-teal text-mn-accent-teal'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <TestTube className="h-4 w-4" />
-                <span>Mural Tester</span>
-              </button>
             </nav>
             <button
               onClick={handleRefresh}
@@ -213,9 +201,6 @@ const ProjectArtifactsAdmin: React.FC = () => {
           <ArtifactsAnalytics refreshTrigger={refreshTrigger} />
         )}
 
-        {activeTab === 'mural-tester' && (
-          <MuralTester />
-        )}
       </div>
     </div>
   );
