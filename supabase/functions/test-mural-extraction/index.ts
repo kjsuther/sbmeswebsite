@@ -128,7 +128,6 @@ async function extractWithBrowserless(url: string): Promise<string> {
       },
       body: JSON.stringify({
         url: url,
-        waitFor: 5000,
         gotoOptions: {
           waitUntil: "networkidle2",
           timeout: 30000,
@@ -137,9 +136,9 @@ async function extractWithBrowserless(url: string): Promise<string> {
           {
             content: `
               (async () => {
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
 
-                const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+                const buttons = Array.from(document.querySelectorAll('button, a, [role=\"button\"]'));
                 for (const button of buttons) {
                   const text = button.textContent || button.getAttribute('aria-label') || '';
                   if (text.toLowerCase().includes('enter') && text.toLowerCase().includes('visitor')) {
@@ -148,7 +147,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
                   }
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                await new Promise(resolve => setTimeout(resolve, 5000));
               })();
             `,
           },
