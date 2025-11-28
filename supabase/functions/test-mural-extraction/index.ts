@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
 
 async function extractWithBrowserless(url: string): Promise<string> {
   try {
-    const browserlessUrl = "https://chrome.browserless.io/content";
+    const browserlessUrl = "https://chrome.browserless.io/function";
     const browserlessToken = Deno.env.get("BROWSERLESS_TOKEN");
 
     if (!browserlessToken) {
@@ -127,32 +127,67 @@ async function extractWithBrowserless(url: string): Promise<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        url: url,
-        gotoOptions: {
-          waitUntil: "networkidle2",
-          timeout: 30000,
-        },
-        addScriptTag: [
-          {
-            content: `
-              (async () => {
-                await new Promise(resolve => setTimeout(resolve, 3000));
+        code: `
+          module.exports = async ({ page }) => {
+            await page.goto('${url}', { waitUntil: 'networkidle2', timeout: 45000 });
 
-                const buttons = Array.from(document.querySelectorAll('button, a, [role=\"button\"]'));
-                for (const button of buttons) {
-                  const text = button.textContent || button.getAttribute('aria-label') || '';
-                  if (text.toLowerCase().includes('enter') && text.toLowerCase().includes('visitor')) {
-                    button.click();
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    break;
-                  }
+            await page.waitForTimeout(3000);
+
+            // Click "Enter as visitor" button
+            try {
+              const buttons = await page.$$('button, a, [role="button"]');
+              for (const button of buttons) {
+                const text = await page.evaluate(el => el.textContent || el.getAttribute('aria-label') || '', button);
+                if (text.toLowerCase().includes('enter') && text.toLowerCase().includes('visitor')) {
+                  await button.click();
+                  await page.waitForTimeout(5000);
+                  break;
                 }
+              }
+            } catch (e) {
+              console.log('Visitor button not found or already in visitor mode');
+            }
 
-                await new Promise(resolve => setTimeout(resolve, 8000));
-              })();
-            `,
-          },
-        ],
+            // Wait for content to load
+            await page.waitForTimeout(10000);
+
+            // Extract all visible text content
+            const extractedTexts = await page.evaluate(() => {
+              const texts = new Set();
+
+              // Get all text from SVG text elements (Mural often uses SVG)
+              document.querySelectorAll('text, tspan').forEach(el => {
+                const text = el.textContent?.trim();
+                if (text && text.length > 2) {
+                  texts.add(text);
+                }
+              });
+
+              // Get text from regular HTML elements
+              document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div, li, td, th').forEach(el => {
+                // Only get direct text content, not nested
+                const clone = el.cloneNode(true);
+                Array.from(clone.children).forEach(child => child.remove());
+                const text = clone.textContent?.trim();
+                if (text && text.length > 2) {
+                  texts.add(text);
+                }
+              });
+
+              // Look for data attributes that might contain text
+              document.querySelectorAll('[data-text], [data-content], [aria-label]').forEach(el => {
+                const dataText = el.getAttribute('data-text') || el.getAttribute('data-content') || el.getAttribute('aria-label');
+                if (dataText && dataText.trim().length > 2) {
+                  texts.add(dataText.trim());
+                }
+              });
+
+              return Array.from(texts);
+            });
+
+            return { extractedTexts };
+          };
+        `,
       }),
     });
 
@@ -161,57 +196,8 @@ async function extractWithBrowserless(url: string): Promise<string> {
       throw new Error(`Browserless API error: ${response.status} - ${errorText}`);
     }
 
-    const html = await response.text();
-
-    const extractedTexts = new Set<string>();
-
-    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-    const bodyContent = bodyMatch ? bodyMatch[1] : html;
-
-    const scriptRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
-    const styleRegex = /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi;
-    const cleanedContent = bodyContent.replace(scriptRegex, '').replace(styleRegex, '');
-
-    const textMatches = cleanedContent.match(/>([^<]+)</g);
-    if (textMatches) {
-      textMatches.forEach((match) => {
-        const text = match.slice(1, -1).trim();
-        if (text && text.length > 2) {
-          extractedTexts.add(text);
-        }
-      });
-    }
-
-    const allAttributeMatches = cleanedContent.match(/(?:data-[a-z-]+|aria-[a-z-]+|title|alt|placeholder|value)=["']([^"']+)["']/gi);
-    if (allAttributeMatches) {
-      allAttributeMatches.forEach((match) => {
-        const valueMatch = match.match(/=["']([^"']+)["']/);
-        if (valueMatch && valueMatch[1]) {
-          const text = decodeHtml(valueMatch[1]).trim();
-          if (text && text.length > 2 && !text.startsWith('http') && !text.includes('//')) {
-            extractedTexts.add(text);
-          }
-        }
-      });
-    }
-
-    const jsonMatches = html.match(/"(?:text|content|title|question|answer|label)":\s*"([^"\\]*(\\.[^"\\]*)*)"/gi);
-    if (jsonMatches) {
-      jsonMatches.forEach((match) => {
-        const valueMatch = match.match(/:\s*"([^"\\]*(\\.[^"\\]*)*)"/);
-        if (valueMatch && valueMatch[1]) {
-          const text = valueMatch[1]
-            .replace(/\\n/g, '\n')
-            .replace(/\\t/g, '\t')
-            .replace(/\\"/g, '"')
-            .replace(/\\\\/g, '\\')
-            .trim();
-          if (text && text.length > 2) {
-            extractedTexts.add(text);
-          }
-        }
-      });
-    }
+    const result = await response.json();
+    const extractedTexts = result.extractedTexts || [];
 
     const uiElementsToRemove = [
       "Go to Canvas",
@@ -260,7 +246,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
       "Let's chat",
     ];
 
-    const filteredTexts = Array.from(extractedTexts).filter(line => {
+    const filteredTexts = extractedTexts.filter((line: string) => {
       if (line.length < 3) return false;
       if (uiElementsToRemove.some(ui => line.toLowerCase().includes(ui.toLowerCase()))) return false;
       if (line.match(/^Zoom (out|in) \(CTRL[+-]\)/)) return false;
@@ -282,6 +268,9 @@ async function extractWithBrowserless(url: string): Promise<string> {
       if (line.includes('function(') || line.includes('var ')) return false;
       if (line.startsWith('window.') || line.startsWith('document.')) return false;
       if (line.endsWith(' options')) return false;
+      // Filter out common UI element IDs and classes
+      if (line.match(/^(mural|mrl|skiplink|tooltip|button|container|sidebar|topbar|bottombar|modal|portal|separator|vertical|horizontal|dialog|menu|dropdown|widget|placeholder|scrollbar|live-region|focus-mode|zoom|undo|redo|avatar|member|brand|chevron|sticky|template|shapes|image|paste|mouse|drag|settings|iframe|visitor|brandSymbol|brandWordmark)[-_]?\w*$/i)) return false;
+      if (line.match(/^(true|false|auto|info|page|generic|assertive|separator|menu|dialog|sidebar)$/i)) return false;
       return true;
     });
 
@@ -304,20 +293,6 @@ async function extractWithBrowserless(url: string): Promise<string> {
 
     throw error;
   }
-}
-
-function decodeHtml(text: string): string {
-  return text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\\n/g, "\n")
-    .replace(/\\t/g, "\t")
-    .replace(/\\/g, "")
-    .trim();
 }
 
 function countElements(content: string): number {
