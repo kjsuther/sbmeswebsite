@@ -34,7 +34,7 @@ Deno.serve(async (req: Request) => {
   const startTime = Date.now();
 
   try {
-    const { url }: ExtractionRequest = await req.json();
+    const { url, apiKey }: ExtractionRequest & { apiKey?: string } = await req.json();
 
     if (!url) {
       return new Response(
@@ -68,7 +68,10 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const extractedContent = await extractWithBrowserless(url);
+    // Try ScrapingDog if API key is provided
+    const extractedContent = apiKey
+      ? await extractWithScrapingDog(url, apiKey)
+      : await extractWithBrowserless(url);
 
     const hasContent = extractedContent && extractedContent.trim().length > 50;
 
@@ -79,7 +82,7 @@ Deno.serve(async (req: Request) => {
       metadata: {
         elementsFound: countElements(extractedContent),
         processingTime: Date.now() - startTime,
-        extractionMethod: "browser-automation",
+        extractionMethod: apiKey ? "scrapingdog" : "browser-automation",
       },
     };
 
@@ -111,6 +114,81 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
+
+async function extractWithScrapingDog(url: string, apiKey: string): Promise<string> {
+  try {
+    // ScrapingDog API endpoint with dynamic rendering enabled
+    const scrapingDogUrl = new URL("https://api.scrapingdog.com/scrape");
+    scrapingDogUrl.searchParams.set("api_key", apiKey);
+    scrapingDogUrl.searchParams.set("url", url);
+    scrapingDogUrl.searchParams.set("dynamic", "true"); // Enable JavaScript rendering
+    scrapingDogUrl.searchParams.set("wait", "10000"); // Wait 10 seconds for content to load
+
+    console.log("Calling ScrapingDog API...");
+    const response = await fetch(scrapingDogUrl.toString());
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`ScrapingDog API error: ${response.status} - ${errorText}`);
+    }
+
+    const html = await response.text();
+    console.log(`ScrapingDog returned ${html.length} characters`);
+
+    // Parse HTML to extract text content
+    const textContent = extractTextFromHtml(html);
+    return textContent;
+  } catch (error) {
+    console.error("ScrapingDog extraction failed:", error);
+    throw error;
+  }
+}
+
+function extractTextFromHtml(html: string): string {
+  // Simple HTML text extraction - removes tags and extracts text
+  const texts = new Set<string>();
+
+  // Extract text from SVG text elements (Mural uses SVG)
+  const svgTextRegex = /<text[^>]*>([^<]+)<\/text>/gi;
+  let match;
+  while ((match = svgTextRegex.exec(html)) !== null) {
+    const text = match[1].trim();
+    if (text && text.length > 2) {
+      texts.add(text);
+    }
+  }
+
+  // Extract text from tspan elements
+  const tspanRegex = /<tspan[^>]*>([^<]+)<\/tspan>/gi;
+  while ((match = tspanRegex.exec(html)) !== null) {
+    const text = match[1].trim();
+    if (text && text.length > 2) {
+      texts.add(text);
+    }
+  }
+
+  // Extract general text content (removing HTML tags)
+  const cleanText = html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Split into lines and add unique ones
+  cleanText.split(/[.!?\n]+/).forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed.length > 10) {
+      texts.add(trimmed);
+    }
+  });
+
+  return Array.from(texts).join('\n\n');
+}
 
 async function extractWithBrowserless(url: string): Promise<string> {
   try {

@@ -3,6 +3,7 @@ import { TestTube, Loader2, CheckCircle, AlertCircle, ExternalLink } from 'lucid
 
 const MuralTester: React.FC = () => {
   const [muralUrl, setMuralUrl] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +42,7 @@ const MuralTester: React.FC = () => {
         headers,
         body: JSON.stringify({
           url: muralUrl,
+          apiKey: apiKey || undefined,
           username: username || undefined,
           password: password || undefined,
         }),
@@ -66,6 +68,7 @@ const MuralTester: React.FC = () => {
 
   const handleClear = () => {
     setMuralUrl('');
+    setApiKey('');
     setUsername('');
     setPassword('');
     setResult(null);
@@ -79,8 +82,8 @@ const MuralTester: React.FC = () => {
           <div>
             <h3 className="font-semibold text-blue-900">Mural Content Extraction Tester</h3>
             <p className="text-sm text-blue-700 mt-1">
-              Test extracting text content from Mural boards using browser automation. This tester will simulate
-              clicking "Enter as visitor" buttons and extract all visible content from the board.
+              Test extracting text content from Mural boards using ScrapingDog (JavaScript rendering) or browser automation.
+              This tester will handle dynamic content and extract all visible text from the board.
             </p>
           </div>
         </div>
@@ -129,15 +132,34 @@ const MuralTester: React.FC = () => {
             </p>
           </div>
 
+          <div>
+            <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 mb-1">
+              ScrapingDog API Key (Optional)
+            </label>
+            <input
+              type="password"
+              id="apiKey"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your ScrapingDog API key"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              If provided, uses ScrapingDog for faster extraction. Otherwise falls back to browser automation.
+            </p>
+          </div>
+
           <div className="border-t border-gray-200 pt-4">
             <p className="text-sm font-medium text-gray-700 mb-2">
               Extraction Mode
             </p>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
               <p className="text-xs text-gray-600">
-                This tester will automatically click "Enter as visitor" buttons and extract content
-                from boards with visitor access. For boards requiring full authentication, credentials
-                would need to be configured (not yet implemented).
+                {apiKey ? (
+                  <>Uses ScrapingDog API for JavaScript rendering and content extraction (faster, ~5-10 seconds)</>
+                ) : (
+                  <>Falls back to browser automation to click "Enter as visitor" and extract content (~10-30 seconds)</>
+                )}
               </p>
             </div>
           </div>
@@ -156,7 +178,7 @@ const MuralTester: React.FC = () => {
               ) : (
                 <>
                   <TestTube className="h-5 w-5" />
-                  <span>Extract with Browser Automation</span>
+                  <span>{apiKey ? 'Extract with ScrapingDog' : 'Extract with Browser Automation'}</span>
                 </>
               )}
             </button>
@@ -271,16 +293,26 @@ const MuralTester: React.FC = () => {
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h4 className="font-semibold text-sm text-gray-700 mb-2">How This Works</h4>
-        <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-          <li>Launches a headless browser to load the Mural board</li>
-          <li>Automatically detects and clicks "Enter as visitor" buttons</li>
-          <li>Waits for dynamic content to fully render</li>
-          <li>Extracts all visible text including sticky notes, shapes, and text boxes</li>
-          <li>Returns the complete board content for indexing and search</li>
-        </ul>
-        <p className="text-xs text-gray-500 mt-3">
-          Processing time: 10-30 seconds depending on board complexity and size
-        </p>
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">With ScrapingDog API:</p>
+            <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside ml-2">
+              <li>Renders JavaScript content using headless browsers</li>
+              <li>Waits for dynamic content to load (10 seconds)</li>
+              <li>Extracts all text from SVG elements and visible content</li>
+              <li>Faster processing (~5-10 seconds)</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Without API Key (Browser Automation):</p>
+            <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside ml-2">
+              <li>Launches headless browser with full automation</li>
+              <li>Clicks "Enter as visitor" buttons automatically</li>
+              <li>Waits for canvas and content to fully render</li>
+              <li>Slower but more interactive (~10-30 seconds)</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
