@@ -79,8 +79,30 @@ const MuralTester: React.FC = () => {
           <div>
             <h3 className="font-semibold text-blue-900">Mural Content Extraction Tester</h3>
             <p className="text-sm text-blue-700 mt-1">
-              Test extracting text content from Mural boards. This will help determine if automated extraction
-              is feasible for your boards before implementing the full content search feature.
+              Test extracting text content from Mural boards using browser automation. This tester will simulate
+              clicking "Enter as visitor" buttons and extract all visible content from the board.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-amber-900">Browser Automation Required</h4>
+            <p className="text-sm text-amber-700 mt-1">
+              Mural boards render content dynamically with JavaScript and require clicking "Enter as visitor"
+              buttons. This tester uses headless browser automation (Puppeteer) to:
+            </p>
+            <ul className="text-sm text-amber-700 mt-2 ml-4 space-y-1 list-disc">
+              <li>Load the Mural board in a real browser environment</li>
+              <li>Automatically click "Enter as visitor" buttons</li>
+              <li>Wait for content to fully load</li>
+              <li>Extract all visible text from the rendered board</li>
+            </ul>
+            <p className="text-xs text-amber-600 mt-2 font-medium">
+              Note: Extraction may take 10-30 seconds due to browser automation overhead.
             </p>
           </div>
         </div>
@@ -108,40 +130,16 @@ const MuralTester: React.FC = () => {
           </div>
 
           <div className="border-t border-gray-200 pt-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">
-              Optional: Authentication (if board requires login)
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              Extraction Mode
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                  Username/Email
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Optional"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Optional"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                />
-              </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
+              <p className="text-xs text-gray-600">
+                This tester will automatically click "Enter as visitor" buttons and extract content
+                from boards with visitor access. For boards requiring full authentication, credentials
+                would need to be configured (not yet implemented).
+              </p>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Leave blank if the board is shared with visitor access
-            </p>
           </div>
 
           <div className="flex space-x-3 pt-4">
@@ -158,7 +156,7 @@ const MuralTester: React.FC = () => {
               ) : (
                 <>
                   <TestTube className="h-5 w-5" />
-                  <span>Extract Content</span>
+                  <span>Extract with Browser Automation</span>
                 </>
               )}
             </button>
@@ -272,14 +270,17 @@ const MuralTester: React.FC = () => {
       )}
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 className="font-semibold text-sm text-gray-700 mb-2">What This Tests</h4>
+        <h4 className="font-semibold text-sm text-gray-700 mb-2">How This Works</h4>
         <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
-          <li>Whether the Mural board URL is accessible</li>
-          <li>If visitor access works without authentication</li>
-          <li>If provided credentials can authenticate successfully</li>
-          <li>What content can be extracted from the board</li>
-          <li>The feasibility of automated extraction for your specific boards</li>
+          <li>Launches a headless browser to load the Mural board</li>
+          <li>Automatically detects and clicks "Enter as visitor" buttons</li>
+          <li>Waits for dynamic content to fully render</li>
+          <li>Extracts all visible text including sticky notes, shapes, and text boxes</li>
+          <li>Returns the complete board content for indexing and search</li>
         </ul>
+        <p className="text-xs text-gray-500 mt-3">
+          Processing time: 10-30 seconds depending on board complexity and size
+        </p>
       </div>
     </div>
   );

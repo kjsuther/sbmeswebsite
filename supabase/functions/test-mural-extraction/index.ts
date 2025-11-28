@@ -20,7 +20,6 @@ interface ExtractionResponse {
     elementsFound?: number;
     processingTime?: number;
     extractionMethod?: string;
-    htmlSize?: number;
   };
 }
 
@@ -35,7 +34,7 @@ Deno.serve(async (req: Request) => {
   const startTime = Date.now();
 
   try {
-    const { url, username, password }: ExtractionRequest = await req.json();
+    const { url }: ExtractionRequest = await req.json();
 
     if (!url) {
       return new Response(
@@ -69,56 +68,18 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const fetchHeaders: Record<string, string> = {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    };
-
-    if (username && password) {
-      const authString = btoa(`${username}:${password}`);
-      fetchHeaders["Authorization"] = `Basic ${authString}`;
-    }
-
-    const response = await fetch(url, {
-      headers: fetchHeaders,
-      redirect: "follow",
-    });
-
-    if (!response.ok) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Failed to fetch Mural board: ${response.status} ${response.statusText}`,
-          metadata: {
-            processingTime: Date.now() - startTime,
-            extractionMethod: "direct-fetch",
-          },
-        }),
-        {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
-    const html = await response.text();
-
-    const extractedContent = extractContentFromHTML(html);
-    const htmlSize = html.length;
+    const extractedContent = await extractWithBrowserless(url);
 
     const hasContent = extractedContent && extractedContent.trim().length > 100;
 
     const result: ExtractionResponse = {
       success: hasContent,
-      content: hasContent ? extractedContent : `HTML received (${htmlSize} bytes) but minimal content extracted.\n\n${extractedContent}\n\n---\n\nThis likely means the Mural board uses JavaScript to render content dynamically. The page needs to be executed in a browser to access the actual board data.`,
-      error: hasContent ? undefined : "Mural board content is rendered with JavaScript and requires browser automation to extract. Basic HTML parsing cannot access the board data.",
+      content: extractedContent,
+      error: hasContent ? undefined : "Could not extract content from Mural board. The board may be inaccessible or requires authentication.",
       metadata: {
         elementsFound: countElements(extractedContent),
         processingTime: Date.now() - startTime,
-        extractionMethod: "html-parsing",
-        htmlSize,
+        extractionMethod: "browser-automation",
       },
     };
 
@@ -151,130 +112,111 @@ Deno.serve(async (req: Request) => {
   }
 });
 
-function extractContentFromHTML(html: string): string {
-  const content: string[] = [];
-  const foundTexts = new Set<string>();
+async function extractWithBrowserless(url: string): Promise<string> {
+  try {
+    const browserlessUrl = "https://chrome.browserless.io/content";
+    const browserlessToken = Deno.env.get("BROWSERLESS_TOKEN");
 
-  const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
-  if (titleMatch && titleMatch[1]) {
-    const title = decodeHtml(titleMatch[1].trim());
-    if (title && !title.includes("MURAL") && title !== "MURAL") {
-      content.push(`BOARD TITLE: ${title}\n`);
+    if (!browserlessToken) {
+      throw new Error("Browser automation is not configured. BROWSERLESS_TOKEN is missing.");
     }
-  }
 
-  const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
-  if (metaDescMatch && metaDescMatch[1]) {
-    const desc = decodeHtml(metaDescMatch[1].trim());
-    if (desc && desc.length > 10) {
-      content.push(`DESCRIPTION: ${desc}\n`);
-    }
-  }
+    const response = await fetch(`${browserlessUrl}?token=${browserlessToken}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url: url,
+        waitFor: 5000,
+        gotoOptions: {
+          waitUntil: "networkidle2",
+          timeout: 30000,
+        },
+        addScriptTag: [
+          {
+            content: `
+              (async () => {
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
-  const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
-  if (ogTitleMatch && ogTitleMatch[1]) {
-    const ogTitle = decodeHtml(ogTitleMatch[1].trim());
-    if (ogTitle && ogTitle.length > 2) {
-      content.push(`OG TITLE: ${ogTitle}\n`);
-    }
-  }
-
-  const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
-  if (scriptMatch) {
-    for (const script of scriptMatch) {
-      const scriptContent = script.replace(/<\/?script[^>]*>/gi, '');
-
-      const jsonObjectMatches = scriptContent.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
-      if (jsonObjectMatches) {
-        for (const jsonStr of jsonObjectMatches) {
-          try {
-            if (jsonStr.includes('"text"') || jsonStr.includes('"content"') ||
-                jsonStr.includes('"title"') || jsonStr.includes('"label"')) {
-
-              const textMatches = [
-                ...jsonStr.matchAll(/"(?:text|content|title|label|name|description)"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g)
-              ];
-
-              for (const match of textMatches) {
-                const text = decodeHtml(match[1] || '').trim();
-                if (text && text.length > 2 && !foundTexts.has(text)) {
-                  if (!text.includes('function') && !text.includes('window.') &&
-                      !text.startsWith('{') && !text.startsWith('[')) {
-                    foundTexts.add(text);
+                const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+                for (const button of buttons) {
+                  const text = button.textContent || button.getAttribute('aria-label') || '';
+                  if (text.toLowerCase().includes('enter') && text.toLowerCase().includes('visitor')) {
+                    button.click();
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                   }
                 }
-              }
-            }
-          } catch {
-            // Skip invalid JSON
-          }
-        }
-      }
 
-      const windowDataMatch = scriptContent.match(/window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\});/);
-      if (windowDataMatch) {
-        try {
-          const dataStr = windowDataMatch[1];
-          const textMatches = [...dataStr.matchAll(/"(?:text|content|title)"\s*:\s*"([^"]+)"/g)];
-          for (const match of textMatches) {
-            const text = decodeHtml(match[1]).trim();
-            if (text && text.length > 2 && !foundTexts.has(text)) {
-              foundTexts.add(text);
-            }
-          }
-        } catch {
-          // Skip
-        }
-      }
-    }
-  }
-
-  const dataAttributeMatches = html.match(/data-[a-z-]+\s*=\s*["']([^"']{10,})["']/gi);
-  if (dataAttributeMatches) {
-    for (const match of dataAttributeMatches) {
-      const valueMatch = match.match(/=\s*["']([^"']+)["']/);
-      if (valueMatch && valueMatch[1]) {
-        try {
-          const decoded = decodeURIComponent(valueMatch[1]);
-          if (decoded.includes('{') || decoded.includes('[')) {
-            const textMatches = [...decoded.matchAll(/"(?:text|content|title)"\s*:\s*"([^"]+)"/g)];
-            for (const textMatch of textMatches) {
-              const text = decodeHtml(textMatch[1]).trim();
-              if (text && text.length > 2 && !foundTexts.has(text)) {
-                foundTexts.add(text);
-              }
-            }
-          }
-        } catch {
-          // Skip
-        }
-      }
-    }
-  }
-
-  if (foundTexts.size > 0) {
-    content.push('\n=== EXTRACTED CONTENT ===\n');
-    Array.from(foundTexts).forEach((text, index) => {
-      content.push(`${index + 1}. ${text}`);
+                await new Promise(resolve => setTimeout(resolve, 3000));
+              })();
+            `,
+          },
+        ],
+      }),
     });
-  }
 
-  const allText = content.join('\n');
-
-  if (allText.trim().length < 50) {
-    content.push('\n\n=== DEBUG INFO ===');
-    content.push(`HTML Size: ${html.length} bytes`);
-    content.push(`Scripts found: ${scriptMatch?.length || 0}`);
-    content.push(`Contains __INITIAL_STATE__: ${html.includes('__INITIAL_STATE__')}`);
-    content.push(`Contains "mural": ${html.toLowerCase().includes('mural')}`);
-
-    const firstScript = scriptMatch?.[0]?.substring(0, 500);
-    if (firstScript) {
-      content.push(`\nFirst script preview:\n${firstScript}...`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Browserless API error: ${response.status} - ${errorText}`);
     }
-  }
 
-  return content.join('\n').trim();
+    const html = await response.text();
+
+    const extractedTexts = new Set<string>();
+
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const bodyContent = bodyMatch ? bodyMatch[1] : html;
+
+    const textMatches = bodyContent.match(/>([^<]+)</g);
+    if (textMatches) {
+      textMatches.forEach((match) => {
+        const text = match.slice(1, -1).trim();
+        if (text && text.length > 2) {
+          if (!/^[\d\s\W]+$/.test(text) &&
+              !text.includes('function(') &&
+              !text.includes('var ') &&
+              !text.startsWith('window.') &&
+              !text.startsWith('{') &&
+              !text.startsWith('[')) {
+            extractedTexts.add(text);
+          }
+        }
+      });
+    }
+
+    const dataAttributeMatches = bodyContent.match(/(?:data-text|aria-label|title)=["']([^"']+)["']/gi);
+    if (dataAttributeMatches) {
+      dataAttributeMatches.forEach((match) => {
+        const valueMatch = match.match(/=["']([^"']+)["']/);
+        if (valueMatch && valueMatch[1]) {
+          const text = decodeHtml(valueMatch[1]).trim();
+          if (text && text.length > 2) {
+            extractedTexts.add(text);
+          }
+        }
+      });
+    }
+
+    if (extractedTexts.size === 0) {
+      return "No content could be extracted. The Mural board may require authentication or have restricted access.";
+    }
+
+    return Array.from(extractedTexts).join('\n');
+
+  } catch (error) {
+    console.error('Browser automation extraction error:', error);
+
+    if (error instanceof Error && error.message.includes('BROWSERLESS_TOKEN')) {
+      throw new Error(
+        "Browser automation requires a Browserless.io account. " +
+        "Please configure BROWSERLESS_TOKEN environment variable or use manual content entry. " +
+        "Visit https://browserless.io to get a free API token."
+      );
+    }
+
+    throw error;
+  }
 }
 
 function decodeHtml(text: string): string {
