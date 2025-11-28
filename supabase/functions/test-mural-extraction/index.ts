@@ -133,59 +133,90 @@ async function extractWithBrowserless(url: string): Promise<string> {
 
             await new Promise(resolve => setTimeout(resolve, 3000));
 
-            // Click "Enter as visitor" button
+            // Click "Continue as visitor" button if present
             try {
-              const buttons = await page.$$('button, a, [role="button"]');
-              for (const button of buttons) {
-                const text = await page.evaluate(el => el.textContent || el.getAttribute('aria-label') || '', button);
-                if (text.toLowerCase().includes('enter') && text.toLowerCase().includes('visitor')) {
-                  await button.click();
-                  await new Promise(resolve => setTimeout(resolve, 5000));
-                  break;
-                }
+              const continueButton = await page.$('button:has-text("Continue as a visitor"), button:has-text("Enter as visitor")');
+              if (continueButton) {
+                await continueButton.click();
+                await new Promise(resolve => setTimeout(resolve, 3000));
               }
             } catch (e) {
-              console.log('Visitor button not found or already in visitor mode');
+              console.log('No visitor button found, continuing...');
             }
 
-            // Wait for content to load
-            await new Promise(resolve => setTimeout(resolve, 10000));
+            // Try to dismiss any modals or overlays
+            try {
+              const escapeButton = await page.keyboard.press('Escape');
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            } catch (e) {
+              console.log('Could not press escape');
+            }
+
+            // Wait for canvas to render - look for SVG or canvas elements
+            try {
+              await page.waitForSelector('svg, canvas', { timeout: 15000 });
+            } catch (e) {
+              console.log('Canvas elements not found in expected time');
+            }
+
+            // Additional wait for content to fully render
+            await new Promise(resolve => setTimeout(resolve, 8000));
+
+            // Take a screenshot to help debug what's visible
+            const screenshot = await page.screenshot({ encoding: 'base64', fullPage: false });
 
             // Extract all visible text content
             const extractedTexts = await page.evaluate(() => {
               const texts = new Set();
 
-              // Get all text from SVG text elements (Mural often uses SVG)
-              document.querySelectorAll('text, tspan').forEach(el => {
+              // Get all text from SVG text elements (Mural uses SVG for sticky notes)
+              document.querySelectorAll('svg text, svg tspan').forEach(el => {
                 const text = el.textContent?.trim();
                 if (text && text.length > 2) {
                   texts.add(text);
                 }
               });
 
-              // Get text from regular HTML elements
-              document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div, li, td, th').forEach(el => {
-                // Only get direct text content, not nested
-                const clone = el.cloneNode(true);
-                Array.from(clone.children).forEach(child => child.remove());
-                const text = clone.textContent?.trim();
+              // Look for specific Mural widget containers
+              document.querySelectorAll('[class*="widget"], [class*="sticky"], [class*="note"], [data-widget-id]').forEach(el => {
+                const text = el.textContent?.trim();
+                if (text && text.length > 5) {
+                  texts.add(text);
+                }
+              });
+
+              // Get text from contenteditable elements (editable text areas)
+              document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                const text = el.textContent?.trim();
                 if (text && text.length > 2) {
                   texts.add(text);
                 }
               });
 
-              // Look for data attributes that might contain text
-              document.querySelectorAll('[data-text], [data-content], [aria-label]').forEach(el => {
-                const dataText = el.getAttribute('data-text') || el.getAttribute('data-content') || el.getAttribute('aria-label');
-                if (dataText && dataText.trim().length > 2) {
-                  texts.add(dataText.trim());
+              // Get visible divs and spans that might contain content
+              document.querySelectorAll('div, span').forEach(el => {
+                // Skip if element is not visible
+                const style = window.getComputedStyle(el);
+                if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+                  return;
+                }
+
+                // Get direct text only
+                const text = Array.from(el.childNodes)
+                  .filter(node => node.nodeType === Node.TEXT_NODE)
+                  .map(node => node.textContent?.trim())
+                  .filter(text => text && text.length > 2)
+                  .join(' ');
+
+                if (text) {
+                  texts.add(text);
                 }
               });
 
               return Array.from(texts);
             });
 
-            return { extractedTexts };
+            return { extractedTexts, hasScreenshot: !!screenshot };
           };
         `,
       }),
@@ -208,6 +239,11 @@ async function extractWithBrowserless(url: string): Promise<string> {
       "Sign up for free",
       "Create an account",
       "Enter as a visitor",
+      "Continue as a visitor",
+      "Your visitor display name",
+      "By continuing, I agree",
+      "Privacy Notice",
+      "Collaborator Notice",
       "Skip Links",
       "Canvas Tools",
       "Getting Started",
@@ -244,6 +280,8 @@ async function extractWithBrowserless(url: string): Promise<string> {
       "you're using a trackpad",
       "Hello, have a question",
       "Let's chat",
+      "Highlight votes",
+      "favorite questions",
     ];
 
     const filteredTexts = extractedTexts.filter((line: string) => {
