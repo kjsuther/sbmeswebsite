@@ -131,7 +131,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
           export default async ({ page }) => {
             await page.goto('${url}', { waitUntil: 'networkidle2', timeout: 45000 });
 
-            await page.waitForTimeout(3000);
+            await new Promise(resolve => setTimeout(resolve, 3000));
 
             // Click "Enter as visitor" button
             try {
@@ -140,7 +140,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
                 const text = await page.evaluate(el => el.textContent || el.getAttribute('aria-label') || '', button);
                 if (text.toLowerCase().includes('enter') && text.toLowerCase().includes('visitor')) {
                   await button.click();
-                  await page.waitForTimeout(5000);
+                  await new Promise(resolve => setTimeout(resolve, 5000));
                   break;
                 }
               }
@@ -149,7 +149,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
             }
 
             // Wait for content to load
-            await page.waitForTimeout(10000);
+            await new Promise(resolve => setTimeout(resolve, 10000));
 
             // Extract all visible text content
             const extractedTexts = await page.evaluate(() => {
