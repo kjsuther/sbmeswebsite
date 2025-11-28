@@ -182,12 +182,30 @@ async function extractWithBrowserless(url: string): Promise<string> {
       });
     }
 
-    const dataAttributeMatches = cleanedContent.match(/(?:data-text|aria-label|title)=["']([^"']+)["']/gi);
-    if (dataAttributeMatches) {
-      dataAttributeMatches.forEach((match) => {
+    const allAttributeMatches = cleanedContent.match(/(?:data-[a-z-]+|aria-[a-z-]+|title|alt|placeholder|value)=["']([^"']+)["']/gi);
+    if (allAttributeMatches) {
+      allAttributeMatches.forEach((match) => {
         const valueMatch = match.match(/=["']([^"']+)["']/);
         if (valueMatch && valueMatch[1]) {
           const text = decodeHtml(valueMatch[1]).trim();
+          if (text && text.length > 2 && !text.startsWith('http') && !text.includes('//')) {
+            extractedTexts.add(text);
+          }
+        }
+      });
+    }
+
+    const jsonMatches = html.match(/"(?:text|content|title|question|answer|label)":\s*"([^"\\]*(\\.[^"\\]*)*)"/gi);
+    if (jsonMatches) {
+      jsonMatches.forEach((match) => {
+        const valueMatch = match.match(/:\s*"([^"\\]*(\\.[^"\\]*)*)"/);
+        if (valueMatch && valueMatch[1]) {
+          const text = valueMatch[1]
+            .replace(/\\n/g, '\n')
+            .replace(/\\t/g, '\t')
+            .replace(/\\"/g, '"')
+            .replace(/\\\\/g, '\\')
+            .trim();
           if (text && text.length > 2) {
             extractedTexts.add(text);
           }
