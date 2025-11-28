@@ -128,7 +128,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
       },
       body: JSON.stringify({
         code: `
-          module.exports = async ({ page }) => {
+          export default async ({ page }) => {
             await page.goto('${url}', { waitUntil: 'networkidle2', timeout: 45000 });
 
             await page.waitForTimeout(3000);
