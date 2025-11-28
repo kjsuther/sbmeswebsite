@@ -20,6 +20,7 @@ interface ExtractionResponse {
     elementsFound?: number;
     processingTime?: number;
     extractionMethod?: string;
+    htmlSize?: number;
   };
 }
 
@@ -105,34 +106,19 @@ Deno.serve(async (req: Request) => {
     const html = await response.text();
 
     const extractedContent = extractContentFromHTML(html);
+    const htmlSize = html.length;
 
-    if (!extractedContent || extractedContent.trim().length === 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Could not extract meaningful content from the Mural board. The board may use heavy JavaScript rendering that requires browser automation. Possible solutions: 1) Enable visitor access, 2) Provide valid credentials, 3) Use manual content entry, or 4) Future implementation with browser automation.",
-          metadata: {
-            processingTime: Date.now() - startTime,
-            extractionMethod: "html-parsing",
-          },
-        }),
-        {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
+    const hasContent = extractedContent && extractedContent.trim().length > 100;
 
     const result: ExtractionResponse = {
-      success: true,
-      content: extractedContent,
+      success: hasContent,
+      content: hasContent ? extractedContent : `HTML received (${htmlSize} bytes) but minimal content extracted.\n\n${extractedContent}\n\n---\n\nThis likely means the Mural board uses JavaScript to render content dynamically. The page needs to be executed in a browser to access the actual board data.`,
+      error: hasContent ? undefined : "Mural board content is rendered with JavaScript and requires browser automation to extract. Basic HTML parsing cannot access the board data.",
       metadata: {
         elementsFound: countElements(extractedContent),
         processingTime: Date.now() - startTime,
         extractionMethod: "html-parsing",
+        htmlSize,
       },
     };
 
@@ -167,64 +153,56 @@ Deno.serve(async (req: Request) => {
 
 function extractContentFromHTML(html: string): string {
   const content: string[] = [];
+  const foundTexts = new Set<string>();
 
   const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
   if (titleMatch && titleMatch[1]) {
     const title = decodeHtml(titleMatch[1].trim());
     if (title && !title.includes("MURAL") && title !== "MURAL") {
-      content.push(`TITLE: ${title}\n`);
+      content.push(`BOARD TITLE: ${title}\n`);
     }
   }
 
   const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
   if (metaDescMatch && metaDescMatch[1]) {
     const desc = decodeHtml(metaDescMatch[1].trim());
-    if (desc) {
+    if (desc && desc.length > 10) {
       content.push(`DESCRIPTION: ${desc}\n`);
     }
   }
 
-  const textMatches = html.match(/>([^<]+)</g);
-  if (textMatches) {
-    const textContent = textMatches
-      .map(match => {
-        const text = match.slice(1, -1).trim();
-        return decodeHtml(text);
-      })
-      .filter(text => {
-        if (!text || text.length < 3) return false;
-        if (/^[\d\s\W]+$/.test(text)) return false;
-        if (text.includes('{"')) return false;
-        if (text.includes('function(')) return false;
-        if (text.includes('var ')) return false;
-        if (text.startsWith('window.')) return false;
-        return true;
-      })
-      .filter((text, index, arr) => arr.indexOf(text) === index);
-
-    if (textContent.length > 0) {
-      content.push("\nEXTRACTED TEXT:\n");
-      content.push(textContent.join("\n"));
+  const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
+  if (ogTitleMatch && ogTitleMatch[1]) {
+    const ogTitle = decodeHtml(ogTitleMatch[1].trim());
+    if (ogTitle && ogTitle.length > 2) {
+      content.push(`OG TITLE: ${ogTitle}\n`);
     }
   }
 
   const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
   if (scriptMatch) {
     for (const script of scriptMatch) {
-      const jsonMatch = script.match(/\{[\s\S]*"text"\s*:\s*"([^"]+)"[\s\S]*\}/g);
-      if (jsonMatch) {
-        for (const json of jsonMatch) {
-          try {
-            const textMatches = json.match(/"text"\s*:\s*"([^"]+)"/g);
-            if (textMatches) {
-              const texts = textMatches
-                .map(m => m.match(/"text"\s*:\s*"([^"]+)"/)?.[1])
-                .filter(t => t && t.length > 2)
-                .map(t => decodeHtml(t || ""));
+      const scriptContent = script.replace(/<\/?script[^>]*>/gi, '');
 
-              if (texts.length > 0) {
-                content.push("\nFOUND IN DATA:\n");
-                content.push(texts.join("\n"));
+      const jsonObjectMatches = scriptContent.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+      if (jsonObjectMatches) {
+        for (const jsonStr of jsonObjectMatches) {
+          try {
+            if (jsonStr.includes('"text"') || jsonStr.includes('"content"') ||
+                jsonStr.includes('"title"') || jsonStr.includes('"label"')) {
+
+              const textMatches = [
+                ...jsonStr.matchAll(/"(?:text|content|title|label|name|description)"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/g)
+              ];
+
+              for (const match of textMatches) {
+                const text = decodeHtml(match[1] || '').trim();
+                if (text && text.length > 2 && !foundTexts.has(text)) {
+                  if (!text.includes('function') && !text.includes('window.') &&
+                      !text.startsWith('{') && !text.startsWith('[')) {
+                    foundTexts.add(text);
+                  }
+                }
               }
             }
           } catch {
@@ -232,10 +210,71 @@ function extractContentFromHTML(html: string): string {
           }
         }
       }
+
+      const windowDataMatch = scriptContent.match(/window\.__INITIAL_STATE__\s*=\s*(\{[\s\S]*?\});/);
+      if (windowDataMatch) {
+        try {
+          const dataStr = windowDataMatch[1];
+          const textMatches = [...dataStr.matchAll(/"(?:text|content|title)"\s*:\s*"([^"]+)"/g)];
+          for (const match of textMatches) {
+            const text = decodeHtml(match[1]).trim();
+            if (text && text.length > 2 && !foundTexts.has(text)) {
+              foundTexts.add(text);
+            }
+          }
+        } catch {
+          // Skip
+        }
+      }
     }
   }
 
-  return content.join("\n").trim();
+  const dataAttributeMatches = html.match(/data-[a-z-]+\s*=\s*["']([^"']{10,})["']/gi);
+  if (dataAttributeMatches) {
+    for (const match of dataAttributeMatches) {
+      const valueMatch = match.match(/=\s*["']([^"']+)["']/);
+      if (valueMatch && valueMatch[1]) {
+        try {
+          const decoded = decodeURIComponent(valueMatch[1]);
+          if (decoded.includes('{') || decoded.includes('[')) {
+            const textMatches = [...decoded.matchAll(/"(?:text|content|title)"\s*:\s*"([^"]+)"/g)];
+            for (const textMatch of textMatches) {
+              const text = decodeHtml(textMatch[1]).trim();
+              if (text && text.length > 2 && !foundTexts.has(text)) {
+                foundTexts.add(text);
+              }
+            }
+          }
+        } catch {
+          // Skip
+        }
+      }
+    }
+  }
+
+  if (foundTexts.size > 0) {
+    content.push('\n=== EXTRACTED CONTENT ===\n');
+    Array.from(foundTexts).forEach((text, index) => {
+      content.push(`${index + 1}. ${text}`);
+    });
+  }
+
+  const allText = content.join('\n');
+
+  if (allText.trim().length < 50) {
+    content.push('\n\n=== DEBUG INFO ===');
+    content.push(`HTML Size: ${html.length} bytes`);
+    content.push(`Scripts found: ${scriptMatch?.length || 0}`);
+    content.push(`Contains __INITIAL_STATE__: ${html.includes('__INITIAL_STATE__')}`);
+    content.push(`Contains "mural": ${html.toLowerCase().includes('mural')}`);
+
+    const firstScript = scriptMatch?.[0]?.substring(0, 500);
+    if (firstScript) {
+      content.push(`\nFirst script preview:\n${firstScript}...`);
+    }
+  }
+
+  return content.join('\n').trim();
 }
 
 function decodeHtml(text: string): string {
