@@ -250,7 +250,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
       if (line.match(/^(Templates|Sticky notes|Text|Shapes and connectors|Icons|Images|More tools)$/)) return false;
       if (line.match(/^Users, \d+ members$/)) return false;
       if (line.match(/Collaborate with .* and \d+ others/)) return false;
-      if (line.match(/Visiting (Shark|Rabbit)/)) return false;
+      if (line.match(/^Visiting \w+$/)) return false;
       if (line.match(/^(Hello, have a question|Let's chat)\.?$/)) return false;
       if (line.match(/Press enter to begin editing/i)) return false;
       if (line.match(/Double-click on the canvas/i)) return false;
