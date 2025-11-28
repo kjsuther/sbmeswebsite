@@ -133,34 +133,55 @@ async function extractWithBrowserless(url: string): Promise<string> {
 
             await new Promise(resolve => setTimeout(resolve, 3000));
 
-            // Click "Continue as visitor" button if present
+            // Look for visitor name input and fill it
             try {
-              const continueButton = await page.$('button:has-text("Continue as a visitor"), button:has-text("Enter as visitor")');
-              if (continueButton) {
-                await continueButton.click();
-                await new Promise(resolve => setTimeout(resolve, 3000));
+              const nameInput = await page.$('input[type="text"]');
+              if (nameInput) {
+                await nameInput.click();
+                await nameInput.type('Visitor');
+                await new Promise(resolve => setTimeout(resolve, 500));
               }
             } catch (e) {
-              console.log('No visitor button found, continuing...');
+              console.log('No name input found');
             }
 
-            // Try to dismiss any modals or overlays
+            // Look for and click checkbox (privacy agreement)
             try {
-              const escapeButton = await page.keyboard.press('Escape');
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              const checkbox = await page.$('input[type="checkbox"]');
+              if (checkbox) {
+                await checkbox.click();
+                await new Promise(resolve => setTimeout(resolve, 500));
+              }
             } catch (e) {
-              console.log('Could not press escape');
+              console.log('No checkbox found');
             }
 
-            // Wait for canvas to render - look for SVG or canvas elements
+            // Click "Continue as visitor" button
             try {
-              await page.waitForSelector('svg, canvas', { timeout: 15000 });
+              const buttons = await page.$$('button');
+              for (const button of buttons) {
+                const text = await page.evaluate(el => el.textContent || '', button);
+                if (text.toLowerCase().includes('continue')) {
+                  await button.click();
+                  console.log('Clicked continue button');
+                  await new Promise(resolve => setTimeout(resolve, 5000));
+                  break;
+                }
+              }
+            } catch (e) {
+              console.log('Could not click continue button:', e);
+            }
+
+            // Wait for canvas to load
+            try {
+              await page.waitForSelector('svg', { timeout: 15000 });
+              console.log('SVG canvas found');
             } catch (e) {
               console.log('Canvas elements not found in expected time');
             }
 
-            // Additional wait for content to fully render
-            await new Promise(resolve => setTimeout(resolve, 8000));
+            // Wait for content to render
+            await new Promise(resolve => setTimeout(resolve, 10000));
 
             // Take a screenshot to help debug what's visible
             const screenshot = await page.screenshot({ encoding: 'base64', fullPage: false });
