@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
 
     const extractedContent = await extractWithBrowserless(url);
 
-    const hasContent = extractedContent && extractedContent.trim().length > 100;
+    const hasContent = extractedContent && extractedContent.trim().length > 50;
 
     const result: ExtractionResponse = {
       success: hasContent,
@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
       metadata: {
         elementsFound: countElements(extractedContent),
         processingTime: Date.now() - startTime,
-        extractionMethod: "browser-automation-scrape",
+        extractionMethod: "browser-automation",
       },
     };
 
@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
 
 async function extractWithBrowserless(url: string): Promise<string> {
   try {
-    const browserlessUrl = "https://chrome.browserless.io/scrape";
+    const browserlessUrl = "https://chrome.browserless.io/content";
     const browserlessToken = Deno.env.get("BROWSERLESS_TOKEN");
 
     if (!browserlessToken) {
@@ -132,12 +132,6 @@ async function extractWithBrowserless(url: string): Promise<string> {
           waitUntil: "networkidle2",
           timeout: 30000,
         },
-        elements: [
-          {
-            selector: "body",
-            timeout: 10000,
-          }
-        ],
         addScriptTag: [
           {
             content: `
@@ -167,95 +161,103 @@ async function extractWithBrowserless(url: string): Promise<string> {
       throw new Error(`Browserless API error: ${response.status} - ${errorText}`);
     }
 
-    const result = await response.json();
+    const html = await response.text();
 
-    if (!result.data || result.data.length === 0) {
-      return "No content could be extracted. The Mural board may require authentication or have restricted access.";
+    const extractedTexts = new Set<string>();
+
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const bodyContent = bodyMatch ? bodyMatch[1] : html;
+
+    const scriptRegex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+    const styleRegex = /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi;
+    const cleanedContent = bodyContent.replace(scriptRegex, '').replace(styleRegex, '');
+
+    const textMatches = cleanedContent.match(/>([^<]+)</g);
+    if (textMatches) {
+      textMatches.forEach((match) => {
+        const text = match.slice(1, -1).trim();
+        if (text && text.length > 2) {
+          extractedTexts.add(text);
+        }
+      });
     }
 
-    const scrapedData = result.data[0];
-    let extractedText = scrapedData.text || "";
+    const dataAttributeMatches = cleanedContent.match(/(?:data-text|aria-label|title)=["']([^"']+)["']/gi);
+    if (dataAttributeMatches) {
+      dataAttributeMatches.forEach((match) => {
+        const valueMatch = match.match(/=["']([^"']+)["']/);
+        if (valueMatch && valueMatch[1]) {
+          const text = decodeHtml(valueMatch[1]).trim();
+          if (text && text.length > 2) {
+            extractedTexts.add(text);
+          }
+        }
+      });
+    }
 
     const uiElementsToRemove = [
-      /Go to (Canvas|Shortcuts|Navigation Controls)/gi,
-      /Unlock additional collaboration features/gi,
-      /Log in/gi,
-      /Sign up for free/gi,
-      /Press enter to begin editing.*/gi,
-      /Add objects/gi,
-      /Double-click on the canvas.*/gi,
-      /Drag text, shapes.*/gi,
-      /Drag and drop images.*/gi,
-      /Paste links and files.*/gi,
-      /Move around/gi,
-      /Use your mouse to zoom/gi,
-      /Click and drag to move/gi,
-      /Check Zoom Settings.*/gi,
-      /Getting Started/gi,
-      /Create an account/gi,
-      /Enter as a visitor/gi,
-      /Skip Links/gi,
-      /Mural (canvas|Notification Bar|Top Bar|options|Sidebar|Bottom Panel|Right Column).*/gi,
-      /Canvas Tools/gi,
-      /Templates/gi,
-      /Sticky notes/gi,
-      /Text/gi,
-      /Shapes and connectors/gi,
-      /Icons/gi,
-      /Images/gi,
-      /More tools/gi,
-      /Show more sessions/gi,
-      /Close/gi,
-      /Voting/gi,
-      /Present/gi,
-      /Comments/gi,
-      /Users, \d+ members/gi,
-      /Help/gi,
-      /Profile and account/gi,
-      /Nothing to (undo|redo)/gi,
-      /Move mode/gi,
-      /Navigation settings/gi,
-      /Map/gi,
-      /Zoom (out|in) \(CTRL[+-]\)/gi,
-      /Focus mode/gi,
-      /Hello, have a question.*/gi,
-      /Mural home page/gi,
-      /Collaborate with .* and \d+ others/gi,
-      /Reactions/gi,
-      /Visiting Shark.*/gi,
-      /Next/gi,
-      /navigation/gi,
-      /MiniMap/gi,
-      />>>\d+/g,
-      />>0\?1:0/g,
-      /<<<\d+/g,
+      "Go to Canvas",
+      "Go to Shortcuts",
+      "Go to Navigation Controls",
+      "Unlock additional collaboration features",
+      "Log in",
+      "Sign up for free",
+      "Create an account",
+      "Enter as a visitor",
+      "Skip Links",
+      "Canvas Tools",
+      "Getting Started",
+      "Add objects",
+      "Move around",
+      "Voting",
+      "Present",
+      "Comments",
+      "Help",
+      "Profile and account",
+      "Nothing to undo",
+      "Nothing to redo",
+      "Move mode",
+      "Navigation settings",
+      "Map",
+      "Focus mode",
+      "Mural home page",
+      "Reactions",
+      "Next",
+      "navigation",
+      "MiniMap",
+      "Show more sessions",
+      "Close",
+      "utilities",
     ];
 
-    uiElementsToRemove.forEach(pattern => {
-      extractedText = extractedText.replace(pattern, '');
+    const filteredTexts = Array.from(extractedTexts).filter(line => {
+      if (line.length < 3) return false;
+      if (uiElementsToRemove.some(ui => line.toLowerCase().includes(ui.toLowerCase()))) return false;
+      if (line.match(/^Zoom (out|in) \(CTRL[+-]\)/)) return false;
+      if (line.match(/^Mural (canvas|Notification Bar|Top Bar|options|Sidebar|Bottom Panel|Right Column|Reconnecting Overlay|Bottom Bar)/i)) return false;
+      if (line.match(/^(Templates|Sticky notes|Text|Shapes and connectors|Icons|Images|More tools)$/)) return false;
+      if (line.match(/^Users, \d+ members$/)) return false;
+      if (line.match(/Collaborate with .* and \d+ others/)) return false;
+      if (line.match(/Visiting Shark/)) return false;
+      if (line.match(/^(Hello, have a question|Let's chat)\.?$/)) return false;
+      if (line.match(/Press enter to begin editing/i)) return false;
+      if (line.match(/Double-click on the canvas/i)) return false;
+      if (line.match(/Drag (text|and drop)/i)) return false;
+      if (line.match(/Use your mouse to zoom/i)) return false;
+      if (line.match(/Click and drag to move/i)) return false;
+      if (line.match(/Check Zoom Settings/i)) return false;
+      if (line.match(/^<\d+%$/)) return false;
+      if (line.match(/^\d+$/)) return false;
+      if (line.includes('function(') || line.includes('var ')) return false;
+      if (line.startsWith('window.') || line.startsWith('document.')) return false;
+      return true;
     });
 
-    const lines = extractedText
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => {
-        if (line.length < 3) return false;
-        if (/^[<>&|^~*+\-=()[\]{}:;,."'`]+$/.test(line)) return false;
-        if (line.includes('>>>') || line.includes('<<<')) return false;
-        if (line.includes('function(') || line.includes('var ')) return false;
-        if (line.startsWith('window.') || line.startsWith('document.')) return false;
-        if (line.match(/^\d+$/)) return false;
-        if (line.match(/^[<>%]+$/)) return false;
-        return true;
-      });
-
-    const uniqueLines = [...new Set(lines)];
-
-    if (uniqueLines.length === 0) {
+    if (filteredTexts.length === 0) {
       return "No meaningful content could be extracted from the Mural board.";
     }
 
-    return uniqueLines.join('\n');
+    return filteredTexts.join('\n');
 
   } catch (error) {
     console.error('Browser automation extraction error:', error);
@@ -270,6 +272,20 @@ async function extractWithBrowserless(url: string): Promise<string> {
 
     throw error;
   }
+}
+
+function decodeHtml(text: string): string {
+  return text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\\n/g, "\n")
+    .replace(/\\t/g, "\t")
+    .replace(/\\/g, "")
+    .trim();
 }
 
 function countElements(content: string): number {
