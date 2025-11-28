@@ -228,6 +228,18 @@ async function extractWithBrowserless(url: string): Promise<string> {
       "Show more sessions",
       "Close",
       "utilities",
+      "Go to the signup page",
+      "Edit Mural title",
+      "mural-actions",
+      "secondary-actions",
+      "Mural Right Sidebar",
+      "reaction-tools-collaborators",
+      "Visiting Rabbit",
+      "Visiting Shark",
+      "Paste links and files",
+      "you're using a trackpad",
+      "Hello, have a question",
+      "Let's chat",
     ];
 
     const filteredTexts = Array.from(extractedTexts).filter(line => {
@@ -238,7 +250,7 @@ async function extractWithBrowserless(url: string): Promise<string> {
       if (line.match(/^(Templates|Sticky notes|Text|Shapes and connectors|Icons|Images|More tools)$/)) return false;
       if (line.match(/^Users, \d+ members$/)) return false;
       if (line.match(/Collaborate with .* and \d+ others/)) return false;
-      if (line.match(/Visiting Shark/)) return false;
+      if (line.match(/Visiting (Shark|Rabbit)/)) return false;
       if (line.match(/^(Hello, have a question|Let's chat)\.?$/)) return false;
       if (line.match(/Press enter to begin editing/i)) return false;
       if (line.match(/Double-click on the canvas/i)) return false;
@@ -246,10 +258,12 @@ async function extractWithBrowserless(url: string): Promise<string> {
       if (line.match(/Use your mouse to zoom/i)) return false;
       if (line.match(/Click and drag to move/i)) return false;
       if (line.match(/Check Zoom Settings/i)) return false;
+      if (line.match(/^&lt;\d+%$/)) return false;
       if (line.match(/^<\d+%$/)) return false;
       if (line.match(/^\d+$/)) return false;
       if (line.includes('function(') || line.includes('var ')) return false;
       if (line.startsWith('window.') || line.startsWith('document.')) return false;
+      if (line.endsWith(' options')) return false;
       return true;
     });
 
