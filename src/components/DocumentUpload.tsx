@@ -40,7 +40,6 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
     setError(null);
     setSuccess(false);
     setProgress(null);
-    setThrottleWarning(null);
 
     const validation = validateFile(file);
     if (!validation.valid) {
