@@ -14,7 +14,7 @@ const Home: React.FC = () => {
                 MES Modernization
                 <span className="block text-mn-accent-yellow">MES Bake Off Challenge</span>
               </h1>
-              <p className="text-xl text-white leading-relaxed">
+              <p className="text-xl text-white font-medium leading-relaxed drop-shadow-lg">
                 Join us in transforming Minnesota's Medicaid Enterprise Systems through innovative partnerships,
                 strategic collaboration, and cutting-edge technology solutions. This is your opportunity to shape
                 the future of government services delivery.
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
                 </Link>
                 <Link
                   to="/mes-modernization"
-                  className="inline-flex items-center justify-center px-8 py-3 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-mn-primary transition-colors duration-200"
+                  className="inline-flex items-center justify-center px-8 py-3 bg-white text-mn-primary font-semibold rounded-lg hover:bg-mn-neutral-yellow hover:text-mn-primary transition-colors duration-200 shadow-lg"
                 >
                   View Strategy
                 </Link>
