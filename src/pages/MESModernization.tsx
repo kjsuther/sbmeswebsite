@@ -65,30 +65,6 @@ const MESModernization: React.FC = () => {
         </div>
       </section>
 
-      {/* Strategy Overview */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-mn-primary mb-4">
-              Strategy Overview
-            </h2>
-            <p className="text-xl text-gray-700">
-              [Placeholder text] Detailed overview of our strategic approach to MES modernization.
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <Link
-              to="/mes-training"
-              className="inline-flex items-center justify-center px-8 py-3 bg-mn-accent-yellow text-mn-primary font-semibold rounded-lg hover:bg-mn-neutral-yellow transition-colors"
-            >
-              Take MES Modernization Training
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Call to Action */}
       <section className="py-16 bg-mn-primary text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
