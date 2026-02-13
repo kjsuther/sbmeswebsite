@@ -72,9 +72,6 @@ const MESModernization: React.FC = () => {
             <h2 className="text-3xl font-bold text-mn-primary mb-4">
               Strategy Overview
             </h2>
-            <p className="text-xl text-gray-700">
-              [Placeholder text] Detailed overview of our strategic approach to MES modernization.
-            </p>
           </div>
           
           <div className="text-center">
