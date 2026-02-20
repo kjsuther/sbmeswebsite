@@ -1,0 +1,392 @@
+[
+  {
+    "slice_code": "1A",
+    "slice_description": "New applicant (ineligible for MA, but eligible for MSP)",
+    "customer_journey": "Taylor Jones is a single adult enrolled in Medicare (Part A), applying for Medicaid\nTaylor Jones – Applicant",
+    "persona_definition": "Age: 67\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $1,000/mo. SS, $400/mo. earned income\nAssets (Countable): $4,000\nResidency: State Resident\nCitizenship: US Citizen\nTax Filing Status: Single File\nGender: Female",
+    "expected_result": "Taylor is found not eligible for MAGI and is enrolled in SLMB and is given information about the results of her eligibility determination including why she is not eligible for MA and other programs she may be eligible for (Medicare Part D, Spenddown, private insurance, etc)",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the ability to create an integrated solution that achieves the desired new enrollment end-to-end outcomes",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1B",
+    "slice_description": "Household Change",
+    "customer_journey": "Taylor's niece, Jordan loses her housing and moves in with Taylor.\nTaylor reports this as a change (which is unnecessary)\nTaylor Jones (Active SLMB Recipient)\nNo changes\nJordan Jones (Reported as a new household member)\nmo Earned Income",
+    "persona_definition": "Age: 36\nMarital Status: Single\nIncome: $2800/mo Earned Income\nAssets: $4000\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Separate filer\nGender: Female",
+    "expected_result": "Taylor maintains her SLMB eligibility. Jordan is notified she would need to apply separately if interested in Medicaid eligibility. Jordan is NOT added to Taylor's Medicaid case and does not affect Taylor's eligibility. Jordan is also not eligible for Medicaid. Taylor is informed about the household composition rules for Medicaid.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the solution's ability to:\nAccept and manage reported changes to existing cases (including messaging to indicate when a change to the case is unnecessary)\nProvide clear messaging and guidance to members",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1C",
+    "slice_description": "Reduce Income",
+    "customer_journey": "Taylor loses her job\nTaylor Jones (Active SLMB Recipient)\n$400/mo. earned income",
+    "persona_definition": "Age: 67\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $1,000/mo. SS\nAssets (Countable): $4,000\nResidency: State Resident\nCitizenship: US Citizen\nTax Filing Status: Single File\nGender: Female",
+    "expected_result": "Taylor moves from SLMB to QMB",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the solution's ability to process:\nEffective-dated changes\nNew eligibility determinations on an existing case",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1D",
+    "slice_description": "Annual Redetermination (Version 1 - Auto Renew)",
+    "customer_journey": "Taylor reaches her annual redetermination date\nTaylor Jones (Active QMB Recipient)",
+    "persona_definition": "(Scenario assumption: the information is available to auto renew the case)\nAge: 67\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $1,000/mo. SS\nAssets (Countable): $4,000\nResidency: State Resident\nCitizenship: US Citizen\nTax Filing Status: Single File\nGender: Female",
+    "expected_result": "Taylor's benefits are renewed for another year automatically",
+    "outcomes": "Ongoing Benefit Maintenance\nRenewal Completion Rate (Auto Renew %)\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the solution's ability to process ExParte Renewals and effectively and process an auto renewal\nAuto renewal logic",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1E",
+    "slice_description": "Annual Redetermination (Version 2 - Manual Review Required)",
+    "customer_journey": "Taylor reaches her annual redetermination date\nTaylor Jones (Active QMB Recipient)",
+    "persona_definition": "(Scenario assumption: the case could be auto-renewed, but we don't receive the needed information to verify, requiring a verification with Tayor)\nAge: 67\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $1,000/mo. SS\nAssets (Countable): $4,000\nResidency: State Resident\nCitizenship: US Citizen\nTax Filing Status: Single File\nGender: Female",
+    "expected_result": "Taylor's case is evaluated for ExParte auto renewal, but requires manual review and validation by Taylor. Taylor is presented with her full case details to validate and confirm.\nTaylor's benefits are renewed for another year.",
+    "outcomes": "Ongoing Benefit Maintenance\nRenewal Completion Rate (Auto Renew %)\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the solution's ability to process ExParte Renewals and effectively navigate missing information / interaction with the member covering:\nAuto renewal logic\nMissing information requiring client response",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1F",
+    "slice_description": "New Enrollment",
+    "customer_journey": "Jordan takes a new job paying less than she was previously making and applies for Medicaid.\nJordan requests retro-months, but isn't eligible.\n(Even though Taylor and Jordan live together, Taylor is not a part of this case or scenario)\nTaylor Jones (Active QMB Recipient)\nNo Change\nJordan Jones (Applying for Medicaid)\n$2800/mo $1600/mo Earned Income",
+    "persona_definition": "Age: 36\nMarital Status: Single\nIncome: $1600/mo Earned Income\nAssets (Countable): $4000\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Separate filer\nGender: Female",
+    "expected_result": "Jordan is eligible for MAGI Medicaid (but ineligible for retroactive eligibility) and is set up on a separate Medicaid case from Taylor.\nJordan is informed about the household composition rules for Medicaid (if Taylor is mentioned in Jordan's application)\nJordan and Taylor are unable to access information or receive notifications about each other's cases.",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction\nCustomer satisfaction",
+    "slice_focus": "Evaluates additional MAGI eligibility criteria and retroactive eligibility logic.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1G",
+    "slice_description": "Asset reduction increases coverage and authorized rep",
+    "customer_journey": "Taylor reports a reduction in assets and also adds Jordan as an authorized rep on the case\nTaylor Jones (Active QMB Recipient)\n$4,000 $2,000\nRequires an authorized rep\nJordan Jones (Active Medicaid Recipient)\nNo Change",
+    "persona_definition": "Age: 67\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $1,000/mo. SS\nAssets (Countable): $2,000\nResidency: State Resident\nCitizenship: US Citizen\nTax Filing Status: Single File\nGender: Female",
+    "expected_result": "Taylor retains her Medicare and QMB coverage and is newly determined eligible for Medicaid ABD coverage. Taylor receives an eligibility notice that communicates the evaluation of her situation through the full program hierarchy and explains the eligibility decision.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluates new elements of the process:\nAbility to change eligibility based on a reported change\nAuthorized rep",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1H",
+    "slice_description": "Household Change and Spend-Down Transition",
+    "customer_journey": "Taylor gets married to Alex, a 68-year-old part-time worker with earned income.\nAlex is not applying for coverage – he is covered by Medicare and is worried about estate planning\nTaylor Jones (Active Medicaid Recipient)\nSingle File Married filing jointly\nAlex Parnel (New Household Member)\nmo Earned Income\nJordan Jones (Active Medicaid Recipient)\nNo Change",
+    "persona_definition": "Age: 67\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $1,000/mo. SS\nAssets (Countable): $2,000\nTax filing status: Married filing jointly\nAge: 68\nMarital Status: Married\nIncome: $2,200/mo Earned Income\nAssets (Countable): $5,000\nTax filing status: Married filing jointly",
+    "expected_result": "Following the reported marriage and income update:\nTaylor's combined household income exceeds the standard ABD Medicaid income limit\nTaylor transitions from full ABD Medicaid eligibility to spend-down Medicaid eligibility\nMedicare and QMB coverage continue without disruption\nThe system calculates and applies a monthly spend-down liability\nTaylor receives notices explaining\nHer new spend-down eligibility\nCommunication and explanation of the determination based on the full program hierarchy\nThe monthly spend-down amount she must meet through medical expenses\nInstructions for reporting expenses or making payments.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluates the ability to add new household members affecting eligibility and handle spend down complexity",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1I",
+    "slice_description": "Asset change for household",
+    "customer_journey": "Alex sells property for $100,000 and now must reduce assets for Taylor to maintain eligibility for MA.\nNow Taylor's Assets are calculated above $18,000 due to asset deeming from spouse\nTaylor Jones (Active Medicaid Recipient)\nMarried filing jointly\nAlex Parnel (Household Member)\nmo Earned Income\n$5,000 $105,000\nJordan Jones (Active Medicaid Recipient)\nNo Change",
+    "persona_definition": "Age: 67\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $1,000/mo. SS\nAssets (Countable): $2,000\nTax filing status: Married filing jointly\nAge: 68\nMarital Status: Married\nIncome: $2,200/mo Earned Income\nAssets (Countable): $105,000\nTax filing status: Married filing jointly",
+    "expected_result": "Following the reported marriage and income update:\nTaylor and Alex's combined household assets exceeds the standard ABD Medicaid asset limit\nMedicare and QMB coverage continue without disruption\nTaylor receives notices explaining\nThe HH is over assets and must reduce to maintain eligibility for MA\n10-Day notice of MA Closure.\nInstructions for reducing assets and reporting requirements.\nThe case closes if assets have not been reduced in 30 days",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluates the ability to account for an asset reduction and to pend eligibility until proof is provided that assets are reduced, and close the case if assets are not reduced.\nDemonstrate improved automation and connectivity to verification systems (like AVS)",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1J",
+    "slice_description": "Pregnancy",
+    "customer_journey": "Jordan becomes pregnant. Father is not in the household and does not expect to claim the newborn on taxes.\nJordan notifies the agency of the pregnancy with a future due date\nJordan Jones (Active Medicaid Recipient)\nLiving with Taylor and Alex (not part of the Medicaid Household)\n$1600/mo Earned Income\nPregnant",
+    "persona_definition": "Age: 36\nMarital Status: Single\nIncome: $1600/mo Earned Income\nAssets (Countable): $4000\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Separate filer\nGender: Female",
+    "expected_result": "Jordan's eligibility status updates to PX back to date of conception.\nAll Child Support notifications are paused and set to trigger Post-partum.\nAbility to track child support due dates to send initial and follow-up notifications.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction\nReduction of undue notifications (postponement of medical support notices)",
+    "slice_focus": "Ability to update MA-PX status to date of conception through 12 months post-partum, even with adverse changes to the case.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1K",
+    "slice_description": "Give birth",
+    "customer_journey": "Jordan gives birth and reports newborn- Tyler Jones\nJordan Jones (Active Medicaid Recipient)\nLiving with Taylor and Alex (not part of the Medicaid Household)\n$1600/mo Earned Income\nPregnant\nTyler Jones\nNewborn\nTax dependent of Jordan",
+    "persona_definition": "Age: 36\nMarital Status: Single\nIncome: $1600/mo Earned Income\nAssets (Countable): $4000\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Separate filer\nGender: Female",
+    "expected_result": "Newborn receives Auto-newborn eligibility and interfaced.\nNotification with Tyler's unique identifier (PMI) and insurance information sent to household.\nAutomatic enrollment to Managed Care based on mother's enrollment.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ability to update MA-11 status through age six, even with adverse changes to the case.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1L",
+    "slice_description": "Additional pregnancy",
+    "customer_journey": "Jordan becomes pregnant again. Father is not in the household and does not expect to claim the newborn on taxes.\nJordan Jones (Active Medicaid Recipient)\nLiving with Taylor and Alex (not part of the Medicaid Household)\n$1600/mo Earned Income\nPregnant\nTyler Jones\nNewborn\nTax dependent of Jordan",
+    "persona_definition": "Age: 36\nMarital Status: Single\nIncome: $1600/mo Earned Income\nAssets (Countable): $4000\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Separate filer\nGender: Female",
+    "expected_result": "Jordan's eligibility status updates to PX back to date of conception.\nAll Child Support notifications are paused and set to trigger Post-partum.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Demonstrate being able to effectively manage additional pregnancies",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1M",
+    "slice_description": "Remove child from the home",
+    "customer_journey": "At age 2, Tyler Jones is removed from Jordan's household\nJordan Jones (Active Medicaid Recipient)\nLiving with Taylor and Alex (not part of the Medicaid Household)\n$1600/mo Earned Income\nTyler Jones\nNewborn\nRemoved from HH",
+    "persona_definition": "Age: 36\nMarital Status: Single\nIncome: $1600/mo Earned Income\nAssets (Countable): $4000\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Separate filer\nGender: Female",
+    "expected_result": "No change is eligibility for Jordan- remains MA eligible. Tyler remains covered by Medicaid due to continuous eligibility for children up to age 6.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluates the ability to process eligibility changes resulting from a member leaving the household.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1N",
+    "slice_description": "Foster Care",
+    "customer_journey": "Tyler Jones enters Foster Care.\nSocial Services notifies the County Agency of Tyler's eligibility for Medicaid.\nTyler Jones\nRemoved from HH",
+    "persona_definition": "Age: 2\nMarital Status: Single\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: non-filer\nGender: Male",
+    "expected_result": "Tyler is added to a new Foster Care case, back dated to date of removal from previous HH.\nNotification of new enrollment sent.\nNew submitted information about Tyler is merged with existing known information already in the system for Tyler and duplicate records /PMIs are not created",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluates Foster Care eligibility processing",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1O",
+    "slice_description": "Adoption",
+    "customer_journey": "Jim and Sheryl Jamison are adopting Tyler Jones\nJim and Sheryl are not on Medicaid.\nState notifies the County Agency of Tyler's adoption.\nTyler Jones\nAdopted into new HH",
+    "persona_definition": "Age: 2\nMarital Status: Single\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: non-filer\nGender: Male",
+    "expected_result": "Tyler moves from Foster Care to Adoption Assistance coverage. Adopted family is notified of the coverage.\nNew submitted information about Tyler is merged with existing known information already in the system for Tyler and duplicate records /PMIs are not created",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ability to process AA eligibility",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "1P",
+    "slice_description": "Annual Reviews for automatically eligible cases",
+    "customer_journey": "A year has passed since Tyler's adoption, triggering the annual review process. No changes have occurred for Tyler\nTyler Jones",
+    "persona_definition": "(note: this would be performed for all cases with automatic eligibility at annual review dates)\nAge: 3\nMarital Status: Single\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: non-filer\nGender: Male",
+    "expected_result": "Tyler remains covered – the agency has confirmed contact information for Tyler and that he remains an adoptee of Jim and Sheryl Jamison.\nAnnual Renewal notice sent to household.\nNew submitted information about Tyler is merged with existing known information already in the system for Tyler and duplicate records /PMIs are not created",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluates the ability to perform annual reviews for cases with automatic eligibility.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "2A",
+    "slice_description": "New Disability Application with Spenddown",
+    "customer_journey": "Marcus Benzo is 45, and receives RSDI for advanced Multiple Sclerosis (MS). His income is too high for standard Medicaid, but is applying for Medically Needy with a spenddown\nMarcus Benzo (Applicant)\nmo mo for medications, therapies, and personal care not covered by Medicare",
+    "persona_definition": "Age: 45\nMarital Status: Single\nRSDI Income: $1,650/mo\nAssets: $1,800 savings\nExpenses: $850/mo for medications, therapies, and personal care not covered by Medicare",
+    "expected_result": "Marcus is determined eligible for Medically Needy with Spenddown. He is notified he must provide ongoing documentation of monthly medical expenses.",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the new enrollment flow for a disabled applicant with a spenddown",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "3A",
+    "slice_description": "New application for LTC Facility",
+    "customer_journey": "Morgen fell and broke her hip and determines she cannot continue to live at home safely. She applies for LTC.\nShe gave her vehicle to her son 5 months prior to application.\nMorgan Welsh\nMedicare Recipient\n$1000/mo RSDI Income\nVehicle transfer with a value of $15,930",
+    "persona_definition": "Age: 76\nMarital Status: Single\nIncome: $1000/mo RSDI Income\nAssets (Countable): $2000 bank account\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Filer\nGender: Female",
+    "expected_result": "Receives a level of care assessment, qualifying her for facility coverage.\nUncompensated transfer penalty of 1.5 months applied to case and LTC eligibility start date is delayed.\nReceives eligibility for MA for 1.5 months during transfer penalty.",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ability to process LTC eligibility and applying transfer penalty. (with the ability to apply transfer penalty waiver for hardship).",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "4A",
+    "slice_description": "Children with a MA basis due to disability turning 18",
+    "customer_journey": "Jenna Highland is disabled and receives Medicaid under SSI on a disabled basis. She turned 18 years old today, resulting in the loss of disability status as a child, triggering a potential eligibility change.\nJenna Highland",
+    "persona_definition": "Age: just turned 18\nIncome: 0\nDisability status: not-disabled (as of turning 18)",
+    "expected_result": "New disability determination completed – Jenna is no longer considered disabled\nJenna's eligibility is reviewed – continues to be eligible for Medicaid under MA-CX (MAGI Medicaid).\nNo loss in Medicaid benefits during this transition.",
+    "outcomes": "Ongoing Benefit Maintenance\nCustomer satisfaction",
+    "slice_focus": "Evaluate the ability of the solution to handle eligibility changes triggered by a loss of SSI benefits – invoking the evaluation of the full program hierarchy.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "5B",
+    "slice_description": "Tribal enrollment – MA application",
+    "customer_journey": "Janice Redforly, a descendant of Red Lake Nation living with limited access to phone and internet, submits application for Medical Assistance\nJanice Redforly\nmo Earned Income",
+    "persona_definition": "Age: 34\nMarital Status: Single\nIncome: $1200/mo Earned Income\nPhone / Internet Access: Limited\nCitizenship: US Citizen\nTax filing status: Single\nGender: Male\nTribal Membership: Red Lake Nation descendant",
+    "expected_result": "Janice is enrolled in Medicaid\nJanice receives support and notifications for her application",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate processing scenarios for limited phone/internet access individuals and an alternative tribal enrollment scenario.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "6A",
+    "slice_description": "Multiple PMI – Newborn (also on a food support case)",
+    "customer_journey": "Sheri Smith applies for Medicaid at the hospital for her newborn child, Frankie.\nSheri is on Food support. Frankie is added to the Food Support case prior to the Medicaid application with no SSN. An SSN is available when the application is submitted to Medicaid.\nSheri Smith\n$1600/mo Earned Income\nFrankie\nNewborn\nTax dependent of Sheri",
+    "persona_definition": "Age: 36\nMarital Status: Single\nIncome: $1600/mo Earned Income\nAssets (Countable): $4000\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Separate filer\nGender: Female",
+    "expected_result": "Frankie is associated with existing information already known and considered one person rather than multiple.",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ensuring the solution does not create multiple instances of the same individuals and associates data appropriately to each individual (including ensuring duplicate records are not created across programs)",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "6B",
+    "slice_description": "Multiple PMI – Same person applies with alternative demographic details",
+    "customer_journey": "Later in life, Frankie has changed his name to Frankle Franz and is applying on his own for Medicaid\nFrankle Franz\n$1700/mo Earned Income",
+    "persona_definition": "Age: 20\nMarital Status: Single\nIncome: $1700/mo Earned Income\nResidency: State Resident\nCitizenship: US Citizen\nTax filing status: Single filer\nGender: Male",
+    "expected_result": "Frankle is associated with existing information already known and considered one person rather than multiple.",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ensuring the solution does not create multiple instances of the same individuals and associates data appropriately to each individual.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "7A",
+    "slice_description": "MA-EPD New Application",
+    "customer_journey": "Felicia Alverez is disabled and working. She hears about coverage available and applies for Medicaid\nFelicia Alverez",
+    "persona_definition": "Disabled Status: Certified disabled through SMRT/SSA\nIncome: 1,200 / month earned income, $1,400 / month RSDI\nAge: 49\nAssets:\nCitizenship: US Citizen\nMarital Status: Single",
+    "expected_result": "Felicia is determined eligible for MA-EPD\nHer premium is calculated and communicated\nCoverage begins only once a first premium has been paid",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate MA-EPD and the ability to calculate and track premiums",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "7B",
+    "slice_description": "MA-EPD – Income decrease due to job loss",
+    "customer_journey": "Felicia is laid off from her job and reports this as a change to the agency\nFelicia Alverez\n1,200 / month earned income,\n$1,400 / month RSDI",
+    "persona_definition": "Disabled Status: Certified disabled through SMRT/SSA\nIncome: $1,400 / month RSDI\nAge: 49\nAssets:\nCitizenship: US Citizen\nMarital Status: Single",
+    "expected_result": "Felicia remains open on MA-EPD while she looks for a job as long as premiums continue to be paid\nPremium recalculated, based on beneficial change reported.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate Premium recalculation and the fact that the case remains open for 4 months post job loss",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "7C",
+    "slice_description": "MA-EPD – Income Increase due to marriage",
+    "customer_journey": "Felicia gets married to Armando Takati, increasing her countable income\nFelicia Alverez\nIncome $1,400 / month RSDI\nMarried\nArmando Takati",
+    "persona_definition": "Disabled Status: Certified disabled through SMRT/SSA\nAge: 49\nAssets:\nCitizenship: US Citizen\nMarital Status: Married\nIncome: $1,000 / month earned income",
+    "expected_result": "Premium is not recalculated until the next renewal (unless beneficial change is reported)",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate Premium recalculation due to a change in counted income",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "8A",
+    "slice_description": "Work Requirements (\"Community Engagement\") – New Enrollment",
+    "customer_journey": "Joanie Fischer, a part-time student applies for Medicaid\nJoanie Fischer\nNot a part of work requirement exceptions (Tribes, fully disabled veterans, parents or caregivers with children age 13 and under or of disabled individuals, pregnant women, former foster youth, and those deemed \"medically frail\" or with special medical needs (including substance use disorder) are exempt.)\nPart-time student (used as the rationale for meeting community engagement req)",
+    "persona_definition": "Age: 23 years old (needs to be 19-64)\nHH: 1 – no children\nIncome: 0",
+    "expected_result": "Joanie is eligible/enrolled in MAGI Medicaid\nHer student status is confirmed/verified to meet the community engagement requirements",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate how work requirements (community engagement) could be implemented for a new enrollment in Medicaid",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "8B",
+    "slice_description": "Work Requirements (\"Community Engagement\") – 6 Month renewal",
+    "customer_journey": "6 months have passed since Joanie was enrolled in MAGI Medicaid\nJoanie Fischer\nNot a part of work requirement exceptions (Tribes, fully disabled veterans, parents or caregivers with children age 13 and under or of disabled individuals, pregnant women, former foster youth, and those deemed \"medically frail\" or with special medical needs (including substance use disorder) are exempt.)\nPart-time student (used as the rationale for meeting community engagement req)",
+    "persona_definition": "Age: 23 years old (needs to be 19-64)\nHH: 1 – no children\nIncome: 0",
+    "expected_result": "Joanie is renewed for another 6 months\nHer student status is confirmed/verified to meet the community engagement requirements",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate how work requirements (\"community engagement\") is verified at 6 month renewal",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "8C",
+    "slice_description": "Work Requirements (\"Community Engagement\") – No longer meeting work requirements",
+    "customer_journey": "6 months have passed – Joanie is no longer a part-time student\nJoanie Fischer\nNot a part of work requirement exceptions (Tribes, fully disabled veterans, parents or caregivers with children age 13 and under or of disabled individuals, pregnant women, former foster youth, and those deemed \"medically frail\" or with special medical needs (including substance use disorder) are exempt.)\nPart-time student (used as the rationale for meeting community engagement req)",
+    "persona_definition": "Age: 23 years old (needs to be 19-64)\nHH: 1 – no children\nIncome: 0",
+    "expected_result": "Joanie is discontinued from MAGI Medicaid\nShe receives notice that she is not eligible due to no longer meeting work requirements",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the discontinuance of Medicaid members who do not meet Work requirements",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "8D",
+    "slice_description": "Work Requirements (\"Community Engagement\") – New enrollment with employment",
+    "customer_journey": "Joanie gets a job and meets work requirements\nJoanie Fischer",
+    "persona_definition": "Age: 23 years old (needs to be 19-64)\nHH: 1 – no children\nIncome: $600/month",
+    "expected_result": "Joanie is verified as meeting work requirements\nJoanie is eligible/enrolled in MAGI Medicaid",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate how work requirements (community engagement) are verified for someone who is working.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "8E",
+    "slice_description": "Work Requirements (\"Community Engagement\") – New Enrollment with an exemption",
+    "customer_journey": "Joanie is in a car accident and claims exemption from work requirements as a result.\nJoanie Fischer\nClaiming Exemption from work requirements",
+    "persona_definition": "Age: 23 years old (needs to be 19-64)\nHH: 1 – no children\nIncome: 0",
+    "expected_result": "Joanie is verified as exempt from work requirements\nJoanie is eligible/enrolled in MAGI Medicaid",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate how work requirements (community engagement) could be implemented for an individual exempt from the community engagement requirements",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "9A",
+    "slice_description": "Retro-eligibility at application",
+    "customer_journey": "Diane Chase applies for Medicaid in May and has bills prior to application. Requests retroactive eligibility.\nDiane Chase",
+    "persona_definition": "Age: 54 years old\nHH: 1 – no children\nIncome: 0",
+    "expected_result": "Diane is found eligible for MA and eligibility begins 3 months prior to application date\nRetro months are covered/paid as FFS rather than MCO\nDiane is notified that she can re-send bills for payment within the 3 month retro period\nRetroactive eligibility changes from 3 months (currently) to one month for adults without children and two months for all others in Jan 2027.",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ability to add retro-active eligibility to the case.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "9B",
+    "slice_description": "Retro-eligibility after application",
+    "customer_journey": "Grant Olson applied and was approved for Medicaid in May but calls the agency in November to report bills prior to application.\nGrant Olson",
+    "persona_definition": "Age: 49 years old\nHH: 1 – no children\nIncome: 0",
+    "expected_result": "Grant is approved for retro month coverage prior to his Medicaid start date\nRetro months are covered/paid as FFS rather than MCO\nNotices sent to Grant to prove medical bills and income prior to application (Feb, Mar, Apr)., pending verification",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ability to add retro-active eligibility to the case up to 12 months from original application date or date reported (IA & MCRE cases)",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "10A",
+    "slice_description": "Incarceration",
+    "customer_journey": "Robert Smith is active with MA and becomes incarcerated.\nRobert Smith\nBecomes Incarcerated on June 28th, with no anticipated release date.",
+    "persona_definition": "Age: 42 years old\nHH: 3- Spouse & Child\nIncome: $1700",
+    "expected_result": "Robert's MA is paused, and systems are updated with incarceration dates and exclusions.\nNotices are sent to Robert at facility.\nNo pause in other HH member's coverage.\nMailing address updated to facility for incarcerated individual.\nManaged care is ended the following month allowing for 10-day notification\nManaged care exclusion added to systems.",
+    "outcomes": "dsdf",
+    "slice_focus": "Ability to update systems, pause healthcare eligibility during incarceration, and return eligibility after release with no effect to other members.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "10B",
+    "slice_description": "Incarceration- released",
+    "customer_journey": "Robert Smith is released from jail.\nRobert Smith\nReleased from jail on 8/12/25.",
+    "persona_definition": "Age: 42 years old\nHH: 3- Spouse & Child\nIncome: $1700",
+    "expected_result": "Robert's MA is opened starting day of release\nSystems are updated with incarceration end dates.\nNotices are sent to Robert at current mailing address.\nNo pause in other HH member's coverage.\nMailing address updated to current address.\nManaged care is opened the following month allowing for 10-day notification\nManaged care exclusion removed systems.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ability to re-start Medicaid coverage for an eligible member who is no longer incarcerated.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "10C",
+    "slice_description": "Incarceration- moved to treatment",
+    "customer_journey": "Robert Smith is released from jail and seeks treatment at an in-person facility.\nRobert Smith\nReleased from jail on 8/12/25.\nMoved in to residential treatment facility.",
+    "persona_definition": "Age: 42 years old\nHH: 3- Spouse & Child\nIncome: $1700",
+    "expected_result": "Robert's MA is opened starting day of release\nSystems are updated with incarceration end dates.\nNotices are sent to Robert at current mailing address.\nNo pause in other HH member's coverage.\nMailing address updated to new facility address.\nManaged care is opened the following month allowing for 10-day notification\nManaged care exclusion removed systems.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Ability to re-start Medicaid coverage for an eligible member who is no longer incarcerated and update facility.",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "11A",
+    "slice_description": "Emergency Medical Assistance",
+    "customer_journey": "Anastasia applies for medical assistance for emergency and is undocumented.\nAnastasia Soroka\nNo SSN",
+    "persona_definition": "Age: 32\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $0\nResidency: State Resident\nCitizenship: undocumented\nTax Filing Status: none\nGender: Female",
+    "expected_result": "Anastasia receives EMA, meeting all other Medicaid eligibility requirements.",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the ability to process emergency medical assistance applications",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "11B",
+    "slice_description": "Emergency Medical Assistance – loss of MA eligibility",
+    "customer_journey": "Frederick was covered by MA as a Humanitarian Parolee, but is now ineligible due to citizenship policy status\nFrederick Lukanak\nHumanitarian Parolee",
+    "persona_definition": "Age: 37\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $0\nResidency: State Resident\nCitizenship: Humanitarian Parolee\nTax Filing Status: none\nGender: Male",
+    "expected_result": "System flags for immigration/citizenship\nMA case closes",
+    "outcomes": "Ongoing Benefit Maintenance\nAgency effectiveness (staff effort and satisfaction)",
+    "slice_focus": "Evaluate the ability to process EMA for someone losing MA coverage due to new eligibility guidelines (loss of qualified immigration status)",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "12A",
+    "slice_description": "Minnesota Care",
+    "customer_journey": "Bill applies for MHCP in November.\nBill Anderson\nNot enrolled in Medicare\nUS Citizen",
+    "persona_definition": "Age: 49\nDisability Status: Not Disabled\nMarital Status: Single\nIncome: $22,850 (annually)\nResidency: State Resident\nTax Filing Status: single filer\nGender: Male",
+    "expected_result": "Bill is over income for MA, but is found eligible for MNCare.",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the new enrollment flow for applicant over income for MA",
+    "state_project_manager": ""
+  },
+  {
+    "slice_code": "12B",
+    "slice_description": "MNCare",
+    "customer_journey": "Tracy & Patrick apply for MHCP in November, but has access to employer sponsored coverage.\nTracy Brown (52) & Patrick Brown (50)\nNot enrolled in Medicare\nUS Citizen\nEmployee Only- $0\nEmployee +1- $4000 annually",
+    "persona_definition": "Disability Status: Not Disabled\nMarital Status: Married\nHH Income: $37,000 (annually)\nResidency: State Resident\nTax Filing Status: Married Filing Jointly\nGender: Female\nEmployer Coverage: Employee Only- $0, Employee +1- $4000 annually",
+    "expected_result": "• Tracy is over income for MA, and found ineligible for MNCare with access to affordable employer coverage.\n• Patrick is over income for MA, and eligible for MNCare with unaffordable employer coverage (premiums over 9.02% of annual HH income)",
+    "outcomes": "New enrollment\nElapsed processing duration\nAgency effectiveness (staff effort and satisfaction)\nCustomer satisfaction",
+    "slice_focus": "Evaluate the new enrollment flow for family over income for MA and has access to employer sponsored coverage.",
+    "state_project_manager": ""
+  }
+]
